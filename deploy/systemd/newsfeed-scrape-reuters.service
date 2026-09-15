@@ -12,7 +12,12 @@ EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
 # Playwright's bundled Chromium, Chrome for Testing and curl with 401. xvfb-run gives that window a
 # display of its own, so the run does not depend on someone being logged in, and does not put a
 # Chrome window in front of whoever is.
-ExecStart=/usr/bin/xvfb-run -a --server-args="-screen 0 1920x1080x24" %h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources reuters
+# --max-pages is a backstop, not the normal stop. A section normally stops at the first listing
+# page where the store already holds every story, which is one or two pages once the store is
+# caught up. The cap only binds on a store that is behind, where an uncapped run would walk a
+# section's whole archive: tens of thousands of requests from the one IP DataDome trusts. Ten
+# pages is far more than an hour of news for any section.
+ExecStart=/usr/bin/xvfb-run -a --server-args="-screen 0 1920x1080x24" %h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources reuters --max-pages 10
 TimeoutStartSec=45min
 Nice=10
 IOSchedulingClass=idle

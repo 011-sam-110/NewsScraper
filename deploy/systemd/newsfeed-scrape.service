@@ -8,7 +8,12 @@ Wants=network-online.target
 Type=oneshot
 WorkingDirectory=%h/NewsScraper
 EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
-ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources bbc guardian pbs nyt
+# --max-pages is a backstop, not the normal stop. A section normally stops at the first listing
+# page where the store already holds every story, which is one or two pages once the store is
+# caught up. The cap only binds on a store that is behind, where an uncapped run would walk a
+# section's whole archive: tens of thousands of requests from the one IP DataDome trusts. Ten
+# pages is far more than an hour of news for any section.
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources bbc guardian pbs nyt --max-pages 10
 # The store stops each section at the first page holding no new story, so a healthy run is short.
 # A run that is not short has hit a parser or a listing problem; kill it rather than let it overlap
 # the next hour. systemd will not start a second instance while this one is active.

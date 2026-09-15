@@ -66,13 +66,17 @@ runs KDE with a polkit agent, so `pkexec` raises a password dialog on the logged
 pkexec /usr/bin/dnf install -y <packages>
 ```
 
-Seed the store with a bounded run, because an empty store has nothing to stop a section early and
-`--max-pages 0` would walk every listing to its end (up to 500 pages for PBS):
+Seed the store with a bounded run, because an empty store has nothing to stop a section early:
 
 ```
 .venv/bin/python -m newsfeed scrape --sources bbc guardian pbs nyt --max-pages 2
+xvfb-run -a .venv/bin/python -m newsfeed scrape --sources reuters --max-pages 2
 .venv/bin/python -m newsfeed status
 ```
+
+Seed depth and the timers' `--max-pages 10` are separate numbers, and the seed one does not matter
+much. A section seeded two pages deep simply fills in up to ten pages on the next scheduled run,
+then settles at one or two.
 
 Then install the timers:
 
@@ -87,6 +91,13 @@ sudo loginctl enable-linger $USER    # so the timers survive a logout
 |---|---|---|
 | `newsfeed-scrape.timer` | hourly, on the hour | BBC, the Guardian, PBS, NYT |
 | `newsfeed-scrape-reuters.timer` | hourly, at 20 past | Reuters, under `xvfb-run` |
+
+Both run with `--max-pages 10`. That is a backstop, not the normal stop. A section normally stops
+at the first listing page where the store already holds every story, which is one or two pages once
+the store is caught up. The cap matters only when the store is behind: an uncapped run there walks
+a section's whole archive, which for `reuters:ukraine-russia-war` is hundreds of pages and tens of
+thousands of requests from the one IP DataDome trusts. Ten pages is far more than an hour of news
+for any section.
 
 Reuters runs on its own timer and under a virtual display because it drives a visible Google Chrome
 window. `xvfb-run` gives that window a display of its own, so the run does not need anyone logged
@@ -140,5 +151,6 @@ listing. Two things follow:
 
 - No health check, so an outlet can go quiet and nothing alerts (M10). `status` is the manual check.
 - A section's transient error is not retried inside the run. It is isolated, so the outlet's other sections still run, and the next hourly run collects what it missed.
+- There is no history backfill. The pipeline watches for new stories, and `--max-pages 10` deliberately stops a run walking an archive. If Sam ever wants history, it is a separate one-off job, run slowly and not on the schedule.
 - Text is stored for BBC, the Guardian, PBS and Reuters. NYT sends no text, by design.
 - Nothing reads the store yet. `extract` (M5) is the next stage that does.
