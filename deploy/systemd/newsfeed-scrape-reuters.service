@@ -1,0 +1,21 @@
+[Unit]
+Description=NewsScraper: scrape Reuters into the store, through a real Chrome window
+Documentation=file:///home/sampo/NewsScraper/docs/ARCHITECTURE.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/NewsScraper
+EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
+# Reuters is fetched from inside installed Google Chrome with a visible window: DataDome answers
+# Playwright's bundled Chromium, Chrome for Testing and curl with 401. xvfb-run gives that window a
+# display of its own, so the run does not depend on someone being logged in, and does not put a
+# Chrome window in front of whoever is.
+ExecStart=/usr/bin/xvfb-run -a --server-args="-screen 0 1920x1080x24" %h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources reuters
+TimeoutStartSec=45min
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=default.target

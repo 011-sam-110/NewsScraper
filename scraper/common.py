@@ -11,6 +11,16 @@ A source is a module with:
         authors, word_count ...), fills fields the listing left empty; it never overwrites them.
     close() -> None
         (optional) Called when the outlet is done, in the same thread that scraped it.
+
+scrape() and scrape_source() take an optional store sink. With no sink they behave exactly as they
+always have: every row is written to output_dir/<outlet>/<section>.jsonl and each section is walked
+to the end of its listing. With a sink they write to the sink instead of to JSON Lines, skip the
+article page of a story the sink already has, and stop a section at the first listing page holding
+no new story for it (docs/ARCHITECTURE.md section 7.5). A sink has three methods:
+
+    known(row) -> bool        Is this row already stored for row["section"]?
+    needs_text(row) -> bool   Does this story's article page still need fetching?
+    save(row) -> None         Store the row. Called once per row, in the outlet's thread.
 """
 
 from __future__ import annotations
@@ -23,6 +33,7 @@ import sys
 import threading
 import xml.etree.ElementTree as ElementTree
 from concurrent.futures import ThreadPoolExecutor, wait
+from contextlib import contextmanager
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from types import ModuleType
@@ -174,6 +185,16 @@ def log(message: str, stream: TextIO | None = None) -> None:
         print(message, file=stream)
 
 
+@contextmanager
+def section_output(folder: Path, section: str, sink: Any | None) -> Any:
+    """The section's JSON Lines file, or None when a sink is storing the rows instead."""
+    if sink is not None:
+        yield None
+        return
+    with (folder / f"{section}.jsonl").open("w", encoding="utf-8") as output:
+        yield output
+
+
 def scrape(
     output_dir: Path,
     jobs: list[tuple[ModuleType, str]],
@@ -181,6 +202,7 @@ def scrape(
     delay: float,
     max_pages: int,
     include_text: bool,
+    sink: Any | None = None,
 ) -> tuple[dict[str, int], dict[str, str]]:
     """Scrape every outlet at the same time, one thread each, to output_dir/<outlet>/<section>.jsonl.
 
@@ -201,7 +223,7 @@ def scrape(
         futures = {
             pool.submit(
                 scrape_source, source, sections, output_dir / source.NAME,
-                size, delay, max_pages, include_text, totals, stop,
+                size, delay, max_pages, include_text, totals, stop, sink,
             ): source.NAME
             for source, sections in sections_by_source.items()
         }
@@ -233,6 +255,7 @@ def scrape_source(
     include_text: bool,
     totals: dict[str, int],
     stop: threading.Event,
+    sink: Any | None = None,
 ) -> None:
     """Scrape one outlet's sections in turn. Adds each saved page's row count to totals[source.NAME].
 
@@ -244,22 +267,32 @@ def scrape_source(
     # This holds every story's text in memory for the outlet's run: about 10 KB a story.
     article_pages: dict[str, tuple[Any, ...]] = {}
     details = getattr(source, "article_details", None)
-    folder.mkdir(parents=True, exist_ok=True)
+    if sink is None:
+        folder.mkdir(parents=True, exist_ok=True)
     try:
         for section in sections:
             section_total = 0
             page_count = 0
             seen: set[str] = set()
-            with (folder / f"{section}.jsonl").open("w", encoding="utf-8") as output:
+            with section_output(folder, section, sink) as output:
                 while (max_pages == 0 or page_count < max_pages) and not stop.is_set():
                     new_rows = []
+                    # With a sink, a page where the sink knows every row is the end of the new
+                    # stories in this section, so the section stops there instead of walking the
+                    # listing back to where it ends.
+                    page_all_known = True
                     for row in source.list_page(section, page_count, size):
                         key = str(row["id"] or row["url"] or row["headline"])
                         if key in seen:
                             continue
                         seen.add(key)
                         row = {"outlet": source.NAME, "section": section, **row}
-                        if include_text and details and row["url"] and not row["text"]:
+                        want_text = bool(include_text and details and row["url"] and not row["text"])
+                        if sink is not None:
+                            if not sink.known(row):
+                                page_all_known = False
+                            want_text = want_text and sink.needs_text(row)
+                        if want_text:
                             if row["url"] not in article_pages:
                                 article_pages[row["url"]] = details(row["url"]) or (None, {})
                                 stop.wait(delay)
@@ -276,9 +309,13 @@ def scrape_source(
                         break
 
                     for row in new_rows:
-                        output.write(json.dumps(row, ensure_ascii=False) + "\n")
+                        if output is None:
+                            sink.save(row)
+                        else:
+                            output.write(json.dumps(row, ensure_ascii=False) + "\n")
                         log(f"[{source.NAME}] {row['headline'] or '(untitled)'}\n{row['url'] or ''}\n")
-                    output.flush()
+                    if output is not None:
+                        output.flush()
                     section_total += len(new_rows)
                     totals[source.NAME] += len(new_rows)
                     page_count += 1
@@ -287,6 +324,13 @@ def scrape_source(
                         f"section total {section_total}.",
                         sys.stderr,
                     )
+                    if page_all_known and sink is not None:
+                        log(
+                            f"{source.NAME}:{section}: the store already had every story on this page; "
+                            "stopping this section.",
+                            sys.stderr,
+                        )
+                        break
                     stop.wait(delay)
     finally:
         close = getattr(source, "close", None)

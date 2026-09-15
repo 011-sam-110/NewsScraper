@@ -20,7 +20,7 @@ python main.py --list-sections
 python main.py                                  # every section of every outlet
 python main.py --sources bbc pbs --max-pages 3
 python main.py --sections reuters:africa -o news
-python -m unittest discover -s tests            # 136 tests, offline fixtures
+python -m unittest discover -s tests            # 214 tests, offline fixtures
 ```
 
 Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code is 1 if any outlet failed.
@@ -33,7 +33,10 @@ Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code
 - `scraper/feeds.py`: helpers for feed-only outlets (NYT).
 - Register a new outlet in `scraper/__init__.py`.
 - `tests/fixtures/<outlet>/`: saved real responses. There is no `tests/__init__.py`, so filter tests with `-k`.
+- `newsfeed/`: the hosted pipeline (store, stages). `main.py` does not use it.
+- `deploy/`: systemd units, the settings example and the installer for the host.
 - `docs/ARCHITECTURE.md`: the design for the AI layer and the Provenance upload.
+- `docs/HOST.md`: the runbook for the machine that runs the schedule.
 
 ## Outlets
 
@@ -63,13 +66,20 @@ Reuters is the risk. It launches installed Google Chrome with a visible window (
 
 ## Known gaps before this can run on a schedule
 
-These are real defects for a hosted job. Fix them before adding a scheduler.
+1. ~~**Every run overwrites the last run.**~~ Closed by M1. A scheduled run writes to the store, not to JSON Lines. `main.py` still writes JSON Lines, and still with `"w"`, which is what a one-shot CLI should do.
+2. ~~**Nothing persists between runs.**~~ Closed by M1. Stories, aliases and section labels live in SQLite, and a section stops at the first listing page holding no new story.
+3. **No health check.** An outlet can stop sending new stories and nothing fails. Still open: the health stage is milestone M10. Until then `python -m newsfeed status` is the manual check.
 
-1. **Every run overwrites the last run.** `scrape_source` opens each section file with `"w"`.
-2. **Nothing persists between runs.** The seen set lives only while the process runs. With `--max-pages 0` each run walks every section back to where the listing ends (up to 500 pages for PBS).
-3. **No health check.** An outlet can stop sending new stories and nothing fails.
+## The hosted pipeline
 
-The fixes are designed in `docs/ARCHITECTURE.md`. The SQLite store and the early section stop (sections 7.4 and 7.5, milestone M1) close gaps 1 and 2. The health stage (section 7.11, milestone M10) closes gap 3.
+`newsfeed/` is the hosted pipeline, designed in `docs/ARCHITECTURE.md` and built one milestone at a time. `docs/HOST.md` is the runbook for the host machine.
+
+```
+python -m newsfeed scrape --sources bbc guardian pbs nyt   # M1, on an hourly systemd timer
+python -m newsfeed status                                  # what the store holds, per outlet
+```
+
+Built: the store and the scrape stage (M1). Every other stage exits 2 and names its milestone. The store lives in `NEWSFEED_DATA_DIR`, never in this checkout.
 
 ## Design summary
 

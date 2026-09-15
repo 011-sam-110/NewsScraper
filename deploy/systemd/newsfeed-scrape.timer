@@ -1,0 +1,12 @@
+[Unit]
+Description=NewsScraper: hourly scrape of BBC, the Guardian, PBS and NYT
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=5min
+# Catch up after the machine was asleep or off, so a gap does not silently stay a gap.
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

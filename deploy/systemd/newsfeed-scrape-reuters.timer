@@ -1,0 +1,13 @@
+[Unit]
+Description=NewsScraper: hourly Reuters scrape
+
+[Timer]
+# Offset from the other four outlets so a Chrome launch does not land on the same minute.
+# systemd adds every OnCalendar entry, so there is exactly one here.
+OnCalendar=*-*-* *:20:00
+RandomizedDelaySec=5min
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

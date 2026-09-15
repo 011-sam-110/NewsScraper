@@ -1,0 +1,20 @@
+[Unit]
+Description=NewsScraper: scrape BBC, the Guardian, PBS and NYT into the store
+Documentation=file:///home/sampo/NewsScraper/docs/ARCHITECTURE.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/NewsScraper
+EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources bbc guardian pbs nyt
+# The store stops each section at the first page holding no new story, so a healthy run is short.
+# A run that is not short has hit a parser or a listing problem; kill it rather than let it overlap
+# the next hour. systemd will not start a second instance while this one is active.
+TimeoutStartSec=45min
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=default.target
