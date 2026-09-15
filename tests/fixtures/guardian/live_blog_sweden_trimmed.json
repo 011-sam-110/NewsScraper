@@ -1,0 +1,797 @@
+{
+ "headline": "Swedish centre-left opposition widens lead to three seats with 95% of votes counted – Europe live",
+ "webPublicationDate": "2026-09-14T12:23:43.000Z",
+ "pageId": "world/live/2026/sep/14/sweden-election-magdalena-andersson-social-democrats-centre-left-latest-news-updates",
+ "contentType": "LiveBlog",
+ "format": {
+  "design": "LiveBlogDesign",
+  "theme": "NewsPillar",
+  "display": "StandardDisplay"
+ },
+ "tags": [
+  {
+   "id": "world/series/europe-live-with-jakub-krupa",
+   "type": "Series",
+   "title": "Europe live with Jakub Krupa"
+  },
+  {
+   "id": "world/world",
+   "type": "Keyword",
+   "title": "World news"
+  },
+  {
+   "id": "world/sweden",
+   "type": "Keyword",
+   "title": "Sweden"
+  },
+  {
+   "id": "world/europe-news",
+   "type": "Keyword",
+   "title": "Europe"
+  },
+  {
+   "id": "type/article",
+   "type": "Type",
+   "title": "Article"
+  },
+  {
+   "id": "tone/minutebyminute",
+   "type": "Tone",
+   "title": "Minute by minute"
+  },
+  {
+   "id": "tone/news",
+   "type": "Tone",
+   "title": "News"
+  },
+  {
+   "id": "profile/jakub-krupa",
+   "type": "Contributor",
+   "title": "Jakub Krupa",
+   "bylineImageUrl": "https://i.guim.co.uk/img/uploads/2025/01/22/Jakub_Krupa.jpg?width=300&quality=85&auto=format&fit=max&s=41cc9981ec7b067e2d3b5391c5a68a4f",
+   "bylineLargeImageUrl": "https://i.guim.co.uk/img/uploads/2025/01/22/Jakub_Krupa.png?width=300&quality=85&auto=format&fit=max&s=4a039a2b765744058f3c2c677268513e"
+  },
+  {
+   "id": "profile/miranda-bryant",
+   "type": "Contributor",
+   "title": "Miranda Bryant",
+   "bylineImageUrl": "https://i.guim.co.uk/img/uploads/2022/12/03/Miranda_Bryant.jpg?width=300&quality=85&auto=format&fit=max&s=83b17b69ee741e8a54f894b02ac8a307",
+   "bylineLargeImageUrl": "https://i.guim.co.uk/img/uploads/2022/12/03/Miranda_Bryant_Next_Gen.png?width=300&quality=85&auto=format&fit=max&s=677741e20d7ebce439ff0435ef176bf3"
+  },
+  {
+   "id": "tracking/commissioningdesk/uk-foreign",
+   "type": "Tracking",
+   "title": "UK Foreign"
+  }
+ ],
+ "pillar": "news",
+ "sectionLabel": "World news",
+ "sectionUrl": "world/world",
+ "sectionName": "world",
+ "blocks": [
+  {
+   "id": "6aa7c4228f08529754f82306",
+   "elements": [
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p><strong>Perhaps we should all just channel the Swedish PM, Ulf Kristersson, who essentially said this morning he was “going to take it pretty easy” until the final results are in.</strong></p>",
+     "elementId": "b8313ade-6127-4bfa-894b-af13b39137dc"
+    },
+    {
+     "displayCredit": true,
+     "_type": "model.dotcomrendering.pageElements.ImageBlockElement",
+     "role": "inline",
+     "media": {
+      "allImages": [
+       {
+        "index": 0,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "2560",
+         "width": "3202"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/3202.jpg"
+       },
+       {
+        "index": 1,
+        "fields": {
+         "aspectRatio": "5:4",
+         "isMaster": "true",
+         "height": "2560",
+         "width": "3202"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg"
+       },
+       {
+        "index": 2,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "1599",
+         "width": "2000"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/2000.jpg"
+       },
+       {
+        "index": 3,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "800",
+         "width": "1000"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/1000.jpg"
+       },
+       {
+        "index": 4,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "400",
+         "width": "500"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/500.jpg"
+       },
+       {
+        "index": 5,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "112",
+         "width": "140"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/140.jpg"
+       }
+      ]
+     },
+     "elementId": "a3e99ff8-9ea4-40e3-b36e-5a25834ea6a7",
+     "imageSources": [
+      {
+       "weighting": "inline",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=620&quality=85&auto=format&fit=max&s=fed73ebb73b33c68b7546b5fa62f6b5c",
+         "width": 620
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=620&quality=45&auto=format&fit=max&dpr=2&s=e46bdcfd24218063645aed507334bb20",
+         "width": 1240
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=605&quality=85&auto=format&fit=max&s=164a7e719820ecc4966d7faf4db53246",
+         "width": 605
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=605&quality=45&auto=format&fit=max&dpr=2&s=619105d9ef18a676a922a351a522a028",
+         "width": 1210
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=445&quality=85&auto=format&fit=max&s=8faa25967a41ed6ed381c6e93a4b0435",
+         "width": 445
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=445&quality=45&auto=format&fit=max&dpr=2&s=25bf0493e2a873e6ebcb42984f4aa924",
+         "width": 890
+        }
+       ]
+      },
+      {
+       "weighting": "thumbnail",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=140&quality=85&auto=format&fit=max&s=41602bbf3c1f03e14d7bbfa43ede4402",
+         "width": 140
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=140&quality=45&auto=format&fit=max&dpr=2&s=e67daf6c4064ae08d6a5759652bc402f",
+         "width": 280
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=120&quality=85&auto=format&fit=max&s=09725d92db037a3fab57ca0a6442aaa2",
+         "width": 120
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=120&quality=45&auto=format&fit=max&dpr=2&s=3aa6a83a52a50e103de990ee438dd601",
+         "width": 240
+        }
+       ]
+      },
+      {
+       "weighting": "supporting",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=380&quality=85&auto=format&fit=max&s=893ebe1916b51480d259a89fb74d33a8",
+         "width": 380
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=380&quality=45&auto=format&fit=max&dpr=2&s=1dc27095d0b169a5232043fb81da9668",
+         "width": 760
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=300&quality=85&auto=format&fit=max&s=16488cd339bc72759f4816e633f8fe7b",
+         "width": 300
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=300&quality=45&auto=format&fit=max&dpr=2&s=ceeb9e2f0ef0a3779279a605a90aeb4d",
+         "width": 600
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=620&quality=85&auto=format&fit=max&s=fed73ebb73b33c68b7546b5fa62f6b5c",
+         "width": 620
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=620&quality=45&auto=format&fit=max&dpr=2&s=e46bdcfd24218063645aed507334bb20",
+         "width": 1240
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=605&quality=85&auto=format&fit=max&s=164a7e719820ecc4966d7faf4db53246",
+         "width": 605
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=605&quality=45&auto=format&fit=max&dpr=2&s=619105d9ef18a676a922a351a522a028",
+         "width": 1210
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=445&quality=85&auto=format&fit=max&s=8faa25967a41ed6ed381c6e93a4b0435",
+         "width": 445
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=445&quality=45&auto=format&fit=max&dpr=2&s=25bf0493e2a873e6ebcb42984f4aa924",
+         "width": 890
+        }
+       ]
+      },
+      {
+       "weighting": "showcase",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=860&quality=85&auto=format&fit=max&s=7fa7bc3dccd603762ab75d15a7365ca7",
+         "width": 860
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=860&quality=45&auto=format&fit=max&dpr=2&s=b8d42a8ffa019faa050158cb082ff62d",
+         "width": 1720
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=780&quality=85&auto=format&fit=max&s=ed7b15455eecc63e337e5152d41f474a",
+         "width": 780
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=780&quality=45&auto=format&fit=max&dpr=2&s=5db5fe67b8fffb2689ea45cc12cc3a93",
+         "width": 1560
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=620&quality=85&auto=format&fit=max&s=fed73ebb73b33c68b7546b5fa62f6b5c",
+         "width": 620
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=620&quality=45&auto=format&fit=max&dpr=2&s=e46bdcfd24218063645aed507334bb20",
+         "width": 1240
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=605&quality=85&auto=format&fit=max&s=164a7e719820ecc4966d7faf4db53246",
+         "width": 605
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=605&quality=45&auto=format&fit=max&dpr=2&s=619105d9ef18a676a922a351a522a028",
+         "width": 1210
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=445&quality=85&auto=format&fit=max&s=8faa25967a41ed6ed381c6e93a4b0435",
+         "width": 445
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=445&quality=45&auto=format&fit=max&dpr=2&s=25bf0493e2a873e6ebcb42984f4aa924",
+         "width": 890
+        }
+       ]
+      },
+      {
+       "weighting": "halfwidth",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=620&quality=85&auto=format&fit=max&s=fed73ebb73b33c68b7546b5fa62f6b5c",
+         "width": 620
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=620&quality=45&auto=format&fit=max&dpr=2&s=e46bdcfd24218063645aed507334bb20",
+         "width": 1240
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=605&quality=85&auto=format&fit=max&s=164a7e719820ecc4966d7faf4db53246",
+         "width": 605
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=605&quality=45&auto=format&fit=max&dpr=2&s=619105d9ef18a676a922a351a522a028",
+         "width": 1210
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=445&quality=85&auto=format&fit=max&s=8faa25967a41ed6ed381c6e93a4b0435",
+         "width": 445
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=445&quality=45&auto=format&fit=max&dpr=2&s=25bf0493e2a873e6ebcb42984f4aa924",
+         "width": 890
+        }
+       ]
+      },
+      {
+       "weighting": "immersive",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=1900&quality=85&auto=format&fit=max&s=99a5d19f6c868c12ce6b4929e3755341",
+         "width": 1900
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=1900&quality=45&auto=format&fit=max&dpr=2&s=305225d625bd5548c04295c953256b12",
+         "width": 3800
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=1300&quality=85&auto=format&fit=max&s=38ccf7cb169042f18019b3dd7396ea9d",
+         "width": 1300
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=1300&quality=45&auto=format&fit=max&dpr=2&s=574a93fc737c9c66d9f698074dace7fd",
+         "width": 2600
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=1140&quality=85&auto=format&fit=max&s=b7f6e4a10e4e534fc2327c5401854f29",
+         "width": 1140
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=1140&quality=45&auto=format&fit=max&dpr=2&s=fde9e40c5618e38087461cb1b2ce9da6",
+         "width": 2280
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=980&quality=85&auto=format&fit=max&s=012aedc5dcc269fb0a281807d8d28c0e",
+         "width": 980
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=980&quality=45&auto=format&fit=max&dpr=2&s=99c65190b6c7d041987a2140277e4e71",
+         "width": 1960
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=740&quality=85&auto=format&fit=max&s=57cde085cdf09c7f6cb9dfbc557c7a5a",
+         "width": 740
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=740&quality=45&auto=format&fit=max&dpr=2&s=6732a13ab38c5c6e98efdd4b3bd75d3e",
+         "width": 1480
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=660&quality=85&auto=format&fit=max&s=05d9a9e5aa411dec69a649935fb71437",
+         "width": 660
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=660&quality=45&auto=format&fit=max&dpr=2&s=6d1adc9a3b46355ab783bb333376cc5b",
+         "width": 1320
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=480&quality=85&auto=format&fit=max&s=ce5d75eb004d23e642f8485d4476e4d4",
+         "width": 480
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/2f15a3d4f9a27d1561c9ab97c0b293ca8cbede16/111_0_3202_2560/master/3202.jpg?width=480&quality=45&auto=format&fit=max&dpr=2&s=a739f19be3c4a05e999eb933da171408",
+         "width": 960
+        }
+       ]
+      }
+     ],
+     "data": {
+      "alt": "Swedish prime minister Ulf Kristersson of the Moderate Party leaves the official residence, Sager House, a day after the Swedish general election in Stockholm, Sweden.",
+      "caption": "Swedish prime minister Ulf Kristersson of the Moderate Party leaves the official residence, Sager House, a day after the Swedish general election in Stockholm, Sweden.",
+      "credit": "Photograph: Claudio Bresciani/EPA"
+     }
+    },
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p>He says there are some conversations scheduled in the meantime – including with fellow coalition leaders this evening – but he essentially wants to see the final results show first.</p>",
+     "elementId": "f652eb8d-e5e8-4b1d-a488-600fb3bc5df7"
+    },
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p>He also <strong>repeats his last night’s suggestion of exploring alternative majorities</strong> in the parliament.</p>",
+     "elementId": "848b0258-5caf-407e-a746-90e2176677ad"
+    },
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p>One possible option could involve the Centre party switching sides, but it’s not immediately obvious how Kristersson would get them to accept a government with the far-right <a href=\"https://www.theguardian.com/world/sweden\" data-component=\"auto-linked-tag\">Sweden</a> Democrats with it.</p>",
+     "elementId": "2b3cca69-2e77-4f0d-aea8-5e395618bdfc"
+    }
+   ],
+   "attributes": {
+    "pinned": false,
+    "keyEvent": true,
+    "summary": false
+   },
+   "blockCreatedOn": 1789379618000,
+   "blockCreatedOnDisplay": "10.53 BST",
+   "blockLastUpdated": 1789379860000,
+   "blockLastUpdatedDisplay": "10.57 BST",
+   "blockFirstPublished": 1789379860000,
+   "blockFirstPublishedDisplay": "10.57 BST",
+   "blockFirstPublishedDisplayNoTimezone": "10.57",
+   "title": "PM Kristersson wants to 'take it easy' and wait until final results",
+   "contributors": [],
+   "primaryDateLine": "Mon 14 Sep 2026 13.23 BST",
+   "secondaryDateLine": "First published on Mon 14 Sep 2026 10.24 BST"
+  },
+  {
+   "id": "6aa7be4b8f08529754f822cf",
+   "elements": [
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p><strong>Senior figures in the Social Democratic party are meeting this morning with party leader Magdalena Andersson to discuss next steps.</strong></p>",
+     "elementId": "1e3eb6ed-a3bf-464a-8488-2f31d96b2c9e"
+    },
+    {
+     "displayCredit": true,
+     "_type": "model.dotcomrendering.pageElements.ImageBlockElement",
+     "role": "inline",
+     "media": {
+      "allImages": [
+       {
+        "index": 0,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "5504",
+         "width": "6880"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/6880.jpg"
+       },
+       {
+        "index": 1,
+        "fields": {
+         "aspectRatio": "5:4",
+         "isMaster": "true",
+         "height": "5504",
+         "width": "6880"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg"
+       },
+       {
+        "index": 2,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "1600",
+         "width": "2000"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/2000.jpg"
+       },
+       {
+        "index": 3,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "800",
+         "width": "1000"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/1000.jpg"
+       },
+       {
+        "index": 4,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "400",
+         "width": "500"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/500.jpg"
+       },
+       {
+        "index": 5,
+        "fields": {
+         "aspectRatio": "5:4",
+         "height": "112",
+         "width": "140"
+        },
+        "mediaType": "Image",
+        "mimeType": "image/jpeg",
+        "url": "https://media.guim.co.uk/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/140.jpg"
+       }
+      ]
+     },
+     "elementId": "c53cb6d1-dab7-47b7-a0de-3c8f4c1d47ba",
+     "imageSources": [
+      {
+       "weighting": "inline",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=620&quality=85&auto=format&fit=max&s=069dc930612af2af16b3e73712a46f31",
+         "width": 620
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=620&quality=45&auto=format&fit=max&dpr=2&s=03755b8802ded59b154ee66646e6ccbd",
+         "width": 1240
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=605&quality=85&auto=format&fit=max&s=5efebe002b9c8073e694a0ab4985b965",
+         "width": 605
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=605&quality=45&auto=format&fit=max&dpr=2&s=0008fd5b3b63abb0ee86e5b4d6151e59",
+         "width": 1210
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=445&quality=85&auto=format&fit=max&s=df42539721b5c0f6dc7c685827afd8c0",
+         "width": 445
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=445&quality=45&auto=format&fit=max&dpr=2&s=ecc52a9c54ac5eea9d712ea252528d1f",
+         "width": 890
+        }
+       ]
+      },
+      {
+       "weighting": "thumbnail",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=140&quality=85&auto=format&fit=max&s=726aab37d41dce4e412b63d9e2065a25",
+         "width": 140
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=140&quality=45&auto=format&fit=max&dpr=2&s=3728098d2c42a918dce5557e98615d4b",
+         "width": 280
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=120&quality=85&auto=format&fit=max&s=0c55bdf32e30870373e34a5077c36a9b",
+         "width": 120
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=120&quality=45&auto=format&fit=max&dpr=2&s=ea54be50816e13aa6e7b5070b116fa75",
+         "width": 240
+        }
+       ]
+      },
+      {
+       "weighting": "supporting",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=380&quality=85&auto=format&fit=max&s=2ce9f3ea39a307799cd3cfbcb545cc78",
+         "width": 380
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=380&quality=45&auto=format&fit=max&dpr=2&s=4e5ef7992abb1d6d1a3c27140bf58423",
+         "width": 760
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=300&quality=85&auto=format&fit=max&s=d16c05471d0da990c114f91719e231c5",
+         "width": 300
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=300&quality=45&auto=format&fit=max&dpr=2&s=3cf7d2f7faac2d747691a762edfad81d",
+         "width": 600
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=620&quality=85&auto=format&fit=max&s=069dc930612af2af16b3e73712a46f31",
+         "width": 620
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=620&quality=45&auto=format&fit=max&dpr=2&s=03755b8802ded59b154ee66646e6ccbd",
+         "width": 1240
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=605&quality=85&auto=format&fit=max&s=5efebe002b9c8073e694a0ab4985b965",
+         "width": 605
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=605&quality=45&auto=format&fit=max&dpr=2&s=0008fd5b3b63abb0ee86e5b4d6151e59",
+         "width": 1210
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=445&quality=85&auto=format&fit=max&s=df42539721b5c0f6dc7c685827afd8c0",
+         "width": 445
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=445&quality=45&auto=format&fit=max&dpr=2&s=ecc52a9c54ac5eea9d712ea252528d1f",
+         "width": 890
+        }
+       ]
+      },
+      {
+       "weighting": "showcase",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=860&quality=85&auto=format&fit=max&s=55ab753ebd894be85254d7c15c51bdbb",
+         "width": 860
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=860&quality=45&auto=format&fit=max&dpr=2&s=3db6e042804bb38ae54a62b22660ecff",
+         "width": 1720
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=780&quality=85&auto=format&fit=max&s=a7698cc6715bcb7b5e7420b19a088423",
+         "width": 780
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=780&quality=45&auto=format&fit=max&dpr=2&s=64f6cceec070fa13527fe665dfc03bb8",
+         "width": 1560
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=620&quality=85&auto=format&fit=max&s=069dc930612af2af16b3e73712a46f31",
+         "width": 620
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=620&quality=45&auto=format&fit=max&dpr=2&s=03755b8802ded59b154ee66646e6ccbd",
+         "width": 1240
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=605&quality=85&auto=format&fit=max&s=5efebe002b9c8073e694a0ab4985b965",
+         "width": 605
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=605&quality=45&auto=format&fit=max&dpr=2&s=0008fd5b3b63abb0ee86e5b4d6151e59",
+         "width": 1210
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=445&quality=85&auto=format&fit=max&s=df42539721b5c0f6dc7c685827afd8c0",
+         "width": 445
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=445&quality=45&auto=format&fit=max&dpr=2&s=ecc52a9c54ac5eea9d712ea252528d1f",
+         "width": 890
+        }
+       ]
+      },
+      {
+       "weighting": "halfwidth",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=620&quality=85&auto=format&fit=max&s=069dc930612af2af16b3e73712a46f31",
+         "width": 620
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=620&quality=45&auto=format&fit=max&dpr=2&s=03755b8802ded59b154ee66646e6ccbd",
+         "width": 1240
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=605&quality=85&auto=format&fit=max&s=5efebe002b9c8073e694a0ab4985b965",
+         "width": 605
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=605&quality=45&auto=format&fit=max&dpr=2&s=0008fd5b3b63abb0ee86e5b4d6151e59",
+         "width": 1210
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=445&quality=85&auto=format&fit=max&s=df42539721b5c0f6dc7c685827afd8c0",
+         "width": 445
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=445&quality=45&auto=format&fit=max&dpr=2&s=ecc52a9c54ac5eea9d712ea252528d1f",
+         "width": 890
+        }
+       ]
+      },
+      {
+       "weighting": "immersive",
+       "srcSet": [
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=1900&quality=85&auto=format&fit=max&s=fc1e6dfcdc6f66a045bb7efef51a16e2",
+         "width": 1900
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=1900&quality=45&auto=format&fit=max&dpr=2&s=1702ba83905c923d81968c2aa10bba9d",
+         "width": 3800
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=1300&quality=85&auto=format&fit=max&s=73732f587a3889c882aaf09128d3f1d8",
+         "width": 1300
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=1300&quality=45&auto=format&fit=max&dpr=2&s=12d3ea0beed5df53fe8d70cbe9dfa60c",
+         "width": 2600
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=1140&quality=85&auto=format&fit=max&s=01323ecfbd15db7452ca72851ce9b340",
+         "width": 1140
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=1140&quality=45&auto=format&fit=max&dpr=2&s=fc9d39b52eaf2dc51215c991dee19f62",
+         "width": 2280
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=980&quality=85&auto=format&fit=max&s=0e0154f7dc112a15387b2b3217b4e8bb",
+         "width": 980
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=980&quality=45&auto=format&fit=max&dpr=2&s=47a049b57eb94425750d049cea185a36",
+         "width": 1960
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=740&quality=85&auto=format&fit=max&s=1edb7b52332e80baf54c72e5eb538949",
+         "width": 740
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=740&quality=45&auto=format&fit=max&dpr=2&s=6377bd6fa5e912e7bd4ddecca7547b8a",
+         "width": 1480
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=660&quality=85&auto=format&fit=max&s=c5ca2facc43f344f5082cb53d3899452",
+         "width": 660
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=660&quality=45&auto=format&fit=max&dpr=2&s=a0e5c732152af14bd8ff49b2f90d9575",
+         "width": 1320
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=480&quality=85&auto=format&fit=max&s=5a17b4168d0ab93369394f1ce7e41b6a",
+         "width": 480
+        },
+        {
+         "src": "https://i.guim.co.uk/img/media/64617d004d2544ed782802ed50b9cc5f057ab9a5/688_0_6880_5504/master/6880.jpg?width=480&quality=45&auto=format&fit=max&dpr=2&s=28778dc5939a5c443202420c1dd99357",
+         "width": 960
+        }
+       ]
+      }
+     ],
+     "data": {
+      "alt": "Social Democrats party leader Magdalena Andersson (L) arrives at the Social Democrats election night watch party in Stockholm, Sweden.",
+      "caption": "Social Democrats party leader Magdalena Andersson (L) arrives at the Social Democrats election night watch party in Stockholm, Sweden.",
+      "credit": "Photograph: Jonas Ekstromer/TT News Agency/AFP/Getty Images"
+     }
+    },
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p><strong>The party topped the polls – that is certain – and is most likely to have a first go at forming the next government,</strong> but it will have to navigate the complex and often openly contradictory demands of the left-leaning bloc.</p>",
+     "elementId": "8a4f1c34-0acb-4c55-976f-7068823b6f85"
+    },
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p>It <strong>remains to be seen whether they can get the Left Party to work with the Centre Party</strong> in particular, given rumbles on both sides about the feasibility of such an alliance.</p>",
+     "elementId": "ab9b9d7c-a857-415e-b7d9-6522113cd7cd"
+    },
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p>But today’s doorstep comments suggest <strong>there is no rush just yet</strong>: all parties will want to wait for the final results on Wednesday or Thursday before committing to exploratory talks.</p>",
+     "elementId": "6aa09319-99c1-4a59-9b82-dcb20271f41a"
+    },
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p>Party secretary <strong>Tobias Baudin</strong> confirmed, however, that he has exchanged texts with colleagues in other parties, SVT reported.</p>",
+     "elementId": "91b847bb-bf65-4dd2-a841-dbeb2bf180f3"
+    },
+    {
+     "_type": "model.dotcomrendering.pageElements.TextBlockElement",
+     "html": "<p>Asked about potential differences, he told P1 that he was “completely convinced” the parties would give it out with some “give and take” for all involved.</p>",
+     "elementId": "e5e17fb6-e5ed-48d6-a9e1-910d4721935c"
+    }
+   ],
+   "attributes": {
+    "pinned": false,
+    "keyEvent": true,
+    "summary": false
+   },
+   "blockCreatedOn": 1789378123000,
+   "blockCreatedOnDisplay": "10.28 BST",
+   "blockLastUpdated": 1789378464000,
+   "blockLastUpdatedDisplay": "10.34 BST",
+   "blockFirstPublished": 1789378465000,
+   "blockFirstPublishedDisplay": "10.34 BST",
+   "blockFirstPublishedDisplayNoTimezone": "10.34",
+   "title": "Social Democrat leadership meets for talks after election win",
+   "contributors": [],
+   "primaryDateLine": "Mon 14 Sep 2026 13.23 BST",
+   "secondaryDateLine": "First published on Mon 14 Sep 2026 10.24 BST"
+  }
+ ],
+ "config": {
+  "commissioningDesks": "uk-foreign"
+ },
+ "_trimmed": "Recorded 2026-09-14 from https://www.theguardian.com/world/live/2026/sep/14/sweden-election-magdalena-andersson-social-democrats-centre-left-latest-news-updates.json?dcr=true; kept blocks 5 and 6 and the fields the scraper reads."
+}

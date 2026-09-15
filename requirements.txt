@@ -1,0 +1,3 @@
+# Only Reuters needs this. Every other outlet uses the standard library.
+# After install, Reuters also needs installed Google Chrome (not "playwright install chromium").
+playwright==1.58.0

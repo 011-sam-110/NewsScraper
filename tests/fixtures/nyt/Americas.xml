@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:nyt="http://www.nytimes.com/namespaces/rss/2.0" version="2.0">
+  <channel>
+    <title>NYT &gt; World &gt; Americas</title>
+    <link>https://www.nytimes.com/section/world/americas</link>
+    <atom:link href="https://rss.nytimes.com/services/xml/rss/nyt/Americas.xml" rel="self" type="application/rss+xml"></atom:link>
+    <description></description>
+    <language>en-us</language>
+    <copyright>Copyright 2026 The New York Times Company</copyright>
+    <lastBuildDate>Mon, 14 Sep 2026 12:35:27 +0000</lastBuildDate>
+    <pubDate>Mon, 14 Sep 2026 09:10:56 +0000</pubDate>
+    <image>
+      <title>NYT &gt; World &gt; Americas</title>
+      <url>https://static01.nyt.com/images/misc/NYT_logo_rss_250x40.png</url>
+      <link>https://www.nytimes.com/section/world/americas</link>
+    </image>
+    <item>
+      <title>She Bashed the Government on a Private Call. Then She Was Detained for Months</title>
+      <link>https://www.nytimes.com/2026/09/14/world/americas/trinidad-assassination-plot-arrests.html</link>
+      <guid isPermaLink="true">https://www.nytimes.com/2026/09/14/world/americas/trinidad-assassination-plot-arrests.html</guid>
+      <atom:link href="https://www.nytimes.com/2026/09/14/world/americas/trinidad-assassination-plot-arrests.html" rel="standout"></atom:link>
+      <description>Racial and political tensions have flared in Trinidad and Tobago after members of an ethnic minority were accused of an assassination plot based on a private phone call.</description>
+      <dc:creator>Zane Irwin and Prior Beharry</dc:creator>
+      <pubDate>Mon, 14 Sep 2026 09:02:24 +0000</pubDate>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">Trinidad and Tobago</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Assassinations and Attempted Assassinations</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Human Rights and Human Rights Violations</category>
+      <media:content height="1028" medium="image" url="https://static01.nyt.com/images/2026/09/15/multimedia/14int-trinidad-assassination-hckl/14int-trinidad-assassination-hckl-mediumSquareAt3X.jpg" width="1027"></media:content>
+      <media:credit>Prior Beharry for The New York Times</media:credit>
+      <media:description>The building in which Star Sabga was under house arrest in Port of Spain, Trinidad and Tobago, this month.</media:description>
+    </item>
+    <item>
+      <title>Ancient Tombs, Untouched by Looters, Are Found Under Peru’s Sands</title>
+      <link>https://www.nytimes.com/2026/09/10/world/americas/peru-tombs-chimu-archaeology.html</link>
+      <guid isPermaLink="true">https://www.nytimes.com/2026/09/10/world/americas/peru-tombs-chimu-archaeology.html</guid>
+      <atom:link href="https://www.nytimes.com/2026/09/10/world/americas/peru-tombs-chimu-archaeology.html" rel="standout"></atom:link>
+      <description>One archaeologist called the tombs “the discovery of the decade” as the first burials from the Chimu kingdom to have escaped centuries of plunder.</description>
+      <dc:creator>Alan Yuhas</dc:creator>
+      <pubDate>Thu, 10 Sep 2026 20:28:06 +0000</pubDate>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Archaeology and Anthropology</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Incas</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Tombs and Tombstones</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Arts and Antiquities Looting</category>
+      <category domain="">Chimu (culture)</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">Chan Chan (Peru)</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">Peru</category>
+      <media:content height="1802" medium="image" url="https://static01.nyt.com/images/2026/09/10/world/americas/10vid-peru-tombs-cover-image-v2/10vid-peru-tombs-cover-image-v2-mediumSquareAt3X.jpg" width="1800"></media:content>
+      <media:credit>Reuters</media:credit>
+    </item>
+    <item>
+      <title>Where to See the World’s Bayeux Tapestry Replicas</title>
+      <link>https://www.nytimes.com/2026/09/10/arts/design/bayeux-tapestry-replicas.html</link>
+      <guid isPermaLink="true">https://www.nytimes.com/2026/09/10/arts/design/bayeux-tapestry-replicas.html</guid>
+      <atom:link href="https://www.nytimes.com/2026/09/10/arts/design/bayeux-tapestry-replicas.html" rel="standout"></atom:link>
+      <description>There are full-size replicas in a U.S. sports arena, an abbey in Denmark and a home in rural New Zealand. There’s even a more modest version for those who don’t like the original’s nudity.</description>
+      <dc:creator>Alex Marshall</dc:creator>
+      <pubDate>Thu, 10 Sep 2026 14:29:18 +0000</pubDate>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_org">British Museum</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Museums</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Textiles</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_org">University of North Georgia</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">London (England)</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">Bayeux (France)</category>
+      <category domain="">Bayeux Tapestry</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">England</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">Great Britain</category>
+    </item>
+    <item>
+      <title>U.S. Designates Ecuador’s Los Tiguerones Gang as Terrorist Group</title>
+      <link>https://www.nytimes.com/2026/09/09/world/americas/ecuador-los-tiguerones-terrorist.html</link>
+      <guid isPermaLink="true">https://www.nytimes.com/2026/09/09/world/americas/ecuador-los-tiguerones-terrorist.html</guid>
+      <atom:link href="https://www.nytimes.com/2026/09/09/world/americas/ecuador-los-tiguerones-terrorist.html" rel="standout"></atom:link>
+      <description>The sanctions on Los Tiguerones imposed by Secretary of State Marco Rubio are an increasingly common U.S. tactic, though they will likely not hurt the gang’s finances.</description>
+      <dc:creator>Edward Wong, Genevieve Glatsky and Annie Correal</dc:creator>
+      <pubDate>Wed, 09 Sep 2026 21:50:48 +0000</pubDate>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">Ecuador</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Gangs</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Embargoes and Sanctions</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Drug Abuse and Traffic</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">United States International Relations</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Drug Cartels</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Terrorism</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_per">Noboa, Daniel</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_per">Rubio, Marco</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">Latin America</category>
+      <media:content height="1798" medium="image" url="https://static01.nyt.com/images/2026/09/09/world/09int-ecuador-rubio/09int-ecuador-rubio-mediumSquareAt3X.jpg" width="1800"></media:content>
+      <media:credit>Marcos Pin/Agence France-Presse — Getty Images</media:credit>
+      <media:description>The “Tiger Zone” graffiti in Guayaquil, Ecuador, refers to the gang that controls the sector.</media:description>
+    </item>
+    <item>
+      <title>At This Canadian Theater Festival, Forgiveness Is a Power Move</title>
+      <link>https://www.nytimes.com/2026/09/08/theater/stratford-festival-tempest-antoni-cimolino.html</link>
+      <guid isPermaLink="true">https://www.nytimes.com/2026/09/08/theater/stratford-festival-tempest-antoni-cimolino.html</guid>
+      <atom:link href="https://www.nytimes.com/2026/09/08/theater/stratford-festival-tempest-antoni-cimolino.html" rel="standout"></atom:link>
+      <description>The outgoing artistic director of the Stratford Festival, Antoni Cimolino, directs “The Tempest,” and like Prospero, he understands how to wield acts of kindness.</description>
+      <dc:creator>Helen Shaw</dc:creator>
+      <pubDate>Wed, 09 Sep 2026 19:46:24 +0000</pubDate>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Theater</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/des">Festivals</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_geo">Stratford (Ontario)</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_ttl">The Tempest (Play)</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_per">Cimolino, Antoni</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_per">Shakespeare, William</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_ttl">The Tao of the World (Play)</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_per">Sy, Jovanni</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_per">Congreve, William</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_per">Feore, Donna</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_ttl">Guys and Dolls (Play)</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_ttl">Saturday, Sunday, Monday (Play)</category>
+      <category domain="http://www.nytimes.com/namespaces/keywords/nyt_per">de Filippo, Eduardo</category>
+    </item>
+    </channel>
+</rss>
