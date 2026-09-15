@@ -948,6 +948,41 @@ Total: roughly $15 to $30 a month, and about half that if the heavy work runs in
 
 Prices change. Check DeepSeek's pricing page when M5 starts, and put the current rates into the cost calculation for `llm_calls`.
 
+### Measured on 2026-09-15 (M5, extract only)
+
+2,278 stories extracted on the host with `deepseek-flash`, config hash `39e0f35b2db20d55`.
+
+| Measure | Result |
+|---|---|
+| Schema-valid after the one retry | 2,278 of 2,278 (100%). 5 needed the retry, so 99.78% first time. |
+| Failed model calls | 0 of 2,312 |
+| Cost a story | $0.000211 |
+| Projected | $0.08 a day, about $2.53 a month, against the $15 to $30 estimated above |
+| Prompt cache hit rate | 50.0% of input tokens |
+| Median latency | 1.22 s a story, run one at a time |
+| Physical events | 172 of 2,278 (7.6%) |
+| Of those, precise enough to pin | 141 (82%), so 6.19% of all stories |
+| Implied pin volume | about 25 a day, about 173 in a 7-day window. The gate needs 153. |
+
+Clustering, resolving and any verify pass are still to be added, so the real total will be higher
+than $2.53. It is not going to approach $15.
+
+Two failure modes to fix before the prompt freeze at the end of M7. Both were found by reading the
+output, and each was about 1 to 1.5% of pinnable extractions, which is close to the whole error
+budget the gate allows (3 wrong in 153, about 2%):
+
+1. **An attribution quote read as evidence.** Reuters' "Syria fuel price hikes trigger widest
+   protests" was placed in Aleppo on the quote "Yasser Salim told Reuters in Aleppo." That passes
+   every check: it is verbatim and it contains the place name. It says where a person spoke to a
+   reporter, which section 6.1 forbids as an event place. The quote check proves a quote is real and
+   names the place; it does not prove the quote shows the event happening there.
+2. **A planned event read as one that happened.** "Alex Saab is scheduled to appear for a change of
+   plea hearing ... in Miami" became a pin. Section 10.4 counts planned, threatened and hypothetical
+   events as wrong.
+
+Both are worth a prompt rule with a negative example and a code check, measured against the dev set
+rather than guessed at.
+
 ## 14. Milestones
 
 Each milestone ends with an exit check that must pass before the next milestone starts. Work in order, except that M2 and M3 can run alongside M4 to M6.
