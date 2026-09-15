@@ -1,0 +1,10 @@
+{
+  "id": "chatcmpl-synthetic-0004",
+  "object": "chat.completion",
+  "created": 1789469490,
+  "model": "deepseek-flash",
+  "choices": [
+    {"index": 0, "message": {"role": "assistant", "content": "{\"ok\": true}"}, "finish_reason": "stop"}
+  ],
+  "usage": {"prompt_tokens": 500, "completion_tokens": 20, "total_tokens": 520}
+}

@@ -1,0 +1,15 @@
+{
+  "id": "chatcmpl-synthetic-0003",
+  "object": "chat.completion",
+  "created": 1789469480,
+  "model": "deepseek-flash",
+  "choices": [
+    {
+      "index": 0,
+      "message": {"role": "assistant", "content": "{\"is_physical_event\": true, \"event_place\": {\"name\": \"Westmin"},
+      "finish_reason": "length"
+    }
+  ],
+  "usage": {"prompt_tokens": 1200, "completion_tokens": 800, "total_tokens": 2000,
+            "prompt_cache_hit_tokens": 0, "prompt_cache_miss_tokens": 1200}
+}

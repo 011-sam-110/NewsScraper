@@ -1,0 +1,23 @@
+{
+  "id": "chatcmpl-synthetic-0001",
+  "object": "chat.completion",
+  "created": 1789469462,
+  "model": "deepseek-flash",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"is_physical_event\": true, \"category\": \"attack_or_violent_crime\"}"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1200,
+    "completion_tokens": 150,
+    "total_tokens": 1350,
+    "prompt_cache_hit_tokens": 1024,
+    "prompt_cache_miss_tokens": 176
+  }
+}
