@@ -311,6 +311,38 @@ class ParallelOutletTests(SinkTestCase):
         self.assertTrue(all(source.closed == 1 for source in sources))
 
 
+class RowLoggingTests(SinkTestCase):
+    """A scheduled run logs section summaries, not one line per stored row."""
+
+    def scrape_capturing(self, verbose: bool) -> tuple[str, str]:
+        source = FakeSource("bbc", {"world": [[row("urn:bbc:asset:1", "https://www.bbc.co.uk/news/a1")]]})
+        settings = load({"NEWSFEED_DATA_DIR": str(self.path.parent)})
+        args = argparse.Namespace(
+            sources=["bbc"], sections=None, size=8, delay=0.0, max_pages=0,
+            include_text=True, jsonl_dir=None, verbose=verbose,
+        )
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.dict(scrape_stage.SOURCES, {"bbc": source}, clear=True):
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                self.assertEqual(scrape_stage.run(args, settings), 0)
+        return out.getvalue(), err.getvalue()
+
+    def test_rows_are_not_logged_by_default(self) -> None:
+        out, err = self.scrape_capturing(verbose=False)
+        self.assertNotIn("[bbc] Story", out)
+        self.assertIn("page 1: saved 1 articles", err)
+        self.assertIn("1 new stories", err)
+
+    def test_verbose_logs_every_row(self) -> None:
+        out, _ = self.scrape_capturing(verbose=True)
+        self.assertIn("[bbc] Story urn:bbc:asset:1", out)
+
+    def test_quiet_logging_restores_stdout_afterwards(self) -> None:
+        before = sys.stdout
+        self.scrape_capturing(verbose=False)
+        self.assertIs(sys.stdout, before)
+
+
 class JsonLinesRunTests(SinkTestCase):
     """--jsonl-dir is a debugging run: it must behave like main.py and not touch the store."""
 
@@ -319,7 +351,7 @@ class JsonLinesRunTests(SinkTestCase):
         settings = load({"NEWSFEED_DATA_DIR": str(self.path.parent)})
         args = argparse.Namespace(
             sources=["bbc"], sections=None, size=8, delay=0.0, max_pages=0,
-            include_text=True, jsonl_dir=self.output,
+            include_text=True, jsonl_dir=self.output, verbose=False,
         )
         with mock.patch.dict(scrape_stage.SOURCES, {"bbc": source}, clear=True):
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
@@ -332,7 +364,7 @@ class JsonLinesRunTests(SinkTestCase):
         settings = load({"NEWSFEED_DATA_DIR": str(self.path.parent)})
         args = argparse.Namespace(
             sources=["bbc"], sections=None, size=8, delay=0.0, max_pages=0,
-            include_text=True, jsonl_dir=None,
+            include_text=True, jsonl_dir=None, verbose=False,
         )
         with mock.patch.dict(scrape_stage.SOURCES, {"bbc": source}, clear=True):
             with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):

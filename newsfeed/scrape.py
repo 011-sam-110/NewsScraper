@@ -13,7 +13,9 @@ did.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
+import os
 import sys
 import threading
 from collections import Counter
@@ -245,6 +247,22 @@ class StoreSink:
                 self.updated_stories[outlet] += 1
 
 
+@contextlib.contextmanager
+def row_logging(verbose: bool) -> Any:
+    """Drop the per-row log unless asked for it.
+
+    scraper.common logs each row to stdout and each section's summary to stderr. A scheduled run
+    wants the summaries and not the rows, and this keeps that choice here rather than changing how
+    the shared scrape loop logs for main.py.
+    """
+    if verbose:
+        yield
+        return
+    with open(os.devnull, "w", encoding="utf-8") as quiet:
+        with contextlib.redirect_stdout(quiet):
+            yield
+
+
 def _clean_categories(categories: Any) -> dict[str, Any]:
     """The outlet's own taxonomy as a JSON object. Nothing here is inferred; section labels only."""
     if not isinstance(categories, dict):
@@ -303,6 +321,14 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help="Skip article-page requests and keep only listing data.",
     )
     parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help=(
+            "Log every stored row's headline and URL. Off by default: a scheduled run stores over a "
+            "thousand rows an hour, and logging each one buries the per-section lines in the journal."
+        ),
+    )
+    parser.add_argument(
         "--jsonl-dir",
         type=Path,
         help="Also write the old JSON Lines tree here. Off by default: a scheduled run stores rows only.",
@@ -328,9 +354,10 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
         # A debugging run: behave exactly as main.py does and leave the store untouched, so a
         # JSON Lines run never lands in outlet_health and never looks like a scheduled run to the
         # health stage.
-        totals, errors = scrape(
-            args.jsonl_dir, jobs, args.size, args.delay, args.max_pages, args.include_text
-        )
+        with row_logging(getattr(args, "verbose", False)):
+            totals, errors = scrape(
+                args.jsonl_dir, jobs, args.size, args.delay, args.max_pages, args.include_text
+            )
         for outlet, total in totals.items():
             print(f"{outlet}: saved {total} rows to {args.jsonl_dir / outlet}", file=sys.stderr)
         for outlet, message in errors.items():
@@ -343,9 +370,10 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
         for outlet in outlets:
             store.start_outlet_run(outlet)
         sink = StoreSink(store)
-        totals, errors = scrape(
-            Path("news"), jobs, args.size, args.delay, args.max_pages, args.include_text, sink=sink
-        )
+        with row_logging(getattr(args, "verbose", False)):
+            totals, errors = scrape(
+                Path("news"), jobs, args.size, args.delay, args.max_pages, args.include_text, sink=sink
+            )
         for outlet in outlets:
             store.finish_outlet_run(outlet, errors.get(outlet), sink.new_stories[outlet])
         store.finish_run(run_id, sum(sink.rows_seen.values()), sum(sink.new_stories.values()), errors)

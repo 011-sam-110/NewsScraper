@@ -111,6 +111,10 @@ systemctl --user start newsfeed-scrape.service # run one now, off the schedule
 `status` prints each outlet's last new story, its consecutive failure count and its last error.
 Until the health stage is built (M10), nothing alerts: this command is the check.
 
+A scheduled run logs one line per listing page and a summary per outlet, not one line per stored
+row. A run stores over a thousand rows an hour, and logging each one would bury the useful lines.
+Add `--verbose` when debugging a parser to get them back.
+
 ## Why a scheduled run is short
 
 A section stops at the first listing page where the store already holds every story
