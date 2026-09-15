@@ -130,6 +130,7 @@ listing. Two things follow:
 | Symptom | What to do |
 |---|---|
 | Reuters fails with 401 or 403 | DataDome refused this machine or network. Check Chrome is installed and that no VPN or proxy is on. If it persists, tell Sam and run the other four with `--sources bbc guardian pbs nyt`. |
+| An outlet reports `<section>: HTTP 503` and the run exits 1 | A transient outlet error. The other sections of that outlet still ran, and the next hourly run picks up what this one missed. Only worry if the same section fails for several hours. |
 | One outlet goes quiet, the rest are fine | That outlet's parser broke. Save the new response into `tests/fixtures/<outlet>/`, write a test against it, then fix the parser. |
 | `database is locked` | Should not happen: WAL is on with a 30 second busy timeout. Check nothing has copied the store into a synced folder. |
 | The store looks wrong and you want to start again | Stop the timers, delete `~/.local/share/newsscraper/news.sqlite3*`, then seed again. Story ids are derived from outlet ids, so a rebuild gives the same ids for the same stories. |
@@ -138,5 +139,6 @@ listing. Two things follow:
 ## What M1 left for later milestones
 
 - No health check, so an outlet can go quiet and nothing alerts (M10). `status` is the manual check.
+- A section's transient error is not retried inside the run. It is isolated, so the outlet's other sections still run, and the next hourly run collects what it missed.
 - Text is stored for BBC, the Guardian, PBS and Reuters. NYT sends no text, by design.
 - Nothing reads the store yet. `extract` (M5) is the next stage that does.

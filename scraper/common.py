@@ -261,6 +261,11 @@ def scrape_source(
 
     close() runs in this thread because a Playwright session (Reuters) works only in the
     thread that started it.
+
+    With no sink, the first section to raise ends the outlet, which is what a one-shot CLI run
+    wants. With a sink, every section gets its turn and the failures are reported together at the
+    end: on a schedule, one transient 5xx in an early section must not cost the outlet the fifteen
+    sections behind it. The outlet is still reported as failed either way.
     """
     # A story listed by several sections gets a row in each, so rows keep every section
     # label. Its article page is fetched once, and later rows reuse the (text, categories).
@@ -269,70 +274,101 @@ def scrape_source(
     details = getattr(source, "article_details", None)
     if sink is None:
         folder.mkdir(parents=True, exist_ok=True)
+    failures: list[str] = []
     try:
         for section in sections:
-            section_total = 0
-            page_count = 0
-            seen: set[str] = set()
-            with section_output(folder, section, sink) as output:
-                while (max_pages == 0 or page_count < max_pages) and not stop.is_set():
-                    new_rows = []
-                    # With a sink, a page where the sink knows every row is the end of the new
-                    # stories in this section, so the section stops there instead of walking the
-                    # listing back to where it ends.
-                    page_all_known = True
-                    for row in source.list_page(section, page_count, size):
-                        key = str(row["id"] or row["url"] or row["headline"])
-                        if key in seen:
-                            continue
-                        seen.add(key)
-                        row = {"outlet": source.NAME, "section": section, **row}
-                        want_text = bool(include_text and details and row["url"] and not row["text"])
-                        if sink is not None:
-                            if not sink.known(row):
-                                page_all_known = False
-                            want_text = want_text and sink.needs_text(row)
-                        if want_text:
-                            if row["url"] not in article_pages:
-                                article_pages[row["url"]] = details(row["url"]) or (None, {})
-                                stop.wait(delay)
-                            text, page_categories, *page_fields = article_pages[row["url"]]
-                            row["text"] = text
-                            row["categories"] = {**row["categories"], **page_categories}
-                            for name, value in (page_fields[0] if page_fields else {}).items():
-                                if row.get(name) in (None, "", [], {}):
-                                    row[name] = value
-                        new_rows.append(row)
-
-                    # Past the last page, listings return nothing or stories the section already sent.
-                    if not new_rows:
-                        break
-
-                    for row in new_rows:
-                        if output is None:
-                            sink.save(row)
-                        else:
-                            output.write(json.dumps(row, ensure_ascii=False) + "\n")
-                        log(f"[{source.NAME}] {row['headline'] or '(untitled)'}\n{row['url'] or ''}\n")
-                    if output is not None:
-                        output.flush()
-                    section_total += len(new_rows)
-                    totals[source.NAME] += len(new_rows)
-                    page_count += 1
-                    log(
-                        f"{source.NAME}:{section} page {page_count}: saved {len(new_rows)} articles; "
-                        f"section total {section_total}.",
-                        sys.stderr,
-                    )
-                    if page_all_known and sink is not None:
-                        log(
-                            f"{source.NAME}:{section}: the store already had every story on this page; "
-                            "stopping this section.",
-                            sys.stderr,
-                        )
-                        break
-                    stop.wait(delay)
+            try:
+                scrape_section(
+                    source, section, folder, size, delay, max_pages, include_text,
+                    totals, stop, sink, details, article_pages,
+                )
+            except Exception as error:  # noqa: BLE001 - reported per section, then re-raised together
+                if sink is None:
+                    raise
+                failures.append(f"{section}: {error}")
+                log(f"{source.NAME}:{section} failed: {error}", sys.stderr)
     finally:
         close = getattr(source, "close", None)
         if close:
             close()
+    if failures:
+        raise RuntimeError("; ".join(failures))
+
+
+def scrape_section(
+    source: ModuleType,
+    section: str,
+    folder: Path,
+    size: int,
+    delay: float,
+    max_pages: int,
+    include_text: bool,
+    totals: dict[str, int],
+    stop: threading.Event,
+    sink: Any | None,
+    details: Any | None,
+    article_pages: dict[str, tuple[Any, ...]],
+) -> None:
+    """One section of one outlet. article_pages is shared across the outlet's sections, so a story
+    listed in two sections has its article page fetched once."""
+    section_total = 0
+    page_count = 0
+    seen: set[str] = set()
+    with section_output(folder, section, sink) as output:
+        while (max_pages == 0 or page_count < max_pages) and not stop.is_set():
+            new_rows = []
+            # With a sink, a page where the sink knows every row is the end of the new
+            # stories in this section, so the section stops there instead of walking the
+            # listing back to where it ends.
+            page_all_known = True
+            for row in source.list_page(section, page_count, size):
+                key = str(row["id"] or row["url"] or row["headline"])
+                if key in seen:
+                    continue
+                seen.add(key)
+                row = {"outlet": source.NAME, "section": section, **row}
+                want_text = bool(include_text and details and row["url"] and not row["text"])
+                if sink is not None:
+                    if not sink.known(row):
+                        page_all_known = False
+                    want_text = want_text and sink.needs_text(row)
+                if want_text:
+                    if row["url"] not in article_pages:
+                        article_pages[row["url"]] = details(row["url"]) or (None, {})
+                        stop.wait(delay)
+                    text, page_categories, *page_fields = article_pages[row["url"]]
+                    row["text"] = text
+                    row["categories"] = {**row["categories"], **page_categories}
+                    for name, value in (page_fields[0] if page_fields else {}).items():
+                        if row.get(name) in (None, "", [], {}):
+                            row[name] = value
+                new_rows.append(row)
+
+            # Past the last page, listings return nothing or stories the section already sent.
+            if not new_rows:
+                break
+
+            for row in new_rows:
+                if output is None:
+                    sink.save(row)
+                else:
+                    output.write(json.dumps(row, ensure_ascii=False) + "\n")
+                log(f"[{source.NAME}] {row['headline'] or '(untitled)'}\n{row['url'] or ''}\n")
+            if output is not None:
+                output.flush()
+            section_total += len(new_rows)
+            totals[source.NAME] += len(new_rows)
+            page_count += 1
+            log(
+                f"{source.NAME}:{section} page {page_count}: saved {len(new_rows)} articles; "
+                f"section total {section_total}.",
+                sys.stderr,
+            )
+            if page_all_known and sink is not None:
+                log(
+                    f"{source.NAME}:{section}: the store already had every story on this page; "
+                    "stopping this section.",
+                    sys.stderr,
+                )
+                break
+            stop.wait(delay)

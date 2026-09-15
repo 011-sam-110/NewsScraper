@@ -29,17 +29,21 @@ class FakeSource:
     """Listing pages given per section, and an article page per URL. Records every request."""
 
     def __init__(self, name: str, pages: dict[str, list[list[dict[str, Any]]]],
-                 texts: dict[str, str] | None = None) -> None:
+                 texts: dict[str, str] | None = None,
+                 fail_sections: dict[str, str] | None = None) -> None:
         self.NAME = name
         self.SECTIONS = {section: section for section in pages}
         self.pages = pages
         self.texts = texts or {}
+        self.fail_sections = fail_sections or {}
         self.listing_requests: list[tuple[str, int]] = []
         self.page_fetches: list[str] = []
         self.closed = 0
 
     def list_page(self, section: str, page: int, size: int) -> list[dict[str, Any]]:
         self.listing_requests.append((section, page))
+        if section in self.fail_sections:
+            raise RuntimeError(self.fail_sections[section])
         pages = self.pages[section]
         return [dict(row) for row in pages[page]] if page < len(pages) else []
 
@@ -309,6 +313,80 @@ class ParallelOutletTests(SinkTestCase):
         with self.store() as store:
             self.assertEqual(store.scalar("SELECT COUNT(*) FROM stories"), 5)
         self.assertTrue(all(source.closed == 1 for source in sources))
+
+
+class SectionFailureTests(SinkTestCase):
+    """A transient failure in one section must not cost an outlet its other sections."""
+
+    def build(self) -> FakeSource:
+        return FakeSource(
+            "reuters",
+            {"africa": [[row("a1", "https://www.reuters.com/world/africa/a1")]],
+             "iran": [[row("i1", "https://www.reuters.com/world/iran/i1")]],
+             "us": [[row("u1", "https://www.reuters.com/world/us/u1")]]},
+            fail_sections={"iran": "Reuters: HTTP 503 from the section API"},
+        )
+
+    def test_with_a_sink_the_other_sections_still_run(self) -> None:
+        source = self.build()
+        with Store(self.path) as store:
+            sink = StoreSink(store)
+            jobs = [(source, section) for section in ("africa", "iran", "us")]
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                _, errors = common.scrape(self.output, jobs, 8, 0.0, 0, True, sink=sink)
+        # The outlet is still reported as failed, and the message names the section.
+        self.assertIn("reuters", errors)
+        self.assertIn("iran", errors["reuters"])
+        self.assertIn("503", errors["reuters"])
+        # The sections on either side of the failure were stored.
+        self.assertEqual(sink.new_stories["reuters"], 2)
+        with self.store() as store:
+            self.assertEqual(
+                sorted(r["section"] for r in store.query("SELECT section FROM story_sections")),
+                ["africa", "us"],
+            )
+
+    def test_every_failing_section_is_named(self) -> None:
+        source = FakeSource(
+            "reuters",
+            {"africa": [[row("a1", "https://www.reuters.com/world/africa/a1")]],
+             "iran": [], "japan": []},
+            fail_sections={"iran": "HTTP 503", "japan": "HTTP 429"},
+        )
+        with Store(self.path) as store:
+            sink = StoreSink(store)
+            jobs = [(source, section) for section in ("africa", "iran", "japan")]
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                _, errors = common.scrape(self.output, jobs, 8, 0.0, 0, True, sink=sink)
+        self.assertIn("iran: HTTP 503", errors["reuters"])
+        self.assertIn("japan: HTTP 429", errors["reuters"])
+        self.assertEqual(sink.new_stories["reuters"], 1)
+
+    def test_without_a_sink_the_first_failure_still_ends_the_outlet(self) -> None:
+        source = self.build()
+        totals = {"reuters": 0}
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(RuntimeError):
+                common.scrape_source(source, ["africa", "iran", "us"], self.output / "reuters",
+                                     8, 0.0, 0, True, totals, threading.Event(), None)
+        self.assertNotIn(("us", 0), source.listing_requests)
+
+    def test_close_still_runs_when_a_section_fails(self) -> None:
+        source = self.build()
+        with Store(self.path) as store:
+            sink = StoreSink(store)
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                common.scrape(self.output, [(source, "iran")], 8, 0.0, 0, True, sink=sink)
+        self.assertEqual(source.closed, 1)
+
+
+class SharedArticlePageTests(SinkTestCase):
+    def test_a_story_in_two_sections_has_its_page_fetched_once(self) -> None:
+        url = "https://www.bbc.co.uk/news/articles/a1"
+        shared = row("urn:bbc:asset:1", url)
+        source = FakeSource("bbc", {"world": [[shared]], "africa": [[shared]]}, texts={url: "Body."})
+        self.run_scrape(source)
+        self.assertEqual(source.page_fetches, [url])
 
 
 class RowLoggingTests(SinkTestCase):
