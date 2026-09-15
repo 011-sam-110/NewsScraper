@@ -41,7 +41,30 @@ python3 -m venv .venv
 
 Google Chrome must be the real browser. DataDome answers Playwright's bundled Chromium, Chrome for
 Testing, curl and curl_cffi with 401, so `playwright install chromium` is not a substitute. Do not
-change the user agent.
+change the user agent. A bare `curl https://www.reuters.com/` returning 401 on this machine is
+normal and proves nothing is wrong.
+
+### The Reuters probe (milestone M0)
+
+```
+xvfb-run -a --server-args="-screen 0 1920x1080x24" \
+  .venv/bin/python main.py --sections reuters:africa --max-pages 1 -o /tmp/probe
+```
+
+A pass is rows saved with exit code 0. A 401 or 403 means DataDome refused this machine or network;
+check no VPN or proxy is on, then tell Sam rather than trying to work around it.
+
+Run on this host on 2026-09-15 with Google Chrome 153.0.8010.36 under `xvfb-run`: 8 rows, all 8 with
+article text, exit 0. Reuters works here, so all five outlets are on the schedule.
+
+### Getting root on this host
+
+There is no passwordless sudo, and `sudo` cannot prompt from a non-interactive shell. The desktop
+runs KDE with a polkit agent, so `pkexec` raises a password dialog on the logged-in session:
+
+```
+pkexec /usr/bin/dnf install -y <packages>
+```
 
 Seed the store with a bounded run, because an empty store has nothing to stop a section early and
 `--max-pages 0` would walk every listing to its end (up to 500 pages for PBS):

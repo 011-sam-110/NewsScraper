@@ -62,6 +62,7 @@ Reuters is the risk. It launches installed Google Chrome with a visible window (
    `python main.py --sections reuters:africa --max-pages 1 -o /tmp/probe`
    Pass = rows saved and exit code 0. A 401/403 means DataDome refused this machine or network. A VPN or rotating proxy can cause it. `NEWS_SCRAPER_PROXY` sets a proxy for every outlet.
 4. Only a home IP is proven to work (2026-09-14). If Reuters fails here, report it to Sam. Run the other four outlets without it (`--sources bbc guardian pbs nyt`).
+   Proven on the Fedora host on 2026-09-15 with Google Chrome 153 under `xvfb-run`: 8 rows, all with text, exit 0. See `docs/HOST.md`.
 5. Keep pipeline state out of synced folders. The SQLite databases go in `NEWSFEED_DATA_DIR` (default `%LOCALAPPDATA%\NewsScraper` on Windows). This checkout lives under OneDrive, and sync corrupts SQLite write-ahead logs.
 
 ## Known gaps before this can run on a schedule
