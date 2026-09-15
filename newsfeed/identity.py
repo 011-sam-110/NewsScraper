@@ -236,9 +236,15 @@ def format_flags(outlet: str, row: dict[str, Any]) -> list[str]:
             code = subject.get("code") if isinstance(subject, dict) else subject
             if isinstance(code, str) and code.upper() in REUTERS_N2_FLAGS:
                 flags.add(REUTERS_N2_FLAGS[code.upper()])
+        # "image" here means the article has a lead photograph, which nearly every Reuters report
+        # does. Treating it as a gallery flagged 420 of 570 stored Reuters stories and barred every
+        # one of them from ever being a pin. Only a real gallery or video counts.
         media = row.get("primary_media_type")
-        if isinstance(media, str) and media.lower() in {"video", "gallery", "image"}:
-            flags.add("video" if media.lower() == "video" else "gallery")
+        if isinstance(media, str):
+            if media.lower() == "video":
+                flags.add("video")
+            elif media.lower() == "gallery":
+                flags.add("gallery")
         article_type = row.get("article_type")
         if isinstance(article_type, str) and "live" in article_type.lower():
             flags.add("live")

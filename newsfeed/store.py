@@ -120,7 +120,60 @@ CREATE TABLE scrape_runs (
 CREATE INDEX scrape_runs_finished ON scrape_runs(finished_at DESC);
 """
 
-MIGRATIONS: tuple[tuple[int, str], ...] = ((1, MIGRATION_1),)
+# Migration 2 is the extract stage (M5): what the model said about each story, and what every model
+# call cost. extractions is keyed by (story_id, config_hash) so that running again with the same
+# configuration costs nothing, and a configuration change is a new row rather than a lost one.
+MIGRATION_2 = """
+CREATE TABLE extractions (
+    story_id          TEXT NOT NULL REFERENCES stories(story_id) ON DELETE CASCADE,
+    config_hash       TEXT NOT NULL,
+    text_hash         TEXT,
+    accepted          INTEGER NOT NULL DEFAULT 0,
+    failure_reason    TEXT,
+    is_physical_event INTEGER,
+    not_event_reason  TEXT,
+    category          TEXT,
+    event_date        TEXT,
+    place_name        TEXT,
+    place_within      TEXT,
+    place_country     TEXT,
+    place_kind        TEXT,
+    place_quote       TEXT,
+    other_places      TEXT NOT NULL DEFAULT '[]',
+    key_entities      TEXT NOT NULL DEFAULT '[]',
+    cluster_hint      TEXT,
+    raw               TEXT,
+    model             TEXT,
+    schema_retried    INTEGER NOT NULL DEFAULT 0,
+    outlet_tags       TEXT NOT NULL DEFAULT '[]',
+    checks            TEXT NOT NULL DEFAULT '{}',
+    created_at        TEXT NOT NULL,
+    PRIMARY KEY (story_id, config_hash)
+);
+CREATE INDEX extractions_config ON extractions(config_hash, accepted);
+CREATE INDEX extractions_category ON extractions(category);
+
+CREATE TABLE llm_calls (
+    call_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    stage              TEXT NOT NULL,
+    story_id           TEXT,
+    model              TEXT NOT NULL,
+    config_hash        TEXT,
+    prompt_tokens      INTEGER NOT NULL DEFAULT 0,
+    completion_tokens  INTEGER NOT NULL DEFAULT 0,
+    cache_hit_tokens   INTEGER NOT NULL DEFAULT 0,
+    cache_miss_tokens  INTEGER NOT NULL DEFAULT 0,
+    cost_usd           REAL NOT NULL DEFAULT 0,
+    latency_ms         INTEGER,
+    attempts           INTEGER,
+    outcome            TEXT NOT NULL,
+    created_at         TEXT NOT NULL
+);
+CREATE INDEX llm_calls_created ON llm_calls(created_at);
+CREATE INDEX llm_calls_stage ON llm_calls(stage, created_at);
+"""
+
+MIGRATIONS: tuple[tuple[int, str], ...] = ((1, MIGRATION_1), (2, MIGRATION_2))
 SCHEMA_VERSION = MIGRATIONS[-1][0]
 
 
@@ -374,6 +427,63 @@ class Store:
                     "UPDATE outlet_health SET last_new_story_at = ?, updated_at = ? WHERE outlet = ?",
                     (now, now, outlet),
                 )
+
+    # Model spend ---------------------------------------------------------------------
+
+    def record_call(
+        self,
+        stage: str,
+        model: str,
+        outcome: str,
+        usage: Any = None,
+        cost_usd: float = 0.0,
+        story_id: str | None = None,
+        config_hash: str | None = None,
+        latency_ms: int | None = None,
+        attempts: int | None = None,
+    ) -> None:
+        """One row per model call, including the ones that failed.
+
+        A failed call still costs time and can still cost money, and the health stage counts them,
+        so nothing is recorded only on success.
+        """
+        with self.write() as connection:
+            connection.execute(
+                """INSERT INTO llm_calls (stage, story_id, model, config_hash, prompt_tokens,
+                                          completion_tokens, cache_hit_tokens, cache_miss_tokens,
+                                          cost_usd, latency_ms, attempts, outcome, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    stage, story_id, model, config_hash,
+                    getattr(usage, "prompt_tokens", 0),
+                    getattr(usage, "completion_tokens", 0),
+                    getattr(usage, "cache_hit_tokens", 0),
+                    getattr(usage, "cache_miss_tokens", 0),
+                    float(cost_usd), latency_ms, attempts, outcome, now_utc(),
+                ),
+            )
+
+    def spend_today(self, day: str | None = None) -> float:
+        """What the model has cost so far this UTC day, which is what the budget caps."""
+        today = day or now_utc()[:10]
+        return float(
+            self.scalar(
+                "SELECT COALESCE(SUM(cost_usd), 0) FROM llm_calls WHERE substr(created_at, 1, 10) = ?",
+                (today,),
+            )
+            or 0.0
+        )
+
+    def served_model_disagreements(self, config_hash: str) -> list[str]:
+        """Model strings seen under one config hash. More than one means a point release slipped in."""
+        return [
+            row["model"]
+            for row in self.query(
+                "SELECT DISTINCT model FROM extractions WHERE config_hash = ? AND model IS NOT NULL "
+                "ORDER BY model",
+                (config_hash,),
+            )
+        ]
 
     # Runs ----------------------------------------------------------------------------
 

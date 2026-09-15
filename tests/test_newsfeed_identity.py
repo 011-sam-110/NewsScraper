@@ -134,6 +134,20 @@ class FormatFlagTests(unittest.TestCase):
                 row = {"url": "https://www.reuters.com/world/x", "categories": {"subjects": [{"code": code}]}}
                 self.assertIn(flag, identity.format_flags("reuters", row))
 
+    def test_a_lead_photograph_is_not_a_gallery(self) -> None:
+        # Reuters sets primary_media_type to "image" on nearly every ordinary report. Reading that
+        # as a gallery flagged 420 of 570 stored Reuters stories and barred them all from pinning.
+        row = {"url": "https://www.reuters.com/world/africa/x", "primary_media_type": "image",
+               "categories": {}}
+        self.assertEqual(identity.format_flags("reuters", row), [])
+
+    def test_a_real_gallery_or_video_is_still_flagged(self) -> None:
+        for media, flag in (("gallery", "gallery"), ("video", "video")):
+            with self.subTest(media=media):
+                row = {"url": "https://www.reuters.com/world/africa/x", "primary_media_type": media,
+                       "categories": {}}
+                self.assertEqual(identity.format_flags("reuters", row), [flag])
+
     def test_reuters_plain_report_has_no_flag(self) -> None:
         row = {"url": "https://www.reuters.com/world/africa/x", "categories": {"subjects": [{"code": "AFRICA"}]}}
         self.assertEqual(identity.format_flags("reuters", row), [])
