@@ -166,8 +166,10 @@ class OutletHealthTests(unittest.TestCase):
             self.assertEqual(row["consecutive_failures"], 0)
             self.assertIsNotNone(row["last_success_at"])
             self.assertIsNotNone(row["last_new_story_at"])
-            # The last error is kept, so health can say what went wrong last.
+            # The last error is kept, so health can say what went wrong last, and it is dated so a
+            # reader can tell history from a live problem.
             self.assertIn("401", row["last_error"])
+            self.assertIsNotNone(row["last_error_at"])
 
     def test_a_run_with_no_new_story_leaves_the_last_new_story_time_alone(self) -> None:
         with Store(temp_db()) as store:

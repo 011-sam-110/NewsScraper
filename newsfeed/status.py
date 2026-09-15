@@ -77,7 +77,13 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
     print()
     print(f"{'outlet':10} {'stories':>7}  {'last new story':20} {'fails':>5}  last error")
     for outlet in report["outlets"]:
-        error = (outlet["last_error"] or "")[:48]
+        # The last error is kept after a later run succeeds, so date it: an undated message beside
+        # a zero failure count reads as a live problem when it is history.
+        error = outlet["last_error"] or ""
+        if error:
+            when = outlet["last_error_at"] or "unknown time"
+            healed = "" if outlet["consecutive_failures"] else ", since recovered"
+            error = f"{error[:44]} ({when}{healed})"
         print(
             f"{outlet['outlet']:10} {outlet['stories']:>7}  "
             f"{outlet['last_new_story_at'] or 'never':20} {outlet['consecutive_failures']:>5}  {error}"
