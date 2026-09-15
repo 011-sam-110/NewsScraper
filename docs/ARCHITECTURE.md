@@ -222,6 +222,8 @@ python -m newsfeed eval sample|score|gate|audit
 
 Environment variables, or a `.env` file in the repo root. `.gitignore` already ignores `.env`, `.env.*`, `*.sqlite`, `*.sqlite3` and `*.db`. Never commit a key: the repo is public.
 
+Built in M1: `settings.py` also reads the host's own settings file, `~/.config/newsfeed/newsfeed.env` (`$XDG_CONFIG_HOME` is honoured). Later sources win, so the order is that file, then the checkout's `.env`, then real environment variables. The systemd units load the same host file with `EnvironmentFile=`, so a scheduled run and a run by hand cannot drift apart, and the key never has to sit inside a public checkout.
+
 | Variable | Used by | Meaning |
 |---|---|---|
 | `DEEPSEEK_API_KEY` | extract, cluster, verify | DeepSeek API key |

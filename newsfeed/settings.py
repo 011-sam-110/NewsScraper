@@ -17,6 +17,17 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 ENV_FILE = REPO_ROOT / ".env"
 
+
+def config_env_file() -> Path:
+    """The host's settings file, which the systemd units also load with EnvironmentFile=.
+
+    Keeping it outside the checkout is the point: this repo is public, and a key in the tree is one
+    `git add` away from being published.
+    """
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    root = Path(xdg) if xdg else Path.home() / ".config"
+    return root / "newsfeed" / "newsfeed.env"
+
 # A path component equal to one of these, or starting with one followed by a space, is a synced
 # folder. Matching whole components keeps a folder called "dropbox-notes" out of the refusal.
 SYNC_FOLDERS = ("onedrive", "dropbox", "google drive", "googledrive", "gdrive", "my drive", "icloud drive")
@@ -53,10 +64,17 @@ def read_env_file(path: Path = ENV_FILE) -> dict[str, str]:
 
 
 def environment(env: dict[str, str] | None = None) -> dict[str, str]:
-    """The process environment with .env filling the gaps. Pass env in tests."""
+    """The process environment with the settings files filling the gaps. Pass env in tests.
+
+    Later sources win, so the order is: the host's settings file, then a .env in the checkout, then
+    real environment variables. A scheduled run gets the host file through the unit's
+    EnvironmentFile=, and a run by hand gets the same values from here, so the two cannot drift.
+    """
     if env is not None:
         return dict(env)
-    merged = read_env_file()
+    merged: dict[str, str] = {}
+    for path in (config_env_file(), ENV_FILE):
+        merged.update(read_env_file(path))
     merged.update(os.environ)
     return merged
 
@@ -137,7 +155,10 @@ class Settings:
                 "ingest_url": "NEWSFEED_INGEST_URL",
                 "ingest_secret": "NEWSFEED_INGEST_SECRET",
             }.get(field, field.upper())
-            raise SettingsError(f"{variable} is not set. Put it in {ENV_FILE} or the environment.")
+            raise SettingsError(
+                f"{variable} is not set. Put it in {config_env_file()}, in {ENV_FILE}, "
+                "or in the environment."
+            )
         return str(value)
 
     def ensure_data_dir(self) -> Path:

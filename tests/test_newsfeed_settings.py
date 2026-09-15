@@ -44,6 +44,62 @@ class ReadEnvFileTests(unittest.TestCase):
                 self.assertEqual(settings.environment()["DEEPSEEK_API_KEY"], "from-environment")
 
 
+class SettingsFileOrderTests(unittest.TestCase):
+    """The host file, the checkout's .env and real environment variables, in that order."""
+
+    def setUp(self) -> None:
+        self.config_home = Path(tempfile.mkdtemp())
+        folder = self.config_home / "newsfeed"
+        folder.mkdir(parents=True)
+        self.host_file = folder / "newsfeed.env"
+        self.repo_env = Path(tempfile.mkdtemp()) / ".env"
+
+    def write(self, path: Path, value: str) -> None:
+        path.write_text("DEEPSEEK_API_KEY=" + value + "\n", encoding="utf-8")
+
+    def environment(self, os_environ: dict[str, str]) -> dict[str, str]:
+        with mock.patch.dict(os.environ, {"XDG_CONFIG_HOME": str(self.config_home), **os_environ},
+                             clear=True):
+            with mock.patch.object(settings, "ENV_FILE", self.repo_env):
+                return settings.environment()
+
+    def test_the_host_file_is_read(self) -> None:
+        self.write(self.host_file, "from-host")
+        self.assertEqual(self.environment({})["DEEPSEEK_API_KEY"], "from-host")
+
+    def test_a_checkout_env_beats_the_host_file(self) -> None:
+        self.write(self.host_file, "from-host")
+        self.write(self.repo_env, "from-checkout")
+        self.assertEqual(self.environment({})["DEEPSEEK_API_KEY"], "from-checkout")
+
+    def test_a_real_variable_beats_both(self) -> None:
+        self.write(self.host_file, "from-host")
+        self.write(self.repo_env, "from-checkout")
+        self.assertEqual(
+            self.environment({"DEEPSEEK_API_KEY": "from-environment"})["DEEPSEEK_API_KEY"],
+            "from-environment",
+        )
+
+    def test_neither_file_present_is_not_an_error(self) -> None:
+        self.assertNotIn("DEEPSEEK_API_KEY", self.environment({}))
+
+    def test_config_env_file_follows_xdg(self) -> None:
+        with mock.patch.dict(os.environ, {"XDG_CONFIG_HOME": "/tmp/xdg"}, clear=True):
+            self.assertEqual(settings.config_env_file(), Path("/tmp/xdg/newsfeed/newsfeed.env"))
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(
+                settings.config_env_file(), Path.home() / ".config" / "newsfeed" / "newsfeed.env"
+            )
+
+    def test_the_missing_key_message_names_both_files(self) -> None:
+        with mock.patch.dict(os.environ, {"XDG_CONFIG_HOME": str(self.config_home)}, clear=True):
+            with self.assertRaises(settings.SettingsError) as caught:
+                settings.load({}).require("deepseek_api_key")
+        message = str(caught.exception)
+        self.assertIn("newsfeed.env", message)
+        self.assertIn("DEEPSEEK_API_KEY", message)
+
+
 class SyncedFolderTests(unittest.TestCase):
     def test_refuses_every_synced_folder_shape(self) -> None:
         for path in (

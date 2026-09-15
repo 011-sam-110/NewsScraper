@@ -21,8 +21,13 @@ check and repair the scheduled pipeline. The design is `ARCHITECTURE.md`; the pr
 | Checkout | `~/NewsScraper` |
 | Virtual environment | `~/NewsScraper/.venv` |
 | Store and `health.json` | `~/.local/share/newsscraper` |
-| Settings | `~/.config/newsfeed/newsfeed.env` |
+| Settings | `~/.config/newsfeed/newsfeed.env` (mode 600) |
 | Timers | `~/.config/systemd/user/newsfeed-*` |
+
+Settings are read from the host file, then a `.env` in the checkout, then real environment
+variables, with later sources winning. The systemd units load the same host file with
+`EnvironmentFile=`, so a scheduled run and a run by hand see the same values. Keep keys in the host
+file and never in the checkout: this repo is public.
 
 The data directory is deliberately outside the checkout. `newsfeed/settings.py` refuses a
 `NEWSFEED_DATA_DIR` inside OneDrive, Dropbox or Google Drive, because file sync corrupts a SQLite
