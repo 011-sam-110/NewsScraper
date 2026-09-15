@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scraper import reuters  # noqa: E402
+from scraper import common, reuters  # noqa: E402
 
 FIXTURES = Path(__file__).parent / "fixtures" / "reuters"
 
@@ -174,9 +174,85 @@ class SectionQueryTests(unittest.TestCase):
         self.assertEqual(calls, [("/world/europe/", 16, 3, 8)])
         self.assertEqual({row["section_path"] for row in rows}, {"/world/europe/"})
 
+    def test_build_url_uses_the_deployment_it_is_given(self) -> None:
+        url = reuters.build_url("/world/europe/", 0, 1, 8, "999")
+        self.assertEqual(parse_qs(urlsplit(url).query)["d"], ["999"])
+
+    def test_build_url_falls_back_to_the_default_deployment(self) -> None:
+        # build_url must stay pure: no network call just to work out a URL.
+        url = reuters.build_url("/world/europe/", 0, 1, 8)
+        self.assertEqual(parse_qs(urlsplit(url).query)["d"], [reuters.DEFAULT_DEPLOYMENT])
+
     def test_sections_are_the_world_menu(self) -> None:
         # The Reuters World menu on 2026-09-14 had these 15 entries.
         self.assertEqual(len(reuters.SECTIONS), 15)
+
+
+class DeploymentTests(unittest.TestCase):
+    """Reuters' Arc deployment id, which went from 381 to 382 on 2026-09-15 and 404ed every section."""
+
+    def setUp(self) -> None:
+        reuters._deployment.clear()
+        self.addCleanup(reuters._deployment.clear)
+
+    def test_the_id_is_read_from_the_page(self) -> None:
+        self.assertEqual(reuters.read_deployment('<script src="/pf/x.js?d=382"></script>'), "382")
+
+    def test_the_most_referenced_id_wins(self) -> None:
+        page = '<img src="a?d=999"><script src="b?d=382"><script src="c?d=382">'
+        self.assertEqual(reuters.read_deployment(page), "382")
+
+    def test_a_page_with_no_id_gives_none(self) -> None:
+        self.assertIsNone(reuters.read_deployment("<html><body>nothing here</body></html>"))
+
+    def test_the_id_is_read_once_and_then_reused(self) -> None:
+        pages = ['<script src="a?d=382">']
+        with mock.patch.object(reuters, "current_page_html", lambda: pages.pop(0) if pages else None):
+            self.assertEqual(reuters.deployment_id(), "382")
+            self.assertEqual(reuters.deployment_id(), "382")  # no second read, so pages is untouched
+        self.assertEqual(pages, [])
+
+    def test_an_unreadable_page_falls_back_to_the_default(self) -> None:
+        with mock.patch.object(reuters, "current_page_html", lambda: None):
+            self.assertEqual(reuters.deployment_id(), reuters.DEFAULT_DEPLOYMENT)
+
+    def test_a_404_reads_the_id_again_and_retries(self) -> None:
+        calls = []
+
+        def once(section_path, offset, request_id, size):
+            calls.append(reuters.deployment_id())
+            if len(calls) == 1:
+                raise common.FetchError("HTTP 404", 404)
+            return {"content_elements": []}
+
+        pages = ['<script src="a?d=381">', '<script src="a?d=382">']
+        with mock.patch.object(reuters, "current_page_html", lambda: pages.pop(0)):
+            with mock.patch.object(reuters, "fetch_page_once", once):
+                reuters.fetch_page("/world/africa/", 0, 1, 8)
+        self.assertEqual(calls, ["381", "382"])
+
+    def test_a_404_with_an_unchanged_id_is_reported_rather_than_retried_for_ever(self) -> None:
+        def once(*_args):
+            raise common.FetchError("HTTP 404", 404)
+
+        with mock.patch.object(reuters, "current_page_html", lambda: '<script src="a?d=382">'):
+            with mock.patch.object(reuters, "fetch_page_once", once):
+                with self.assertRaises(RuntimeError) as caught:
+                    reuters.fetch_page("/world/africa/", 0, 1, 8)
+        self.assertIn("still 382", str(caught.exception))
+
+    def test_a_status_other_than_404_is_not_retried(self) -> None:
+        calls = []
+
+        def once(*_args):
+            calls.append(1)
+            raise common.FetchError("HTTP 401", 401)
+
+        with mock.patch.object(reuters, "current_page_html", lambda: '<script src="a?d=382">'):
+            with mock.patch.object(reuters, "fetch_page_once", once):
+                with self.assertRaises(RuntimeError):
+                    reuters.fetch_page("/world/africa/", 0, 1, 8)
+        self.assertEqual(len(calls), 1)
 
 
 if __name__ == "__main__":

@@ -41,7 +41,14 @@ SECTIONS = {
 REFERER = urljoin(SITE_ROOT, "/world/")
 # DataDome answers a blocked request with one of these statuses.
 BLOCKED_STATUSES = (401, 403, 429)
+# The section API carries Reuters' Arc deployment id as "d". A stale one answers 404 for every
+# section at once, which is what happened on 2026-09-15 when Reuters moved from 381 to 382. So the
+# id is read from the live page and this value is only the fallback for when that cannot be done.
+DEFAULT_DEPLOYMENT = "382"
+# The deployment id appears in the page's own asset URLs as ?d=<digits> or &d=<digits>.
+DEPLOYMENT_PATTERN = re.compile(r"[?&]d=(\d{1,6})\b")
 _browser_session: list[Any] = []
+_deployment: list[str] = []
 
 
 def browser_proxy() -> Any:
@@ -56,7 +63,46 @@ def browser_proxy() -> Any:
     return proxy
 
 
-def build_url(section_path: str, offset: int, request_id: int, size: int) -> str:
+def read_deployment(page_html: str) -> str | None:
+    """Reuters' current Arc deployment id, from its own page. None when the page does not show one.
+
+    The most common value wins: the page references many assets, and they all carry the id it was
+    built with, so a stray match cannot outvote them.
+    """
+    found = DEPLOYMENT_PATTERN.findall(page_html)
+    if not found:
+        return None
+    return max(set(found), key=found.count)
+
+
+def current_page_html() -> str | None:
+    """The Reuters world page, from the Chrome tab when there is one, else a plain request."""
+    if _browser_session:
+        try:
+            return _browser_session[0][3].content()
+        except Exception:  # noqa: BLE001 - a dead tab must not stop the scrape
+            return None
+    try:
+        return common.get_html(REFERER)
+    except FetchError:
+        return None
+
+
+def deployment_id(refresh: bool = False) -> str:
+    """The deployment id to put in the section API URL, read once per run and then reused."""
+    if refresh:
+        _deployment.clear()
+    if _deployment:
+        return _deployment[0]
+    page_html = current_page_html()
+    found = read_deployment(page_html) if page_html else None
+    _deployment.append(found or DEFAULT_DEPLOYMENT)
+    return _deployment[0]
+
+
+def build_url(section_path: str, offset: int, request_id: int, size: int,
+              deployment: str | None = None) -> str:
+    """The section API URL. Pure: the caller passes the deployment id, so nothing here is fetched."""
     query = {
         "arc-site": "reuters",
         "fetch_type": "collection",
@@ -70,7 +116,7 @@ def build_url(section_path: str, offset: int, request_id: int, size: int) -> str
     }
     params = {
         "query": json.dumps(query, separators=(",", ":")),
-        "d": "381",
+        "d": deployment or DEFAULT_DEPLOYMENT,
         "mxId": "00000000",
         "_website": "reuters",
     }
@@ -78,7 +124,28 @@ def build_url(section_path: str, offset: int, request_id: int, size: int) -> str
 
 
 def fetch_page(section_path: str, offset: int, request_id: int, size: int) -> Any:
-    url = build_url(section_path, offset, request_id, size)
+    """One listing page. A 404 means the deployment id has gone stale, so read it again and retry."""
+    try:
+        return fetch_page_once(section_path, offset, request_id, size)
+    except FetchError as error:
+        if error.status != 404:
+            raise RuntimeError(f"Reuters: {error}") from error
+    stale = deployment_id()
+    fresh = deployment_id(refresh=True)
+    if fresh == stale:
+        raise RuntimeError(
+            f"Reuters: HTTP 404 for {section_path} and the deployment id is still {fresh}. "
+            "The section API may have moved."
+        )
+    print(f"Reuters moved from deployment {stale} to {fresh}; retrying.", file=sys.stderr)
+    try:
+        return fetch_page_once(section_path, offset, request_id, size)
+    except FetchError as error:
+        raise RuntimeError(f"Reuters: {error}") from error
+
+
+def fetch_page_once(section_path: str, offset: int, request_id: int, size: int) -> Any:
+    url = build_url(section_path, offset, request_id, size, deployment_id())
     if _browser_session:
         return fetch_page_in_browser(url)
     try:
@@ -86,7 +153,7 @@ def fetch_page(section_path: str, offset: int, request_id: int, size: int) -> An
     except FetchError as error:
         if error.status in BLOCKED_STATUSES:
             return fetch_page_in_browser(url)
-        raise RuntimeError(f"Reuters: {error}") from error
+        raise
 
 
 def get_browser_session() -> Any:
@@ -168,7 +235,9 @@ def fetch_in_browser(url: str, accept: str) -> str:
             " DataDome did not accept the session; a VPN, a rotating proxy IP or too many "
             "requests can cause this."
         )
-    raise RuntimeError(message)
+    # FetchError is a RuntimeError, so every existing caller still catches it, but the status is
+    # now readable and a stale deployment id can be told apart from a block.
+    raise FetchError(message, status)
 
 
 def fetch_page_in_browser(url: str) -> Any:
