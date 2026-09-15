@@ -57,6 +57,24 @@ check no VPN or proxy is on, then tell Sam rather than trying to work around it.
 Run on this host on 2026-09-15 with Google Chrome 153.0.8010.36 under `xvfb-run`: 8 rows, all 8 with
 article text, exit 0. Reuters works here, so all five outlets are on the schedule.
 
+### Reuters and DataDome
+
+DataDome rate-limits the Chrome session, not just the machine. On 2026-09-15 a run that pulled 312
+rows in eleven minutes was answered with HTTP 401 on its last two sections. A single light request
+a few minutes later succeeded, so the machine was never banned: the session had simply asked for
+too much, too fast.
+
+What follows from that:
+
+- Reuters is scheduled slower and shallower than the other four (`--max-pages 3 --delay 3`). In the
+  steady state every section stops on page 1 anyway.
+- Never backfill Reuters. An uncapped run on a section that is behind walks its whole archive, which
+  is what provoked the 401.
+- A 401 is not automatically a ban. Wait a few minutes and try one section with
+  `--max-pages 1 --no-include-text`. If that works, the machine is fine. If it keeps failing across
+  runs an hour apart, that is the case CLAUDE.md says to report to Sam.
+- A Reuters run holds a Chrome process: about 1 GB at peak. Do not run two at once.
+
 ### Getting root on this host
 
 There is no passwordless sudo, and `sudo` cannot prompt from a non-interactive shell. The desktop
@@ -92,7 +110,10 @@ sudo loginctl enable-linger $USER    # so the timers survive a logout
 | `newsfeed-scrape.timer` | hourly, on the hour | BBC, the Guardian, PBS, NYT |
 | `newsfeed-scrape-reuters.timer` | hourly, at 20 past | Reuters, under `xvfb-run` |
 
-Both run with `--max-pages 10`. That is a backstop, not the normal stop. A section normally stops
+The four browser-free outlets run with `--max-pages 10`. Reuters runs with `--max-pages 3 --delay 3`,
+because it is the one outlet that can be refused: see "Reuters and DataDome" below.
+
+The page cap is a backstop, not the normal stop. A section normally stops
 at the first listing page where the store already holds every story, which is one or two pages once
 the store is caught up. The cap matters only when the store is behind: an uncapped run there walks
 a section's whole archive, which for `reuters:ukraine-russia-war` is hundreds of pages and tens of
