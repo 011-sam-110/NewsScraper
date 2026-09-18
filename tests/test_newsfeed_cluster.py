@@ -1,0 +1,343 @@
+"""Cluster tests (M7). Section 7.8 of docs/ARCHITECTURE.md.
+
+The test that matters is LondonStabbingsTest. Section 7.8 names it as the one that decides whether
+this stage is worth running, and it is written so that it cannot pass for the wrong reason: it
+asserts the candidate gate DID offer the pair to the model before asserting the two stories stayed
+apart. A gate that quietly rejected the pair would keep them apart too, and would be hiding a bug
+rather than proving one absent.
+"""
+
+from __future__ import annotations
+
+import unittest
+from datetime import datetime, timedelta, timezone
+
+from newsfeed.cluster import (
+    CLUSTER_WINDOW_HOURS,
+    ClusterFacts,
+    Placement,
+    StoryFacts,
+    VERDICT_DIFFERENT,
+    VERDICT_FOUNDER,
+    VERDICT_SAME,
+    VERDICT_UNSURE,
+    candidate_reasons,
+    headline_overlap,
+    headline_tokens,
+    make_cluster_id,
+    parse_verdict,
+    pin_decision,
+    place_story,
+    shared_entities,
+    within_window,
+)
+
+BASE = datetime(2026, 9, 17, 9, 0, tzinfo=timezone.utc)
+
+
+def at(hours: float) -> str:
+    return (BASE + timedelta(hours=hours)).isoformat()
+
+
+def story(story_id: str, headline: str, **kwargs) -> StoryFacts:
+    """A located, pinnable, physical-event story in London unless the caller says otherwise."""
+    fields = dict(
+        outlet="bbc",
+        primary_alias=f"alias-{story_id}",
+        published=at(0),
+        country="GB",
+        latitude=51.5074,
+        longitude=-0.1278,
+        place_precision="city",
+        pinnable=True,
+        is_physical_event=True,
+    )
+    fields.update(kwargs)
+    return StoryFacts(story_id=story_id, headline=headline, **fields)
+
+
+class ScriptedJudge:
+    """Stands in for the model. Answers from a table and records every pair it was asked about."""
+
+    def __init__(self, answers: dict[tuple[str, str], str], default: str = VERDICT_DIFFERENT):
+        self.answers = answers
+        self.default = default
+        self.calls: list[tuple[str, str]] = []
+
+    def __call__(self, subject: StoryFacts, founder: StoryFacts) -> str:
+        pair = (subject.story_id, founder.story_id)
+        self.calls.append(pair)
+        return self.answers.get(pair, self.default)
+
+
+class LondonStabbingsTest(unittest.TestCase):
+    """Two different stabbings in London on the same day must stay two clusters."""
+
+    def setUp(self) -> None:
+        self.first = story("s1", "Man stabbed in Croydon, London, police say", published=at(0))
+        self.second = story("s2", "Teenager stabbed in London, police say", published=at(6))
+        self.judge = ScriptedJudge({("s2", "s1"): VERDICT_DIFFERENT})
+
+    def test_the_gate_does_offer_the_pair_to_the_model(self) -> None:
+        """Guards the test below. If the gate rejects the pair, the real check never runs."""
+        founder = ClusterFacts(make_cluster_id("bbc", "alias-s1"), self.first, [self.first])
+        self.assertTrue(candidate_reasons(self.second, founder))
+
+    def test_two_stabbings_stay_two_clusters(self) -> None:
+        opened = ClusterFacts(make_cluster_id("bbc", "alias-s1"), self.first, [self.first])
+        placed = place_story(self.second, [opened], self.judge)
+
+        self.assertTrue(placed.founded)
+        self.assertNotEqual(placed.cluster_id, opened.cluster_id)
+        self.assertEqual(self.judge.calls, [("s2", "s1")], "the model must be asked exactly once")
+
+    def test_the_same_stabbing_reported_twice_does_join(self) -> None:
+        """The other half of the pair. A gate that refused everything would pass the test above."""
+        agreeing = ScriptedJudge({("s2", "s1"): VERDICT_SAME})
+        opened = ClusterFacts(make_cluster_id("bbc", "alias-s1"), self.first, [self.first])
+        placed = place_story(self.second, [opened], agreeing)
+
+        self.assertFalse(placed.founded)
+        self.assertEqual(placed.cluster_id, opened.cluster_id)
+        self.assertEqual(placed.compared_to, "s1")
+
+
+class ChainingTest(unittest.TestCase):
+    """A matches B and B matches C, but A and C are different events."""
+
+    def test_comparison_is_against_the_founder_not_the_newest_member(self) -> None:
+        founder = story("a", "Fire at a warehouse in east London", published=at(0))
+        joined = story("b", "Fire at a London warehouse spreads", published=at(2))
+        third = story("c", "Fire crews tackle a second London blaze", published=at(4))
+
+        judge = ScriptedJudge({("b", "a"): VERDICT_SAME, ("c", "b"): VERDICT_SAME})
+        open_cluster = ClusterFacts(make_cluster_id("bbc", "alias-a"), founder, [founder, joined])
+
+        placed = place_story(third, [open_cluster], judge)
+
+        self.assertTrue(placed.founded, "C matched B, not the founder, so it must not join")
+        self.assertEqual(judge.calls, [("c", "a")], "C must be compared with A, never with B")
+
+
+class VerdictTest(unittest.TestCase):
+    def test_only_same_joins(self) -> None:
+        founder = story("a", "Explosion reported in central Paris", country="FR")
+        subject = story("b", "Explosion in Paris injures four", country="FR", published=at(1))
+        opened = ClusterFacts("nf_test", founder, [founder])
+
+        for verdict in (VERDICT_DIFFERENT, VERDICT_UNSURE):
+            with self.subTest(verdict=verdict):
+                judge = ScriptedJudge({("b", "a"): verdict})
+                self.assertTrue(place_story(subject, [opened], judge).founded)
+
+        agreeing = ScriptedJudge({("b", "a"): VERDICT_SAME})
+        self.assertFalse(place_story(subject, [opened], agreeing).founded)
+
+    def test_an_unrecognised_answer_is_unsure_never_same(self) -> None:
+        for payload in ({}, {"verdict": ""}, {"verdict": "yes"}, {"verdict": None}):
+            with self.subTest(payload=payload):
+                self.assertEqual(parse_verdict(payload), VERDICT_UNSURE)
+        self.assertEqual(parse_verdict({"verdict": " Same "}), VERDICT_SAME)
+        self.assertEqual(parse_verdict({"verdict": "DIFFERENT"}), VERDICT_DIFFERENT)
+
+
+class LiveBlogTest(unittest.TestCase):
+    """Section 7.8 step 6. A live blog is many events in one document."""
+
+    def test_a_live_blog_never_joins_a_cluster(self) -> None:
+        founder = story("a", "Floods hit northern Spain", country="ES")
+        blog = story("b", "Spain floods: latest updates", country="ES", published=at(1),
+                     format_flags=("live",))
+        judge = ScriptedJudge({}, default=VERDICT_SAME)
+
+        placed = place_story(blog, [ClusterFacts("nf_test", founder, [founder])], judge)
+
+        self.assertTrue(placed.founded)
+        self.assertEqual(judge.calls, [], "a live blog must not cost a model call")
+
+    def test_nothing_joins_a_live_blog(self) -> None:
+        blog = story("a", "Spain floods: latest updates", country="ES", format_flags=("live",))
+        subject = story("b", "Floods hit northern Spain", country="ES", published=at(1))
+        judge = ScriptedJudge({}, default=VERDICT_SAME)
+
+        placed = place_story(subject, [ClusterFacts("nf_test", blog, [blog])], judge)
+
+        self.assertTrue(placed.founded)
+        self.assertEqual(judge.calls, [])
+
+    def test_a_live_blog_cluster_is_not_a_pin(self) -> None:
+        blog = story("a", "Spain floods: latest updates", country="ES", format_flags=("live",))
+        self.assertEqual(pin_decision(ClusterFacts("nf_x", blog, [blog])), (False, "live_blog"))
+
+
+class CandidateGateTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.founder = story("a", "Bridge collapse in Genoa kills two", country="IT",
+                             latitude=44.4056, longitude=8.9463, entities=("Morandi Bridge",))
+        self.cluster = ClusterFacts("nf_test", self.founder, [self.founder])
+
+    def test_a_different_country_is_never_a_candidate(self) -> None:
+        other = story("b", "Bridge collapse in Genoa kills two", country="FR", published=at(1),
+                      latitude=44.4056, longitude=8.9463)
+        self.assertEqual(candidate_reasons(other, self.cluster), [])
+
+    def test_a_story_with_no_country_is_never_a_candidate(self) -> None:
+        other = story("b", "Bridge collapse in Genoa kills two", country=None, published=at(1))
+        self.assertEqual(candidate_reasons(other, self.cluster), [])
+
+    def test_outside_the_window_is_never_a_candidate(self) -> None:
+        late = story("b", "Bridge collapse in Genoa kills two", country="IT",
+                     published=at(CLUSTER_WINDOW_HOURS + 1), latitude=44.4056, longitude=8.9463)
+        self.assertEqual(candidate_reasons(late, self.cluster), [])
+
+    def test_place_alone_is_enough(self) -> None:
+        nearby = story("b", "Two dead after a structure gave way", country="IT", published=at(1),
+                       latitude=44.42, longitude=8.95)
+        reasons = candidate_reasons(nearby, self.cluster)
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("place", reasons[0])
+
+    def test_an_entity_alone_is_enough(self) -> None:
+        far = story("b", "Inquiry opens into the disaster", country="IT", published=at(1),
+                    latitude=41.9028, longitude=12.4964, entities=("morandi bridge",))
+        reasons = candidate_reasons(far, self.cluster)
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("morandi bridge", reasons[0])
+
+    def test_a_headline_alone_is_enough(self) -> None:
+        far = story("b", "Genoa bridge collapse: two killed", country="IT", published=at(1),
+                    latitude=41.9028, longitude=12.4964)
+        reasons = candidate_reasons(far, self.cluster)
+        self.assertEqual(len(reasons), 1)
+        self.assertIn("headline", reasons[0])
+
+    def test_a_distant_unrelated_story_in_the_same_country_is_not_a_candidate(self) -> None:
+        unrelated = story("b", "Olive harvest starts early in Puglia", country="IT", published=at(1),
+                          latitude=41.1171, longitude=16.8719)
+        self.assertEqual(candidate_reasons(unrelated, self.cluster), [])
+
+
+class WindowTest(unittest.TestCase):
+    def test_the_boundary_is_inclusive(self) -> None:
+        self.assertTrue(within_window(at(0), at(CLUSTER_WINDOW_HOURS)))
+        self.assertFalse(within_window(at(0), at(CLUSTER_WINDOW_HOURS + 0.01)))
+
+    def test_a_missing_time_fails_rather_than_passes(self) -> None:
+        """A story whose time we had to invent must not join an event on the invented time."""
+        self.assertFalse(within_window(None, at(0)))
+        self.assertFalse(within_window(at(0), None))
+        self.assertFalse(within_window("not a date", at(0)))
+
+    def test_a_naive_timestamp_is_read_as_utc(self) -> None:
+        self.assertTrue(within_window("2026-09-17T09:00:00", "2026-09-17T11:00:00Z"))
+
+    def test_order_does_not_matter(self) -> None:
+        self.assertEqual(within_window(at(0), at(10)), within_window(at(10), at(0)))
+
+
+class PinRuleTest(unittest.TestCase):
+    def test_a_founder_and_a_close_member_is_a_pin(self) -> None:
+        founder = story("a", "Blast in London")
+        near = story("b", "Blast in London", latitude=51.52, longitude=-0.13)
+        self.assertEqual(pin_decision(ClusterFacts("nf_x", founder, [founder, near])), (True, None))
+
+    def test_one_far_member_vetoes_the_pin(self) -> None:
+        founder = story("a", "Blast in London")
+        near = story("b", "Blast in London", latitude=51.52, longitude=-0.13)
+        far = story("c", "Blast in London", latitude=55.9533, longitude=-3.1883)
+        decision = pin_decision(ClusterFacts("nf_x", founder, [founder, near, far]))
+        self.assertEqual(decision, (False, "members_far_apart"))
+
+    def test_an_unlocated_member_does_not_veto(self) -> None:
+        founder = story("a", "Blast in London")
+        floating = story("b", "Reaction to the blast", latitude=None, longitude=None)
+        self.assertEqual(pin_decision(ClusterFacts("nf_x", founder, [founder, floating])), (True, None))
+
+    def test_a_founder_that_is_not_an_event_is_not_a_pin(self) -> None:
+        founder = story("a", "What the blast tells us", is_physical_event=False)
+        self.assertEqual(
+            pin_decision(ClusterFacts("nf_x", founder, [founder])), (False, "founder_not_an_event")
+        )
+
+    def test_a_region_founder_is_not_a_pin(self) -> None:
+        founder = story("a", "Wildfires across Andalusia", place_precision="region", pinnable=False)
+        self.assertEqual(
+            pin_decision(ClusterFacts("nf_x", founder, [founder])),
+            (False, "founder_place_not_pinnable"),
+        )
+
+    def test_an_unlocated_founder_is_not_a_pin(self) -> None:
+        founder = story("a", "Blast reported", latitude=None, longitude=None)
+        self.assertEqual(
+            pin_decision(ClusterFacts("nf_x", founder, [founder])),
+            (False, "founder_place_not_pinnable"),
+        )
+
+
+class ClusterIdTest(unittest.TestCase):
+    def test_the_id_is_stable_and_shaped_as_the_contract_says(self) -> None:
+        first = make_cluster_id("bbc", "bbc:world:abc123")
+        self.assertEqual(first, make_cluster_id("bbc", "bbc:world:abc123"))
+        self.assertTrue(first.startswith("nf_"))
+        self.assertEqual(len(first), 15)
+        self.assertTrue(all(c in "0123456789abcdef" for c in first[3:]))
+
+    def test_a_different_founder_gives_a_different_id(self) -> None:
+        self.assertNotEqual(make_cluster_id("bbc", "a"), make_cluster_id("bbc", "b"))
+        self.assertNotEqual(make_cluster_id("bbc", "a"), make_cluster_id("pbs", "a"))
+
+    def test_the_separator_cannot_be_forged_by_a_field(self) -> None:
+        """Without a separator, the pairs (ab, c) and (a, bc) would collide."""
+        self.assertNotEqual(make_cluster_id("ab", "c"), make_cluster_id("a", "bc"))
+
+
+class TokenTest(unittest.TestCase):
+    def test_stop_words_and_short_fragments_are_dropped(self) -> None:
+        self.assertEqual(headline_tokens("The fire is in a mill"), {"fire", "mill"})
+
+    def test_overlap_is_symmetric(self) -> None:
+        a, b = "Fire at a London mill", "London mill fire kills two"
+        self.assertEqual(headline_overlap(a, b), headline_overlap(b, a))
+
+    def test_an_empty_headline_overlaps_nothing(self) -> None:
+        self.assertEqual(headline_overlap("", "London mill fire"), 0.0)
+        self.assertEqual(headline_overlap("the a an", "London mill fire"), 0.0)
+
+    def test_entities_are_compared_case_folded(self) -> None:
+        self.assertEqual(shared_entities(["Keir Starmer"], ["keir starmer "]), {"keir starmer"})
+        self.assertEqual(shared_entities(["", "  "], ["Keir Starmer"]), set())
+
+
+class PlacementOrderTest(unittest.TestCase):
+    def test_the_first_same_wins_and_stops_the_calls(self) -> None:
+        first = story("a", "Quake strikes Osaka", country="JP")
+        second = story("b", "Quake strikes Osaka", country="JP")
+        subject = story("c", "Osaka quake: buildings damaged", country="JP", published=at(1))
+        judge = ScriptedJudge({("c", "a"): VERDICT_SAME, ("c", "b"): VERDICT_SAME})
+
+        placed = place_story(
+            subject,
+            [ClusterFacts("nf_first", first, [first]), ClusterFacts("nf_second", second, [second])],
+            judge,
+        )
+
+        self.assertEqual(placed.cluster_id, "nf_first")
+        self.assertEqual(judge.calls, [("c", "a")], "the second cluster must not be paid for")
+
+    def test_a_non_candidate_costs_no_call(self) -> None:
+        founder = story("a", "Quake strikes Osaka", country="JP")
+        subject = story("b", "Olive harvest starts early", country="IT", published=at(1))
+        judge = ScriptedJudge({}, default=VERDICT_SAME)
+
+        placed = place_story(subject, [ClusterFacts("nf_x", founder, [founder])], judge)
+        self.assertTrue(placed.founded)
+        self.assertEqual(judge.calls, [])
+
+    def test_the_first_story_of_all_founds_a_cluster(self) -> None:
+        placed = place_story(story("a", "Quake strikes Osaka"), [], ScriptedJudge({}))
+        expected = Placement(make_cluster_id("bbc", "alias-a"), VERDICT_FOUNDER, True, None, 0)
+        self.assertEqual(placed, expected)
+
+
+if __name__ == "__main__":
+    unittest.main()

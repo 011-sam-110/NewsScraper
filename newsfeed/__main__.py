@@ -11,6 +11,7 @@ import argparse
 import sys
 
 from . import extract as extract_stage
+from . import cluster as cluster_stage
 from . import geonames as geonames_stage
 from . import resolve as resolve_stage
 from . import scrape as scrape_stage
@@ -19,7 +20,6 @@ from .settings import SettingsError
 
 # Stage -> the milestone in docs/ARCHITECTURE.md section 14 that builds it.
 PLANNED_STAGES = {
-    "cluster": "M7",
     "publish": "M10",
     "health": "M10",
     "eval": "M4",
@@ -49,6 +49,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     resolve_stage.add_arguments(resolve_parser)
 
+    cluster_parser = stages.add_parser(
+        "cluster", help="Group reports of one happening, and decide whether it is a pin."
+    )
+    cluster_stage.add_arguments(cluster_parser)
+
     for name, milestone in PLANNED_STAGES.items():
         stages.add_parser(name, help=f"Not built yet: milestone {milestone}.", add_help=False)
     return parser
@@ -75,6 +80,8 @@ def main(argv: list[str] | None = None) -> int:
             return geonames_stage.run(args)
         if args.stage == "resolve":
             return resolve_stage.run(args)
+        if args.stage == "cluster":
+            return cluster_stage.run(args)
     except SettingsError as error:
         print(f"Settings: {error}", file=sys.stderr)
         return 2

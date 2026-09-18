@@ -127,6 +127,76 @@ def retry_suffix(error: str) -> str:
     )
 
 
+CLUSTER_PROMPT_VERSION = "cluster/1"
+
+CLUSTER_SYSTEM = """You compare two news reports and decide whether they report the SAME single
+happening. Return json only, with no other text.
+
+The same happening means one event: one fire, one crash, one raid, one match. Same place, same
+time, same thing.
+
+These are NOT the same happening, however similar they read:
+- two separate crimes of the same type in the same city on the same day
+- an event and a later, separate consequence of it: an arrest, a funeral, a court hearing, an
+  inquiry, a report published about it
+- a follow-up that adds a new, different incident to a running story
+- one incident and a roundup that covers several incidents including it
+- the same type of event in two places, however close
+
+Answer "different" whenever you are weighing two plausible readings and one of them is "different".
+Being wrong in the direction of "same" merges two real events into one, and nothing downstream can
+tell that it was ever two. Being wrong in the direction of "different" only shows the event twice.
+
+Use "unsure" when the two reports are too thin to tell apart, not as a midpoint between the two.
+"unsure" is treated as "different", so it costs you nothing to use it honestly.
+
+A shared place, a shared name, or a shared date is not evidence on its own. The question is whether
+a person at the scene would have witnessed one thing or two.
+
+Return exactly this shape:
+
+{"verdict": "same", "reason": "both report the fire at the Dagenham tower block on 26 August"}
+
+"verdict" is exactly one of: same, different, unsure.
+"reason" is one short line, at most 20 words. It is stored, never shown to a reader.
+"""
+
+
+def build_cluster_user(first: dict[str, Any], second: dict[str, Any]) -> str:
+    """The per-pair message. Section 7.8 step 2.
+
+    Deliberately NOT the article text. The extract stage already reduced each story to a headline,
+    a one-line summary, a place and the names in it, and that is what tells two events apart. Full
+    text here would multiply the cost of the one stage that runs a call per candidate pair, and
+    would bury the four fields that carry the answer.
+    """
+
+    def block(label: str, story: dict[str, Any]) -> str:
+        entities = ", ".join(story.get("key_entities") or []) or "none"
+        return (
+            f"{label}:\n"
+            f"  Headline: {story.get('headline') or 'untitled'}\n"
+            f"  Published: {story.get('published') or 'unknown'}\n"
+            f"  Event date: {story.get('event_date') or 'unknown'}\n"
+            f"  Place: {story.get('place') or 'unknown'}\n"
+            f"  What happened: {story.get('cluster_hint') or 'not summarised'}\n"
+            f"  Names in the story: {entities}\n"
+        )
+
+    return f"{block('Report A', first)}\n{block('Report B', second)}"
+
+
 def prompt_components() -> dict[str, Any]:
-    """What the config hash records about the prompts (section 10.5)."""
+    """What the EXTRACT config hash records about the prompts (section 10.5).
+
+    Extract only, and it must stay that way. `extractions` is keyed by (story_id, config_hash), so
+    a key added here that describes some other stage throws away every stored extraction and pays
+    for it again. The cluster prompt therefore has its own function below rather than joining this
+    dict, for the same reason config.py keeps an extract hash apart from the gate hash.
+    """
     return {"extract_prompt_version": EXTRACT_PROMPT_VERSION, "extract_system": EXTRACT_SYSTEM}
+
+
+def cluster_prompt_components() -> dict[str, Any]:
+    """What the CLUSTER config hash records about the prompts. Never mixed into the extract hash."""
+    return {"cluster_prompt_version": CLUSTER_PROMPT_VERSION, "cluster_system": CLUSTER_SYSTEM}

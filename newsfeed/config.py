@@ -99,3 +99,44 @@ def resolve_components(gazetteer_hash: str) -> dict[str, Any]:
 
 def resolve_config_hash(gazetteer_hash: str) -> str:
     return hash_components(resolve_components(gazetteer_hash))
+
+
+def cluster_components(
+    resolve_hash: str, extract_hash: str, model: str = DEFAULT_MODEL
+) -> dict[str, Any]:
+    """Everything that can change which stories end up in one cluster.
+
+    It carries the extract and resolve hashes rather than repeating their parts, because cluster
+    reads what those two stages wrote and never recomputes it: a cluster made from one set of
+    extractions is not the same cluster made from another, even with identical thresholds here.
+    """
+    from .cluster import (
+        CANDIDATE_RADIUS_KM,
+        CLUSTER_TEMPERATURE,
+        CLUSTER_WINDOW_HOURS,
+        HEADLINE_OVERLAP,
+        JOINING_VERDICTS,
+        PIN_SPREAD_KM,
+        STOP_WORDS,
+    )
+
+    return {
+        "stage": "cluster",
+        "model": model,
+        "temperature": CLUSTER_TEMPERATURE,
+        "extract": extract_hash,
+        "resolve": resolve_hash,
+        "window_hours": CLUSTER_WINDOW_HOURS,
+        "candidate_radius_km": CANDIDATE_RADIUS_KM,
+        "pin_spread_km": PIN_SPREAD_KM,
+        "headline_overlap": HEADLINE_OVERLAP,
+        "stop_words": sorted(STOP_WORDS),
+        "joining_verdicts": sorted(JOINING_VERDICTS),
+        **prompts.cluster_prompt_components(),
+    }
+
+
+def cluster_config_hash(
+    resolve_hash: str, extract_hash: str, model: str = DEFAULT_MODEL
+) -> str:
+    return hash_components(cluster_components(resolve_hash, extract_hash, model))

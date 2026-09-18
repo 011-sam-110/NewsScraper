@@ -203,7 +203,54 @@ CREATE INDEX resolutions_config ON resolutions(config_hash, pinnable);
 CREATE INDEX resolutions_geonames ON resolutions(geonames_id);
 """
 
-MIGRATIONS: tuple[tuple[int, str], ...] = ((1, MIGRATION_1), (2, MIGRATION_2), (3, MIGRATION_3))
+# Migration 4 is the cluster stage (M7): which stories are the same event, and whether that event
+# is a pin. Section 7.8.
+#
+# EVERY EXTRACTED STORY JOINS EXACTLY ONE CLUSTER, and the primary key on cluster_members is what
+# makes that true rather than intended. A story that joined twice would be counted twice by the
+# gate and shown twice on the map.
+#
+# THE FOUNDER IS STORED ON THE CLUSTER, NOT DERIVED. A cluster id is minted once from the founding
+# story and never changes, so the founder has to stay findable even after the member rows are
+# rewritten under a new config hash. Comparing a new story with the founder rather than the latest
+# member is what stops chaining, and that comparison needs the founder to be unambiguous.
+MIGRATION_4 = """
+CREATE TABLE clusters (
+    cluster_id        TEXT NOT NULL,
+    config_hash       TEXT NOT NULL,
+    founder_story     TEXT NOT NULL REFERENCES stories(story_id) ON DELETE CASCADE,
+    country           TEXT,
+    founder_published TEXT,
+    latitude          REAL,
+    longitude         REAL,
+    place_precision   TEXT,
+    is_pin            INTEGER NOT NULL DEFAULT 0,
+    not_pin_reason    TEXT,
+    open              INTEGER NOT NULL DEFAULT 1,
+    created_at        TEXT NOT NULL,
+    PRIMARY KEY (cluster_id, config_hash)
+);
+CREATE INDEX clusters_open ON clusters(config_hash, open, country);
+CREATE INDEX clusters_pin ON clusters(config_hash, is_pin);
+
+CREATE TABLE cluster_members (
+    story_id    TEXT NOT NULL REFERENCES stories(story_id) ON DELETE CASCADE,
+    config_hash TEXT NOT NULL,
+    cluster_id  TEXT NOT NULL,
+    verdict     TEXT NOT NULL,
+    compared_to TEXT,
+    joined_at   TEXT NOT NULL,
+    PRIMARY KEY (story_id, config_hash)
+);
+CREATE INDEX cluster_members_cluster ON cluster_members(cluster_id, config_hash);
+"""
+
+MIGRATIONS: tuple[tuple[int, str], ...] = (
+    (1, MIGRATION_1),
+    (2, MIGRATION_2),
+    (3, MIGRATION_3),
+    (4, MIGRATION_4),
+)
 SCHEMA_VERSION = MIGRATIONS[-1][0]
 
 
