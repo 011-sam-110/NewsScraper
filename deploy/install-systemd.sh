@@ -58,9 +58,17 @@ for unit in "${units[@]}"; do
 done
 systemctl --user daemon-reload
 
-if ! command -v xvfb-run >/dev/null 2>&1; then
-  echo "Warning: xvfb-run is missing, so the Reuters timer will fail." >&2
-  echo "  sudo dnf install -y xorg-x11-server-Xvfb" >&2
+# Reuters needs this account's REAL display: DataDome refuses the SwiftShader renderer Chrome
+# falls back to without a GPU. See deploy/reuters-display.sh for the measurement.
+if ! ls /tmp/.X11-unix/X* >/dev/null 2>&1 && [ -z "${DISPLAY:-}" ]; then
+  echo "Warning: no X display found, so the Reuters timer will fail with exit 3." >&2
+  echo "  Log in on the seat, or set NEWS_SCRAPER_DISPLAY in $env_file." >&2
+  echo "  The other four outlets need no display and are unaffected." >&2
+fi
+if ! command -v xdpyinfo >/dev/null 2>&1; then
+  echo "Note: xdpyinfo is missing, so the Reuters wrapper cannot prove the display answers" >&2
+  echo "before it spends a request on it. It will still run." >&2
+  echo "  sudo dnf install -y xorg-x11-utils" >&2
 fi
 if ! command -v google-chrome-stable >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1; then
   echo "Warning: Google Chrome is missing, so Reuters will fail. DataDome refuses every other browser." >&2
@@ -73,6 +81,11 @@ done
 
 # Without lingering, user timers stop when the account logs out, which looks exactly like an
 # outage of every outlet. This needs an administrator once.
+#
+# Lingering is necessary but NOT sufficient for Reuters. That one needs a live graphical session
+# as well, because it drives a real Chrome window on the seat's display. A logged-out box with
+# lingering on keeps the other four outlets running and fails Reuters loudly, which is the
+# intended behaviour rather than a bug to work around.
 if ! loginctl show-user "$USER" --property=Linger 2>/dev/null | grep -q 'Linger=yes'; then
   echo
   echo "Timers stop when this account logs out. To keep them running, an administrator runs:"
