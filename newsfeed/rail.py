@@ -30,6 +30,7 @@ import urllib.error
 import urllib.request
 from typing import TYPE_CHECKING, Any, Iterator, Sequence
 
+from . import taxonomy
 from .store import Store
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -162,6 +163,35 @@ def item_hash(row: dict[str, Any]) -> str:
     return hashlib.sha256(material.encode("utf-8")).hexdigest()[:32]
 
 
+# Section 6: region and country are NEVER pinned. The extract stage writes a free-ish `place_kind`,
+# so this maps it rather than assuming the two vocabularies agree. Anything not named here is
+# allowed, which is the same direction to fail in as `taxonomy.can_pin`: a permissive default puts a
+# few doubtful dots on the map, where a strict one silently stops pinning and reads as a quiet week.
+NEVER_PINNED_KINDS = frozenset({"region", "country", "state", "province", "continent"})
+
+
+def pinnable_on_the_rail(category: str | None, place_kind: str | None) -> tuple[bool, str]:
+    """May this extraction draw a dot, and if not, why not.
+
+    THE RAIL HAS NO GATE OF ITS OWN, which is the point of this function. The section 8 snapshot
+    refuses a pin twice over: `cluster.pin_decision` vetoes a category that can never be about a
+    place, and `publish._location` refuses any precision other than point, district or city. The
+    rail path goes straight from the extraction to Provenance's own geocoder, so unless this side
+    applies those two rules, neither end applies them at all.
+
+    Measured on the 2,000 rows waiting to be sent on 2026-09-18: 142 would be offered as pins, and
+    25 of those broke a rule this project already had written down. Seven were `courts_and_justice`,
+    including a Basingstoke magistrates court and the Kuala Lumpur acquittal that carries the
+    ORIGINAL stabbing's quote, which is section 3's GDELT example almost word for word. Eighteen
+    were region or country precision.
+    """
+    if not taxonomy.can_pin(category):
+        return False, "category_never_pins"
+    if (place_kind or "").strip().lower() in NEVER_PINNED_KINDS:
+        return False, "precision_never_pins"
+    return True, ""
+
+
 def build_event(row: dict[str, Any]) -> dict[str, Any] | None:
     """The extraction, in the far end's `NewsEvent` shape, or None when extract has not run.
 
@@ -169,11 +199,23 @@ def build_event(row: dict[str, Any]) -> dict[str, Any] | None:
     `true` OR `1` precisely because a sender that passes the column straight through ships `1`.
     Sending the boolean rather than leaning on that tolerance means this side is correct even if
     the far end ever tightens it.
+
+    A row that may not be pinned is sent with `isPhysical` false and no place fields. That is not
+    an invention: the far end's own contract says "a row that failed a check arrives with
+    `isPhysical` false and no place fields at all", so this is the shape it already reads as "do not
+    draw a dot". The story still goes over the rail and still appears in the feed. It just stops
+    claiming to be about a place, which is what section 3 asks for.
     """
     if row.get("is_physical_event") is None:
         return None
-    return {
-        "isPhysical": bool(row["is_physical_event"]),
+
+    physical = bool(row["is_physical_event"])
+    allowed, _reason = pinnable_on_the_rail(row.get("category"), row.get("place_kind"))
+    if physical and not allowed:
+        physical = False
+
+    event = {
+        "isPhysical": physical,
         "category": row.get("category"),
         "eventDate": row.get("event_date"),
         "placeName": row.get("place_name"),
@@ -184,6 +226,10 @@ def build_event(row: dict[str, Any]) -> dict[str, Any] | None:
         "otherPlaces": _json_list(row.get("other_places"))[:12],
         "keyEntities": _json_list(row.get("key_entities"))[:12],
     }
+    if not physical:
+        for field in ("placeName", "placeWithin", "placeCountry", "placeKind", "quote"):
+            event[field] = None
+    return event
 
 
 def build_item(row: dict[str, Any], *, send_text: bool = True) -> dict[str, Any]:

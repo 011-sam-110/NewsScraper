@@ -376,3 +376,90 @@ class UserAgentTests(unittest.TestCase):
         first = rail.sign("secret", 1_700_000_000_000, b'{"a":1}')
         self.assertEqual(first, rail.sign("secret", 1_700_000_000_000, b'{"a":1}'))
         self.assertNotIn(rail.USER_AGENT, rail.signing_string(1_700_000_000_000, "deadbeef"))
+
+
+class RailPinVetoTests(unittest.TestCase):
+    """The rail has no gate of its own unless this side puts one there.
+
+    The section 8 snapshot refuses a pin twice: a category that can never be about a place, and any
+    precision other than point, district or city. The rail path goes straight from the extraction
+    to Provenance's geocoder, so unless these run here, neither end runs them.
+    """
+
+    def row(self, **changes):
+        base = {
+            "is_physical_event": 1,
+            "category": "attack_or_violent_crime",
+            "event_date": "2026-09-18",
+            "place_name": "Westminster",
+            "place_within": "London",
+            "place_country": "GB",
+            "place_kind": "district",
+            "place_quote": "a man was stabbed in Westminster last night",
+            "other_places": None,
+            "key_entities": None,
+        }
+        base.update(changes)
+        return base
+
+    def test_an_ordinary_event_is_sent_whole(self) -> None:
+        event = rail.build_event(self.row())
+        self.assertTrue(event["isPhysical"])
+        self.assertEqual(event["placeName"], "Westminster")
+        self.assertEqual(event["quote"], "a man was stabbed in Westminster last night")
+
+    def test_a_category_that_can_never_pin_is_sent_unpinnable(self) -> None:
+        """The Kuala Lumpur acquittal case: a courtroom is a place, and the story is not about it."""
+        event = rail.build_event(self.row(category="courts_and_justice"))
+        self.assertFalse(event["isPhysical"])
+        for field in ("placeName", "placeWithin", "placeCountry", "placeKind", "quote"):
+            self.assertIsNone(event[field], field)
+
+    def test_an_opinion_piece_is_sent_unpinnable(self) -> None:
+        event = rail.build_event(self.row(category="opinion_analysis"))
+        self.assertFalse(event["isPhysical"])
+        self.assertIsNone(event["placeName"])
+
+    def test_region_and_country_precision_are_sent_unpinnable(self) -> None:
+        """Section 6: region and country are never pinned."""
+        for kind in ("region", "country", "Region", " COUNTRY "):
+            event = rail.build_event(self.row(place_kind=kind))
+            self.assertFalse(event["isPhysical"], kind)
+            self.assertIsNone(event["placeName"], kind)
+
+    def test_the_precisions_the_contract_allows_still_pin(self) -> None:
+        for kind in ("city", "district", "venue", "street", "point"):
+            event = rail.build_event(self.row(place_kind=kind))
+            self.assertTrue(event["isPhysical"], kind)
+            self.assertEqual(event["placeName"], "Westminster", kind)
+
+    def test_the_category_and_the_story_still_travel(self) -> None:
+        """A vetoed row is still news. It stops claiming a place; it does not vanish."""
+        event = rail.build_event(self.row(category="courts_and_justice"))
+        self.assertEqual(event["category"], "courts_and_justice")
+        self.assertEqual(event["eventDate"], "2026-09-18")
+
+    def test_a_row_the_extractor_already_called_unphysical_is_untouched(self) -> None:
+        event = rail.build_event(self.row(is_physical_event=0, place_kind="city"))
+        self.assertFalse(event["isPhysical"])
+
+    def test_no_extraction_at_all_is_still_None(self) -> None:
+        self.assertIsNone(rail.build_event(self.row(is_physical_event=None)))
+
+    def test_an_unknown_category_or_kind_is_allowed(self) -> None:
+        """The permissive direction, deliberately: a strict default stops pinning silently."""
+        event = rail.build_event(self.row(category=None, place_kind=None))
+        self.assertTrue(event["isPhysical"])
+        event = rail.build_event(self.row(category="something_new", place_kind="hamlet"))
+        self.assertTrue(event["isPhysical"])
+
+    def test_the_reason_is_named_so_a_log_can_say_which_rule_fired(self) -> None:
+        self.assertEqual(
+            rail.pinnable_on_the_rail("courts_and_justice", "city"),
+            (False, "category_never_pins"),
+        )
+        self.assertEqual(
+            rail.pinnable_on_the_rail("disaster", "region"),
+            (False, "precision_never_pins"),
+        )
+        self.assertEqual(rail.pinnable_on_the_rail("disaster", "city"), (True, ""))
