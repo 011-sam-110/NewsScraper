@@ -591,7 +591,17 @@ def estimate(store: Store, pending: Sequence[Any], extract_hash: str, resolve_ha
     )
 
 
-def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
+def run(
+    args: argparse.Namespace,
+    settings: Settings | None = None,
+    judge: Callable[[StoryFacts, StoryFacts], str] | None = None,
+) -> int:
+    """Place every waiting story. `judge` is for tests, which must not call a paid API.
+
+    It is an argument rather than a module global a test can patch, because the determinism this
+    stage promises (section 14, M7: identical cluster ids after a shuffled rerun) is a property of
+    the STAGE, not of place_story, and cannot be tested without running the stage end to end.
+    """
     settings = settings or load()
     settings.ensure_data_dir()
 
@@ -641,8 +651,9 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
             print(estimate(store, pending, extract_hash, resolve_hash, config_hash), file=sys.stderr)
             return 0
 
-        client = Client(settings.require("deepseek_api_key"), model=args.model)
-        judge = ModelJudge(store, client, config_hash, settings.daily_budget_usd)
+        if judge is None:
+            client = Client(settings.require("deepseek_api_key"), model=args.model)
+            judge = ModelJudge(store, client, config_hash, settings.daily_budget_usd)
 
         founded = joined = pins = 0
         stopped: str | None = None
@@ -672,7 +683,8 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
         print(
             f"placed {founded + joined} stories: {founded} founded a cluster, {joined} joined one. "
             f"{pins} of the new clusters are pins. "
-            f"{judge.calls} model calls, ${judge.cost_usd:.4f}",
+            f"{getattr(judge, 'calls', 0)} model calls, "
+            f"${getattr(judge, 'cost_usd', 0.0):.4f}",
             file=sys.stderr,
         )
         if stopped:

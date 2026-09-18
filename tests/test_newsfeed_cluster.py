@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import io
+import sqlite3
 import unittest
 from datetime import datetime, timedelta, timezone
 
@@ -597,6 +598,145 @@ class RunOrderGuardTest(unittest.TestCase):
                     "UPDATE extractions SET is_physical_event = 0, place_name = NULL"
                 )
         self.assertEqual(cluster.run(self.args(dry_run=True), self.settings), 0)
+
+
+class ShuffledRerunTest(unittest.TestCase):
+    """Section 14, M7: cluster ids must be identical after a shuffled rerun.
+
+    The claim is about the STAGE, so the stage is what runs here. Rows are inserted in a shuffled
+    order into two separate stores and the whole of `cluster` is run over each. If the stage ever
+    starts placing stories in the order it reads them rather than in publication order, the two
+    runs disagree and this fails.
+
+    The judge is scripted rather than live. Determinism of the model is a separate promise
+    (temperature 0) and mixing the two would mean a flaky test could never say which broke.
+    """
+
+    STORIES = [
+        # (id, outlet, headline, hours after base, country, lat, lon)
+        ("st_a", "bbc", "Fire at a Croydon warehouse in London", 0, "GB", 51.3762, -0.0982),
+        ("st_b", "guardian", "London warehouse fire in Croydon spreads", 2, "GB", 51.3762, -0.0982),
+        ("st_c", "reuters", "Man stabbed in Camden, London", 5, "GB", 51.5390, -0.1426),
+        ("st_d", "pbs", "Flooding hits Valencia", 7, "ES", 39.4699, -0.3763),
+        ("st_e", "bbc", "Valencia flooding forces evacuations", 9, "ES", 39.4699, -0.3763),
+        ("st_f", "nyt", "Quake felt across Osaka", 40, "JP", 34.6937, 135.5023),
+    ]
+
+    # Only the two genuine duplicates are the same event. Held as unordered pairs on purpose: a
+    # judge that answers `same` for (b, a) but `different` for (a, b) hides which story founded the
+    # cluster, so test_the_founder_is_the_earliest_story_not_the_first_inserted would pass whatever
+    # the stage did. A real model does not care which of two reports it is shown first either.
+    SAME_PAIRS = {frozenset({"st_a", "st_b"}), frozenset({"st_d", "st_e"})}
+
+    def build_store(self, order: list[int]) -> "object":
+        import tempfile
+        from pathlib import Path
+
+        from newsfeed import geonames
+        from newsfeed.identity import now_utc
+        from newsfeed.settings import Settings
+        from newsfeed.store import Store
+
+        settings = Settings(
+            data_dir=Path(tempfile.mkdtemp()),
+            deepseek_api_key=None,
+            ingest_url=None,
+            ingest_secret=None,
+            daily_budget_usd=1.0,
+            telegram_bot_token=None,
+            telegram_chat_id=None,
+            deadman_url=None,
+            proxy=None,
+        )
+        fixtures = Path(__file__).parent / "fixtures" / "geonames"
+        connection = sqlite3.connect(settings.geonames_db)
+        geonames.build_database(
+            connection,
+            (fixtures / "allCountries.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (fixtures / "alternateNamesV2.sample.txt").read_text(encoding="utf-8").splitlines(),
+        )
+        connection.close()
+
+        extract_hash = cluster.extract_config_hash("deepseek-flash")
+        resolve_hash = self.resolve_hash(settings)
+        now = now_utc()
+        with Store(settings.news_db) as store:
+            store.migrate()
+            with store.write() as db:
+                for index in order:
+                    sid, outlet, headline, hours, country, lat, lon = self.STORIES[index]
+                    db.execute(
+                        """INSERT INTO stories (story_id, outlet, primary_alias, headline,
+                                                published, first_seen_at, last_seen_at, status)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, 'extracted')""",
+                        (sid, outlet, sid, headline, at(hours), now, now),
+                    )
+                    db.execute(
+                        """INSERT INTO extractions (story_id, config_hash, accepted,
+                                                    is_physical_event, place_name, place_country,
+                                                    place_kind, key_entities, cluster_hint,
+                                                    created_at)
+                           VALUES (?, ?, 1, 1, 'Somewhere', ?, 'city', '[]', ?, ?)""",
+                        (sid, extract_hash, country, headline, now),
+                    )
+                    db.execute(
+                        """INSERT INTO resolutions (story_id, config_hash, extract_hash, resolved,
+                                                    latitude, longitude, place_precision, pinnable,
+                                                    reason, created_at)
+                           VALUES (?, ?, ?, 1, ?, ?, 'city', 1, 'matched', ?)""",
+                        (sid, resolve_hash, extract_hash, lat, lon, now),
+                    )
+        return settings
+
+    def resolve_hash(self, settings) -> str:
+        from newsfeed.geonames import Gazetteer, build_hash
+
+        gazetteer = Gazetteer.open(settings.geonames_db)
+        value = cluster.resolve_config_hash(build_hash(gazetteer.connection))
+        gazetteer.connection.close()
+        return value
+
+    def judge(self, subject: StoryFacts, founder: StoryFacts) -> str:
+        pair = frozenset({subject.story_id, founder.story_id})
+        return VERDICT_SAME if pair in self.SAME_PAIRS else VERDICT_DIFFERENT
+
+    def placement_of(self, order: list[int]) -> dict[str, str]:
+        from newsfeed.store import Store
+
+        settings = self.build_store(order)
+        args = argparse.Namespace(
+            limit=100, model="deepseek-flash", dry_run=False, allow_unresolved=False
+        )
+        code = cluster.run(args, settings, judge=self.judge)
+        self.assertEqual(code, 0)
+        with Store(settings.news_db) as store:
+            store.migrate()
+            rows = store.query("SELECT story_id, cluster_id FROM cluster_members")
+        return {row["story_id"]: row["cluster_id"] for row in rows}
+
+    def test_two_shuffles_give_the_same_cluster_ids(self) -> None:
+        forward = self.placement_of([0, 1, 2, 3, 4, 5])
+        shuffled = self.placement_of([5, 2, 4, 0, 3, 1])
+        reversed_order = self.placement_of([5, 4, 3, 2, 1, 0])
+
+        self.assertEqual(forward, shuffled)
+        self.assertEqual(forward, reversed_order)
+        self.assertEqual(len(forward), len(self.STORIES))
+
+    def test_the_duplicates_merged_and_nothing_else_did(self) -> None:
+        """Guards the test above: six ids that all differ would also compare equal."""
+        placed = self.placement_of([0, 1, 2, 3, 4, 5])
+
+        self.assertEqual(placed["st_a"], placed["st_b"], "the Croydon fire is one event")
+        self.assertEqual(placed["st_d"], placed["st_e"], "the Valencia flood is one event")
+        self.assertNotEqual(placed["st_a"], placed["st_c"], "a fire and a stabbing are not one")
+        self.assertEqual(len(set(placed.values())), 4)
+
+    def test_the_founder_is_the_earliest_story_not_the_first_inserted(self) -> None:
+        """Which story founds a cluster decides its id, so it must not depend on insert order."""
+        placed = self.placement_of([1, 0, 4, 3, 5, 2])
+        self.assertEqual(placed["st_a"], make_cluster_id("bbc", "st_a"))
+        self.assertEqual(placed["st_d"], make_cluster_id("pbs", "st_d"))
 
 if __name__ == "__main__":
     unittest.main()
