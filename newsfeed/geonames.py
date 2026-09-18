@@ -556,9 +556,18 @@ class Gazetteer:
         "Ukraine, Ukraine", and a region to "Texas, United States" rather than "Texas, Texas,
         United States".
 
-        A lookup that misses costs a part, never correctness. That is deliberate: `admin1` is
-        sometimes "00" in the source, which is GeoNames for "none", and building "GB.00" simply
-        finds nothing. Guarding the codes by hand would be a second place to get it wrong.
+        A lookup that misses costs a part, never correctness. That is deliberate, and `admin1`
+        "00" shows why no code is ever judged by its shape. Measured over the whole 2026-09-18
+        download: "00" means "no region" for the 364 GB, 20 US, 584 ES and 628 UA places that
+        carry it, and there is no `GB.00` row, so the lookup misses and the part is dropped. It
+        also names a real area for the 49 Monaco places that carry it, because `MC.00` IS a row:
+        "Municipality of Monaco". A rule that skipped "00" would be right 1,596 times and wrong
+        49 times; asking the table is right every time and is less code.
+
+        An admin2 that misses is dropped, never retried without its admin1. All 48 Spanish
+        admin2 orphans DO exist under a different admin1, so ignoring that part would recover
+        every one of them and name a province the place is not in. That is the GDELT failure
+        this project exists to avoid.
         """
         parts: list[str] = [place.name]
 

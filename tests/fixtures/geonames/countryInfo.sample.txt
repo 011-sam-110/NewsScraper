@@ -52,3 +52,4 @@ FR	FRA	250	FR	France	Paris	547030	66987244	EU	.fr	EUR	Euro	33	#####	^(\d{5})$	fr
 GB	GBR	826	UK	United Kingdom	London	244820	66488991	EU	.uk	GBP	Pound	44	@# #@@|@## #@@|@@# #@@|@@## #@@|@#@ #@@|@@#@ #@@|GIR0AA	^([Gg][Ii][Rr]\s?0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z]))))\s?[0-9][A-Za-z]{2})$	en-GB,cy-GB,gd	2635167	IE	
 GE	GEO	268	GG	Georgia	Tbilisi	69700	3704500	AS	.ge	GEL	Lari	995	####	^(\d{4})$	ka,ru,hy,az	614540	AM,AZ,TR,RU	
 US	USA	840	US	United States	Washington	9629091	327167434	NA	.us	USD	Dollar	1	#####-####	^\d{5}(-\d{4})?$	en-US,es-US,haw,fr	6252001	CA,MX,CU	
+MC	MCO	492	MN	Monaco	Monaco	1.95	38682	EU	.mc	EUR	Euro	377	#####	^(\d{5})$	fr-MC,en,it	2993457	FR	

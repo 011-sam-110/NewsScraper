@@ -3,3 +3,4 @@ GB.ENG	England	England	6269131
 US.GA	Georgia	Georgia	4197000
 US.TX	Texas	Texas	4736286
 US.CO	Colorado	Colorado	5417618
+MC.00	Municipality of Monaco	Municipality of Monaco	3319178

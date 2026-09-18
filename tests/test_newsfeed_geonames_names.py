@@ -35,6 +35,7 @@ PARIS_TEXAS = 4717560
 TEXAS = 4736286
 GEORGIA_STATE = 4197000
 GEORGIA_COUNTRY = 614540
+MONTE_CARLO = 2992741
 
 
 def lines(name: str) -> list[str]:
@@ -90,14 +91,20 @@ class ParseCountryTests(unittest.TestCase):
     def setUp(self) -> None:
         self.parsed = dict(parse_countries(lines("countryInfo.sample.txt")))
 
-    def test_the_four_real_rows_parse_to_their_names(self) -> None:
+    def test_the_five_real_rows_parse_to_their_names(self) -> None:
         self.assertEqual(
             self.parsed,
-            {"FR": "France", "GB": "United Kingdom", "GE": "Georgia", "US": "United States"},
+            {
+                "FR": "France",
+                "GB": "United Kingdom",
+                "GE": "Georgia",
+                "MC": "Monaco",
+                "US": "United States",
+            },
         )
 
     def test_the_fifty_comment_lines_are_skipped(self) -> None:
-        self.assertEqual(len(self.parsed), 4)
+        self.assertEqual(len(self.parsed), 5)
 
     def test_the_uk_is_named_united_kingdom_not_by_its_fips_code(self) -> None:
         """Column 3 of that row is `UK` and column 4 is the name. Reading column 3 would look fine."""
@@ -124,6 +131,16 @@ class ParseAdminTests(unittest.TestCase):
         self.assertEqual(self.admin1["US.TX"], "Texas")
         self.assertEqual(self.admin1["US.GA"], "Georgia")
 
+    def test_the_code_00_is_a_real_area_in_monaco_and_is_not_a_none_marker(self) -> None:
+        """`00` means "no admin1" in most countries and names a real one in Monaco.
+
+        Measured on the full 2026-09-18 download: 3,865 admin1 rows, and exactly one of them has
+        `00` as its code. So a rule like "skip admin1 when it is 00" is a guess about what the code
+        means, and it is wrong for the 49 Monaco places that carry it. Asking the table is right in
+        both cases: GB.00 is absent and simply does not match, MC.00 is present and names the place.
+        """
+        self.assertEqual(self.admin1["MC.00"], "Municipality of Monaco")
+
     def test_the_accented_name_is_kept_not_the_ascii_column(self) -> None:
         """Column 1 is the name, column 2 is its ASCII form. A reader wants the accents."""
         self.assertEqual(self.admin1["FR.11"], "Île-de-France")
@@ -149,7 +166,8 @@ class BuildTests(unittest.TestCase):
         counts = gazetteer.connection.execute(
             "SELECT (SELECT COUNT(*) FROM countries), (SELECT COUNT(*) FROM admin_areas)"
         ).fetchone()
-        self.assertEqual(counts, (4, 10))
+        # 5 countries, then 6 admin1 rows and 5 admin2 rows.
+        self.assertEqual(counts, (5, 11))
 
     def test_the_name_sources_are_required_arguments(self) -> None:
         """A build that omits them resolves every place correctly and displays bare codes.
@@ -272,3 +290,101 @@ class DisplayLookupTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SurveyedShapesTests(unittest.TestCase):
+    """Cases taken from a full scan of the real 2026-09-18 download, not from imagination.
+
+    13,472,129 place rows and all 3,865 admin1 and 47,643 admin2 rows were read to find the shapes
+    that actually occur. Each test below is one of them. The scan was run by a second agent on
+    provenance-1 and the counts are quoted where they decide something.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.gazetteer = build_gazetteer()
+
+    def place(self, **kwargs: object) -> Place:
+        base = dict(
+            geonames_id=-99, name="Somewhere", latitude=0.0, longitude=0.0,
+            feature_class="P", feature_code="PPL", country="GB",
+            admin1=None, admin2=None, population=0,
+        )
+        base.update(kwargs)
+        return Place(**base)  # type: ignore[arg-type]
+
+    def test_monaco_uses_the_admin1_code_00_as_a_real_area(self) -> None:
+        """49 Monaco places carry admin1 `00`, and `MC.00` is a named row.
+
+        The tempting rule is "treat 00 as absent", which is right for the 364 GB, 20 US, 584 ES and
+        628 UA places that carry it and wrong for these 49. No rule is needed: the table answers.
+        """
+        monte_carlo = place_by_id(self.gazetteer, MONTE_CARLO)
+        self.assertEqual(monte_carlo.admin1, "00")
+        self.assertEqual(
+            self.gazetteer.display_name(monte_carlo), "Monte-Carlo, Municipality of Monaco, Monaco"
+        )
+
+    def test_the_code_00_is_dropped_where_no_row_defines_it(self) -> None:
+        """The same code, the other country. `GB.00` is absent from all 3,865 admin1 rows."""
+        self.assertIsNone(self.gazetteer.admin_name("GB", "00"))
+        self.assertEqual(
+            self.gazetteer.display_name(self.place(name="Anywhere", admin1="00")),
+            "Anywhere, United Kingdom",
+        )
+
+    def test_an_empty_admin1_with_a_real_admin2_is_not_keyed_at_all(self) -> None:
+        """`US..037` and `FR..64` both occur. A 3-part key built from them has a hole in the middle.
+
+        291 US and 210 FR rows have an empty admin1, and some of those still carry an admin2. The
+        empty check has to come before the lookup, or the key becomes `US..037`, which matches
+        nothing and hides the reason.
+        """
+        self.assertIsNone(self.gazetteer.admin_name("US", "", "037"))
+        self.assertEqual(
+            self.gazetteer.display_name(self.place(name="Anywhere", country="US", admin1="", admin2="037")),
+            "Anywhere, United States",
+        )
+
+    def test_an_admin2_that_is_prose_rather_than_a_code_is_dropped(self) -> None:
+        """Real RU values include `NOVAYA ZEMLYA` and `Nozhay-Yurtovskiy Rayon and Gumbetovskiy
+        Rayon` in the admin2 FIELD of a place row, where every one of the 47,643 admin2 rows is a
+        code with no space in it. So these can only miss, and a miss costs the part.
+        """
+        prose = self.place(name="Anywhere", country="RU", admin1="06", admin2="NOVAYA ZEMLYA")
+        self.assertEqual(self.gazetteer.display_name(prose), "Anywhere")
+
+    def test_an_admin2_code_that_exists_under_a_different_admin1_is_not_recovered(self) -> None:
+        """All 48 of the ES admin2 orphans exist in the table under another admin1. Ignoring the
+        admin1 part would recover every one of them, and would name a province the place is not in.
+
+        That is the GDELT failure this project exists to avoid: a plausible label for the wrong
+        place. Section 7.7 already refuses to lean on admin codes across countries for the same
+        reason. The fallback stays "drop the part".
+        """
+        # GB.ENG.GLA is a real row. The same last part under a different admin1 must not find it.
+        self.assertIsNone(self.gazetteer.admin_name("GB", "WLS", "GLA"))
+        wrong_region = self.place(name="Anywhere", admin1="WLS", admin2="GLA")
+        self.assertEqual(self.gazetteer.display_name(wrong_region), "Anywhere, United Kingdom")
+
+    def test_a_name_holding_a_comma_is_never_edited(self) -> None:
+        """6 admin2 names and one country name contain a comma, and so do 2,601 US place names.
+
+        `Cartwright, Labrador` is the name. Joining the parts with ", " makes the result ambiguous
+        to anything that tries to split it back, and nothing does: section 8.1 `location.place` is
+        prose rendered into a dossier. Trimming a name to remove its comma would be inventing a
+        place name, which section 3 forbids more strongly than it dislikes an extra comma.
+        """
+        self.assertEqual(
+            self.gazetteer.display_name(
+                self.place(name="Cartwright, Labrador", country="GB", admin1="ENG")
+            ),
+            "Cartwright, Labrador, England, United Kingdom",
+        )
+
+    def test_the_trailing_space_in_a_country_name_is_trimmed(self) -> None:
+        """The BQ row is `Bonaire, Saint Eustatius and Saba ` in the source, with the space."""
+        self.assertEqual(
+            dict(parse_countries(["BQ\tBES\t535\t\tBonaire, Saint Eustatius and Saba \tKralendijk"])),
+            {"BQ": "Bonaire, Saint Eustatius and Saba"},
+        )

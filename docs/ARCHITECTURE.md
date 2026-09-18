@@ -388,6 +388,33 @@ None of these retries uses up the one schema retry.
   `countryInfo.txt` is CRLF and carries about 50 comment lines; the two admin files are LF and
   carry none. Column 1 of the admin files is taken rather than the ASCII column 2, because the
   accented form is the one a reader expects.
+- **How reliable the name tables are, measured 2026-09-18** over the whole download: 13,472,129
+  place rows, 3,865 admin1 rows and 47,643 admin2 rows, scanned by a second agent on provenance-1.
+
+  admin1 is reliable. Orphan codes are almost all the pseudo-code `00`: 1 distinct orphan for GB,
+  US, ES and UA, 18 for FR and 8 for RU, and weighted by place rows that is 0.0% to 1.4%.
+
+  admin2 is not, and the rule is to drop the part rather than to guess it. Distinct orphan
+  `(admin1, admin2)` pairs: GB 29, US 21, FR 3, ES 48, UA 429, RU 72. Place-weighted, GB and FR are
+  0.0%, US 0.3%, ES 0.6%, UA 2.2% and RU 13.2%. RU's figure is coverage, not correctness: 406,410
+  of its 412,812 rows carry no admin2 at all, so the rate sits over a denominator of 6,402.
+
+  **An orphan is never recovered by ignoring the admin1 part**, though for ES that would work every
+  time: all 48 of its orphans exist in the table under a different admin1. Recovering them would
+  name a province the place is not in, which is exactly the GDELT failure in section 3. The
+  fallback is admin2, then admin1, then nothing.
+
+  Three shapes in the source need the empty check to come BEFORE the lookup, not after: an empty
+  admin1 with a real admin2 (`US..037`, `FR..64`), an admin2 that is prose rather than a code
+  (`RU.06.NOVAYA ZEMLYA`), and `00`. `00` is the interesting one, because it is NOT a "none"
+  marker: `MC.00` is a real row named "Municipality of Monaco" and 49 Monaco places use it, while
+  `GB.00` does not exist. Asking the table is correct in both cases and needs no rule about codes.
+
+  Names are never edited. One country name and 6 admin2 names contain a comma, as do 2,601 US place
+  names, so a display string joined with ", " is ambiguous to anything that splits it back. Nothing
+  does: `location.place` is prose for a reader. `Cartwright, Labrador` is the name of the place, and
+  trimming it to tidy the join would be inventing a place name. The only edit is a strip, which the
+  source needs: the BQ country name ends in a space.
 - **Only feature classes A, P and S are stored** (decided during M6). The precision table below can
   give a precision to no other class, and a place with no precision is treated exactly as no match
   at all, so L, R, H and the rest would add rows that cannot change an answer. `KEPT_CLASSES` and

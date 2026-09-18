@@ -30,7 +30,10 @@ PARIS_FRANCE = 2988507  # P PPLC FR
 PARIS_TEXAS = 4717560  # P PPLA2 US TX
 TEXAS = 4736286  # A ADM1 US TX
 GEORGIA_STATE = 4197000  # A ADM1 US GA
-GEORGIA_COUNTRY = 614540  # A PCLI GE
+GEORGIA_COUNTRY = 614540
+# Added for the display tests: its admin1 is the code "00", which names a real area in
+# Monaco and no area at all in most countries. It resolves like any other place here.
+MONTE_CARLO = 2992741  # A PCLI GE
 
 
 def build_gazetteer() -> Gazetteer:
@@ -65,6 +68,7 @@ class FixtureTests(unittest.TestCase):
                 TEXAS,
                 GEORGIA_STATE,
                 GEORGIA_COUNTRY,
+                MONTE_CARLO,
             },
         )
 
