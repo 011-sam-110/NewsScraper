@@ -401,15 +401,19 @@ class ModelJudge:
         self.cost_usd += completion.cost_usd
 
         try:
-            payload = json.loads(completion.text)
+            payload = json.loads(completion.content)
         except (TypeError, ValueError):
             payload = {}
         verdict = parse_verdict(payload if isinstance(payload, dict) else {})
+        # A truncated answer is unparsable json and lands on `unsure`, which does not join. Saying
+        # so in the outcome keeps a run of them readable in llm_calls as a max_tokens problem
+        # rather than as the model being indecisive.
+        note = " (answer cut off at max_tokens)" if completion.truncated else ""
 
         self.store.record_call(
             STAGE,
             completion.model,
-            f"{verdict}: {subject.story_id} vs {founder.story_id}",
+            f"{verdict}: {subject.story_id} vs {founder.story_id}{note}",
             usage=completion.usage,
             cost_usd=completion.cost_usd,
             story_id=subject.story_id,

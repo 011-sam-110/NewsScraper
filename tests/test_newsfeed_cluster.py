@@ -12,6 +12,9 @@ from __future__ import annotations
 import unittest
 from datetime import datetime, timedelta, timezone
 
+from newsfeed import cluster
+from newsfeed.extract import BudgetReached
+from newsfeed.prompts import build_cluster_user
 from newsfeed.cluster import (
     CLUSTER_WINDOW_HOURS,
     ClusterFacts,
@@ -338,6 +341,148 @@ class PlacementOrderTest(unittest.TestCase):
         expected = Placement(make_cluster_id("bbc", "alias-a"), VERDICT_FOUNDER, True, None, 0)
         self.assertEqual(placed, expected)
 
+
+
+class FakeCompletion:
+    """The fields ModelJudge reads off a real Completion, and nothing else.
+
+    Written against newsfeed.deepseek.Completion deliberately: the first real run of this stage
+    failed with AttributeError because the judge read `.text` and the class calls it `.content`,
+    and no test touched the judge at all. CompletionShapeTest below pins the names.
+    """
+
+    def __init__(self, content: str, truncated: bool = False):
+        self.content = content
+        self.model = "deepseek-flash"
+        self.finish_reason = "length" if truncated else "stop"
+        self.usage = None
+        self.cost_usd = 0.0001
+        self.latency_ms = 12
+        self.attempts = 1
+        self.truncated = truncated
+
+
+class FakeClient:
+    def __init__(self, replies: list[FakeCompletion]):
+        self.replies = list(replies)
+        self.model = "deepseek-flash"
+        self.seen: list[tuple[str, str]] = []
+
+    def complete(self, system, user, **kwargs):
+        self.seen.append((system, user))
+        return self.replies.pop(0)
+
+
+class FakeStore:
+    def __init__(self, spent: float = 0.0):
+        self.spent = spent
+        self.recorded: list[tuple] = []
+
+    def spend_today(self) -> float:
+        return self.spent
+
+    def record_call(self, stage, model, outcome, **kwargs) -> None:
+        self.recorded.append((stage, model, outcome, kwargs))
+
+
+class CompletionShapeTest(unittest.TestCase):
+    """The judge reads a real Completion, so the names it reads must exist on the real class."""
+
+    def test_the_fake_carries_every_field_the_judge_reads(self) -> None:
+        from newsfeed.deepseek import Completion
+
+        real = set(Completion.__dataclass_fields__) | {"truncated"}
+        for name in ("content", "model", "usage", "cost_usd", "latency_ms", "attempts", "truncated"):
+            with self.subTest(field=name):
+                self.assertIn(name, real, "ModelJudge reads this off a Completion")
+                self.assertTrue(hasattr(FakeCompletion("{}"), name))
+
+
+class ModelJudgeTest(unittest.TestCase):
+    def judge_for(self, *replies: FakeCompletion, spent: float = 0.0):
+        store = FakeStore(spent)
+        client = FakeClient(list(replies))
+        return cluster.ModelJudge(store, client, "cfg", budget_usd=3.0), store, client
+
+    def test_a_clean_answer_is_returned_and_recorded(self) -> None:
+        judge, store, client = self.judge_for(
+            FakeCompletion('{"verdict": "same", "reason": "one fire"}')
+        )
+        verdict = judge(story("b", "Fire in Leeds"), story("a", "Leeds fire"))
+
+        self.assertEqual(verdict, VERDICT_SAME)
+        self.assertEqual(judge.calls, 1)
+        self.assertAlmostEqual(judge.cost_usd, 0.0001)
+        self.assertEqual(len(store.recorded), 1)
+        self.assertIn("same", store.recorded[0][2])
+
+    def test_unparsable_json_is_unsure_and_still_recorded(self) -> None:
+        judge, store, _ = self.judge_for(FakeCompletion("not json at all"))
+        self.assertEqual(judge(story("b", "x"), story("a", "y")), VERDICT_UNSURE)
+        self.assertEqual(len(store.recorded), 1, "a call that happened must cost a visible row")
+
+    def test_a_truncated_answer_says_so_in_the_recorded_outcome(self) -> None:
+        judge, store, _ = self.judge_for(FakeCompletion('{"verdict": "sa', truncated=True))
+        self.assertEqual(judge(story("b", "x"), story("a", "y")), VERDICT_UNSURE)
+        self.assertIn("max_tokens", store.recorded[0][2])
+
+    def test_a_json_array_is_unsure_not_a_crash(self) -> None:
+        judge, _, _ = self.judge_for(FakeCompletion('["same"]'))
+        self.assertEqual(judge(story("b", "x"), story("a", "y")), VERDICT_UNSURE)
+
+    def test_the_budget_stops_the_call_before_it_is_paid_for(self) -> None:
+        judge, store, client = self.judge_for(
+            FakeCompletion('{"verdict": "same"}'), spent=3.0
+        )
+        with self.assertRaises(BudgetReached):
+            judge(story("b", "x"), story("a", "y"))
+        self.assertEqual(client.seen, [], "no request may be sent once the budget is gone")
+
+    def test_the_founder_is_report_a_and_the_subject_is_report_b(self) -> None:
+        """The prompt asks about A and B. Which is which has to be stable across runs."""
+        judge, _, client = self.judge_for(FakeCompletion('{"verdict": "different"}'))
+        judge(story("b", "Subject headline"), story("a", "Founder headline"))
+
+        _, user = client.seen[0]
+        self.assertLess(user.index("Founder headline"), user.index("Subject headline"))
+        self.assertIn("Report A", user)
+        self.assertIn("Report B", user)
+
+    def test_the_article_text_is_never_sent(self) -> None:
+        judge, _, client = self.judge_for(FakeCompletion('{"verdict": "different"}'))
+        subject = story("b", "Subject headline", cluster_hint="a lorry hit a wall")
+        judge(subject, story("a", "Founder headline"))
+
+        _, user = client.seen[0]
+        self.assertIn("a lorry hit a wall", user)
+        self.assertLess(len(user), 2000, "the pair prompt must stay small: one call a candidate")
+
+
+class PromptStoryTest(unittest.TestCase):
+    def test_every_field_the_prompt_names_is_supplied(self) -> None:
+        facts = story("a", "Headline", cluster_hint="hint", event_date="2026-09-17",
+                      place_name="Croydon", entities=("Met Police",))
+        shown = cluster.as_prompt_story(facts)
+        self.assertEqual(
+            set(shown), {"headline", "published", "event_date", "place", "cluster_hint", "key_entities"}
+        )
+        self.assertEqual(shown["place"], "Croydon")
+        self.assertEqual(shown["key_entities"], ["Met Police"])
+
+    def test_a_missing_field_reads_as_words_not_as_none(self) -> None:
+        user = build_cluster_user(cluster.as_prompt_story(story("a", "H")), {})
+        self.assertNotIn("None", user)
+        self.assertIn("unknown", user)
+
+
+class JsonListTest(unittest.TestCase):
+    def test_a_malformed_column_does_not_stop_the_stage(self) -> None:
+        self.assertEqual(cluster._json_list("not json"), [])
+        self.assertEqual(cluster._json_list(None), [])
+        self.assertEqual(cluster._json_list('["a", "b"]'), ["a", "b"])
+
+    def test_non_string_members_are_read_as_text(self) -> None:
+        self.assertEqual(cluster._json_list('["a", 2, null, {"x": 1}]'), ["a", "2"])
 
 if __name__ == "__main__":
     unittest.main()
