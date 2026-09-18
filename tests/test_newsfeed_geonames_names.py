@@ -420,3 +420,62 @@ class PlaceByIdTests(unittest.TestCase):
         place = self.gazetteer.place(LONDON)
         assert place is not None
         self.assertEqual(self.gazetteer.display_name(place), "London, Greater London, United Kingdom")
+
+
+class RestatedAreaTests(unittest.TestCase):
+    """Every pair here was seen in the real store on 2026-09-18, not invented.
+
+    The rule drops a middle part that only repeats the place name. It is narrow on purpose: it can
+    only make a name less specific, never wrong, so the cost of keeping a part is small and the
+    cost of eating a real one ("York" swallowing "Yorkshire") is not.
+    """
+
+    def test_an_area_that_only_restates_the_place_is_dropped(self) -> None:
+        for name, area in [
+            ("Guangzhou", "Guangzhou Shi"),
+            ("Dnipro", "Dnipro raion"),
+            ("Dublin", "Dublin City"),
+            ("Kyiv", "Kyiv City"),
+            ("Blantyre", "Blantyre District"),
+            ("Lusaka", "Lusaka Province"),
+            ("Gurugram", "Gurugram district"),
+            ("Kharkiv", "Kharkiv Raion"),
+            ("Krasnodar", "Krasnodar Krai"),
+            ("Buenos Aires", "Buenos Aires F.D."),
+            ("Miami", "Miami-Dade County"),
+            ("Los Angeles", "Los Angeles County"),
+            ("Paris", "Paris"),
+        ]:
+            with self.subTest(name=name, area=area):
+                self.assertTrue(geonames._restates(name, area))
+
+    def test_an_area_that_adds_something_is_kept(self) -> None:
+        for name, area in [
+            ("London", "Greater London"),
+            ("Johannesburg", "City of Johannesburg Metropolitan Municipality"),
+            ("Kuala Lumpur", "WP. Kuala Lumpur"),
+            ("Odesa", "Odeskyi Raion"),
+            ("Westminster", "Nottingham"),
+            ("Chiswick", "Greater London"),
+            ("Citi Field", "Queens County"),
+        ]:
+            with self.subTest(name=name, area=area):
+                self.assertFalse(geonames._restates(name, area))
+
+    def test_the_match_must_end_on_a_word_boundary(self) -> None:
+        """The whole reason the rule is a prefix test and not a substring test."""
+        self.assertFalse(geonames._restates("York", "Yorkshire"))
+        self.assertFalse(geonames._restates("Belgorod", "Belgorodskiy Rayon"))
+        self.assertTrue(geonames._restates("York", "York County"))
+
+    def test_accents_and_case_do_not_defeat_it(self) -> None:
+        self.assertTrue(geonames._restates("Ile-de-France", "Île-de-France"))
+
+    def test_a_real_place_keeps_its_useful_area(self) -> None:
+        gazetteer = build_gazetteer()
+        self.addCleanup(gazetteer.close)
+        place = gazetteer.place(WESTMINSTER_LONDON_PPL)
+        assert place is not None
+        self.assertEqual(
+            gazetteer.display_name(place), "City of Westminster, Greater London, United Kingdom"
+        )

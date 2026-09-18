@@ -176,6 +176,24 @@ def fold(value: str) -> str:
     return " ".join(stripped.split())
 
 
+def _restates(name: str, area: str) -> bool:
+    """Does `area` only repeat `name`, so that carrying it says nothing new?
+
+    True for "Guangzhou" against "Guangzhou Shi" and for "Dublin" against "Dublin City". False for
+    "London" against "Greater London", which is a different and useful thing, and false for
+    "Belgorod" against "Belgorodskiy Rayon", where the match runs into the middle of a word. The
+    boundary check is what stops "York" eating "Yorkshire".
+    """
+    head, rest = fold(name), fold(area)
+    if not head or not rest:
+        return False
+    if head == rest:
+        return True
+    if not rest.startswith(head):
+        return False
+    return not rest[len(head)].isalnum()
+
+
 def _text(value: str) -> str | None:
     value = value.strip()
     return value or None
@@ -556,6 +574,19 @@ class Gazetteer:
         "Ukraine, Ukraine", and a region to "Texas, United States" rather than "Texas, Texas,
         United States".
 
+        The middle part is also dropped when it merely RESTATES the place name: an administrative
+        area is carried to say which of several places this is, and one that only repeats the name
+        distinguishes nothing. Measured over the 128 pinnable places the store held on 2026-09-18,
+        this is 12% of them: "Guangzhou, Guangzhou Shi, China" becomes "Guangzhou, China" and
+        "Dnipro, Dnipro raion, Ukraine" becomes "Dnipro, Ukraine".
+
+        The test is a prefix ending on a WORD boundary, deliberately narrow. "Greater London" does
+        not start with "London" and survives, which is right, because "London, United Kingdom"
+        loses something real. Nor does a longer name that merely begins with the same letters:
+        "Belgorodskiy Rayon" keeps its place beside Belgorod, because "York" must never eat
+        "Yorkshire". Dropping a part can only make a name less specific, never wrong, which is why
+        erring towards keeping it is safe in both directions.
+
         A lookup that misses costs a part, never correctness. That is deliberate, and `admin1`
         "00" shows why no code is ever judged by its shape. Measured over the whole 2026-09-18
         download: "00" means "no region" for the 364 GB, 20 US, 584 ES and 628 UA places that
@@ -574,7 +605,7 @@ class Gazetteer:
         middle = self.admin_name(place.country, place.admin1, place.admin2) or self.admin_name(
             place.country, place.admin1
         )
-        if middle:
+        if middle and not _restates(place.name, middle):
             parts.append(middle)
 
         country = self.country_name(place.country)
