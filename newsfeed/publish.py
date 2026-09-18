@@ -115,9 +115,12 @@ def snapshot_id(body: dict[str, Any]) -> str:
 def _reports(connection: sqlite3.Connection, cluster_id: str, config_hash: str) -> list[dict[str, Any]]:
     """The cluster's reports, lead first, at most MAX_REPORTS.
 
-    Lead is the founder, which section 8.1 defines as the earliest published story. Ordering by
-    published time puts it first without having to read the founder column, and keeps the rest in
-    the order the event was reported.
+    Section 8.1 defines the lead as the earliest PUBLISHED story, not the first one the pipeline
+    inserted, so this orders by published time and never reads the founder column. Those two are
+    not the same thing: see the note on `title` in `_items`.
+
+    A report with no headline, no url, or a url that is not http is left out rather than sent, so
+    the first report here is the earliest published report the body can actually carry.
     """
     rows = connection.execute(
         "SELECT s.outlet, s.headline, s.url, s.published"
@@ -228,7 +231,7 @@ def build_snapshot(
     connection = store.connection
     rows = connection.execute(
         "SELECT c.cluster_id, c.is_pin, c.latitude, c.longitude, c.place_precision,"
-        "       e.category, e.event_date, e.place_quote, e.place_name, s.outlet, s.headline,"
+        "       e.category, e.event_date, e.place_quote, e.place_name, s.outlet,"
         "       r.geonames_id"
         " FROM clusters c"
         " JOIN stories s ON s.story_id = c.founder_story"
@@ -242,10 +245,8 @@ def build_snapshot(
     for row in rows:
         (
             cluster_id, is_pin, latitude, longitude, precision,
-            category, event_date, quote, place_name, lead_outlet, lead_headline, geonames_id,
+            category, event_date, quote, place_name, founder_outlet, geonames_id,
         ) = row
-        if not lead_headline:
-            continue
 
         reported = connection.execute(
             "SELECT MIN(s.published), MAX(s.published)"
@@ -261,7 +262,7 @@ def build_snapshot(
         if is_pin:
             location = _location(
                 gazetteer, geonames_id, latitude, longitude, precision,
-                quote, place_name, lead_outlet,
+                quote, place_name, founder_outlet,
             )
 
         window = PIN_WINDOW if location else WORLD_WINDOW
@@ -276,11 +277,27 @@ def build_snapshot(
         if not reports:
             continue
 
+        # The title is the LEAD REPORT's headline, and the lead is the first report in the body,
+        # which is the earliest published one. It is deliberately not the founder's headline.
+        #
+        # The stored founder is the story that created the cluster, and that is usually also the
+        # earliest published member, but not always: a story published earlier can be scraped and
+        # extracted later, and it then joins a cluster somebody else founded. Measured on the live
+        # store on 2026-09-18, this was true of 1 of the 68 multi-member clusters. That one was a
+        # BBC report of NATO downing a drone over Lithuania, published 16 hours before the Guardian
+        # piece that founded the cluster, so the item would have carried the Guardian's much broader
+        # headline over the BBC's timestamp. The gap widens as the outlets fall further out of step,
+        # and Reuters already runs on a three hour timer against everyone else's hour.
+        #
+        # Only the title moves. The category, the event date, the coordinates and the quote stay
+        # with the founder, because section 7.8 makes the founder the single subject of the pin
+        # decision, and a cluster with two notions of its own subject would be worse than one with
+        # an unexpected title.
         items.append(
             {
                 "id": cluster_id,
                 "category": category,
-                "title": lead_headline[:MAX_TITLE],
+                "title": reports[0]["headline"],
                 "firstReportedAt": _iso(first_reported),
                 "lastReportedAt": _iso(last_reported),
                 "eventDate": event_date,

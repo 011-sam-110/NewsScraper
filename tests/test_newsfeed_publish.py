@@ -18,7 +18,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from newsfeed import geonames, publish
+from newsfeed import contract, geonames, publish
 from newsfeed.geonames import Gazetteer
 from newsfeed.publish import (
     MAX_EVIDENCE,
@@ -447,3 +447,126 @@ class CapTests(SnapshotTestCase):
         self.assertEqual(MAX_ITEMS, 3000)
         body = self.build()
         self.assertLessEqual(len(body["items"]), MAX_ITEMS)
+
+
+class LeadReportTests(SnapshotTestCase):
+    """The lead is the earliest PUBLISHED report, which is not always the cluster's founder.
+
+    This is the case the snapshot builder got wrong until 2026-09-18. The store's founder is the
+    story that created the cluster; a story published earlier can be scraped later and join it.
+    Measured on the live store that day: 1 of 68 multi-member clusters, a BBC report published 16
+    hours before the Guardian piece that founded the cluster.
+    """
+
+    def build_late_founder(self, cluster_id: str = "nf_000000000020") -> dict:
+        self.builder.add(
+            cluster_id,
+            outlets=("guardian", "bbc"),
+            published_hours=(0.0, -16.0),
+        )
+        return self.build()["items"][0]
+
+    def test_the_title_is_the_lead_headline_not_the_founders(self) -> None:
+        item = self.build_late_founder()
+        self.assertEqual(item["reports"][0]["outlet"], "bbc")
+        self.assertEqual(item["title"], "Example headline (bbc)")
+        self.assertNotEqual(item["title"], "Example headline")
+
+    def test_the_title_and_first_reported_at_describe_the_same_report(self) -> None:
+        """Section 8.1 says they do. An item that disagrees with itself cannot be read."""
+        item = self.build_late_founder("nf_000000000021")
+        lead = item["reports"][0]
+        self.assertEqual(item["title"], lead["headline"])
+        self.assertEqual(item["firstReportedAt"], lead["publishedAt"])
+
+    def test_the_quote_still_belongs_to_the_founder(self) -> None:
+        """Only the title follows the lead. Section 7.8 keeps the founder as the pin's subject."""
+        item = self.build_late_founder("nf_000000000022")
+        self.assertEqual(item["location"]["evidenceOutlet"], "guardian")
+        self.assertEqual(item["category"], "attack_or_violent_crime")
+
+
+class ContractConformanceTests(SnapshotTestCase):
+    """Every body this stage builds, put to the independent section 8.1 reader.
+
+    `newsfeed/contract.py` is written from the contract table and knows nothing about this module.
+    This module and its tests were written together and agree with each other by construction, so
+    they cannot catch a field both of them get wrong the same way. This is the second opinion.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        # A real store has a completed scrape run behind it, which is what `dataAsOf` reports.
+        with self.store.write() as connection:
+            connection.execute(
+                "INSERT INTO scrape_runs (started_at, finished_at) VALUES (?, ?)",
+                (at(-4), at(-3)),
+            )
+
+    def assertConforms(self, body: dict) -> None:
+        problems = contract.validate(body)
+        self.assertEqual(problems, [], "\n".join(problems))
+
+    def test_an_empty_body_conforms(self) -> None:
+        self.assertConforms(self.build())
+
+    def test_a_pin_conforms(self) -> None:
+        self.builder.add("nf_000000000030")
+        self.assertConforms(self.build())
+
+    def test_a_world_news_item_conforms(self) -> None:
+        self.builder.add("nf_000000000031", is_pin=False)
+        self.assertConforms(self.build())
+
+    def test_a_cluster_whose_founder_is_not_the_lead_conforms(self) -> None:
+        self.builder.add("nf_000000000032", outlets=("guardian", "bbc"), published_hours=(0.0, -16.0))
+        self.assertConforms(self.build())
+
+    def test_a_trimmed_cluster_conforms(self) -> None:
+        self.builder.add(
+            "nf_000000000033",
+            outlets=("bbc",) * 12,
+            published_hours=tuple(-float(hour) for hour in range(1, 13)),
+        )
+        self.assertConforms(self.build())
+
+    def test_a_long_headline_and_a_long_quote_conform(self) -> None:
+        self.builder.add("nf_000000000034", headline="x" * 500, quote="y" * 500)
+        self.assertConforms(self.build())
+
+    def test_a_withheld_body_conforms(self) -> None:
+        self.builder.add("nf_000000000035")
+        self.builder.add("nf_000000000036", is_pin=False)
+        self.assertConforms(self.build(pins_withheld=True))
+        self.assertConforms(self.build(world_news_withheld=True))
+        self.assertConforms(self.build(pins_withheld=True, world_news_withheld=True))
+
+    def test_fifty_mixed_items_conform(self) -> None:
+        for index in range(50):
+            self.builder.add("nf_%012x" % (0x400 + index), is_pin=(index % 2 == 0))
+        body = self.build()
+        self.assertEqual(len(body["items"]), 50)
+        self.assertConforms(body)
+
+    def test_the_empty_store_is_the_one_body_the_contract_reader_refuses(self) -> None:
+        """A store with no completed scrape run has no `dataAsOf` to report.
+
+        Section 8.1 types `dataAsOf` as a string and marks no field nullable unless it means it,
+        so null breaks the contract. The answer is not to invent a time: it is that a store which
+        has never finished a scrape has nothing to publish. The send path has to refuse this body
+        rather than the builder inventing a value, and that is why the check lives here, red on
+        purpose, instead of being quietly allowed in `contract.py`.
+        """
+        empty = Store(Path(self.directory.name) / "nothing-scraped.sqlite3")
+        empty.migrate()
+        self.addCleanup(empty.close)
+        body = build_snapshot(
+            empty, self.gazetteer,
+            cluster_hash=CLUSTER_HASH, extract_hash=EXTRACT_HASH, resolve_hash=RESOLVE_HASH,
+            now=NOW, pins_withheld=False, world_news_withheld=False,
+        )
+        self.assertIsNone(body["dataAsOf"])
+        self.assertEqual(
+            contract.validate(body),
+            ["dataAsOf is not UTC ISO 8601 ending in Z: None"],
+        )
