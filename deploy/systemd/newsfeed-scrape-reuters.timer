@@ -1,11 +1,24 @@
 [Unit]
-Description=NewsScraper: hourly Reuters scrape
+Description=NewsScraper: Reuters scrape, every three hours
 
 [Timer]
-# Offset from the other four outlets so a Chrome launch does not land on the same minute.
-# systemd adds every OnCalendar entry, so there is exactly one here.
-OnCalendar=*-*-* *:20:00
-RandomizedDelaySec=5min
+# Every three hours, not hourly. CLAUDE.md has always said Reuters runs slower and shallower than
+# the other four because DataDome rate-limits a session; this unit was not doing that.
+#
+# Measured on 2026-09-18, on the real display, same machine and IP:
+#   01:24  15 sections, 3 pages each  ->  296 rows, 137 new stories, 0 failures
+#   02:22  the same run an hour later ->  8 rows, and all 15 sections answered 401
+#
+# The 401 text names its own cause: "a VPN, a rotating proxy IP or too many requests". Nothing
+# about the machine changed between the two, and the second run failed from its FIRST section,
+# which is what separates this from the Xvfb fault: that one let the first section through and
+# refused the rest. So this is the session rate limit, and an hourly deep run is over it.
+#
+# Three hours is a first estimate from two runs, not a measured limit. Widen it if the 401s come
+# back, and narrow it only with several clean runs in a row as evidence.
+OnCalendar=*-*-* 00,03,06,09,12,15,18,21:20:00
+# Wider than the other units: the point is to not arrive at a predictable minute.
+RandomizedDelaySec=15min
 Persistent=true
 AccuracySec=1min
 

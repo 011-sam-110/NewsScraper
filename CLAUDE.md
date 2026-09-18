@@ -75,6 +75,11 @@ Reuters is the risk. It launches installed Google Chrome with a visible window (
    DataDome does also rate-limit a session, so Reuters stays scheduled slower and shallower
    than the other four and is never backfilled. That is worth doing on its own, but it was not
    the cause of the outage and making it gentler did not fix anything.
+   The rate limit is real and was measured on 2026-09-18, same machine, same IP, real display:
+   a 15-section 3-page run at 01:24 took 296 rows with 0 failures, and the identical run an
+   hour later answered 401 on all 15 sections from the first one. The timer is therefore every
+   three hours, not hourly (`deploy/systemd/newsfeed-scrape-reuters.timer`). Two runs is an
+   estimate, not a measured limit.
 5. Keep pipeline state out of synced folders. The SQLite databases go in `NEWSFEED_DATA_DIR` (default `%LOCALAPPDATA%\NewsScraper` on Windows). This checkout lives under OneDrive, and sync corrupts SQLite write-ahead logs.
 
 ## Known gaps before this can run on a schedule
