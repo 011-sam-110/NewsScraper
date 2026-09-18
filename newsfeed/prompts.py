@@ -61,6 +61,16 @@ When it is a physical happening, name the single place where it happened, in "ev
 Never give a coordinate, a latitude or a longitude. Never use the place a reporter filed from as
 the place of the event: a dateline says where the reporter was, not where the event happened.
 
+The quote must show the happening AT the place. A quote that is verbatim and contains the place
+name can still be the wrong quote. Two that are always wrong:
+
+- Where somebody spoke to a reporter. "Yasser Salim told Reuters in Aleppo" says where an
+  interview happened, not where anything happened. If the only span naming the place is an
+  interview, a briefing or a dateline, set "is_physical_event" to false with the reason "no_place".
+- Something that has not happened yet. "Alex Saab is scheduled to appear for a change of plea
+  hearing in Miami" is a plan. So are "is due to", "is expected to", "will take place" and "plans
+  to". A hearing that has not been held is not a happening, whatever the date says.
+
 "event_date" is the date the happening took place, as YYYY-MM-DD, not the date it was reported. If
 the story does not say, use the story's published date. It must fall between {EVENT_DATE_DAYS_BEFORE}
 days before and {EVENT_DATE_DAYS_AFTER} day after the story's published date.

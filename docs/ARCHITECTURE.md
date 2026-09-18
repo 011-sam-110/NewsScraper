@@ -911,6 +911,23 @@ Every report also shows the Wilson 95% interval beside the raw error rate.
 
 - **Dev set:** 150 articles across all outlets. Use them freely for prompt and threshold work.
 - **Prompt freeze:** at the end of M7, fix the config hash and record the date.
+- **Prompt freeze: 2026-09-18.** Done at the end of M7, after both section 13 failure modes were
+  fixed. The frozen hashes, which are what `gate.json` will be measured against:
+
+  | Stage | Config hash | Covers |
+  |---|---|---|
+  | extract | `633932b5b392beb3` | the extract prompt, the model asked for, the taxonomy, the date rule |
+  | resolve | `b248f0da36db9183` | the GeoNames build, the kept classes, the precision table, the radii |
+  | cluster | see `python -m newsfeed cluster --dry-run` | the cluster prompt, the window, the radii, the two hashes above |
+
+  The cluster hash is not written here because it is derived from the other two, so copying it would
+  give two places to disagree. The stage prints it on every run.
+
+  Editing any prompt moves its hash and every stage downstream reads an empty table, because a
+  story that is already `extracted` is never claimed by status again. `python -m newsfeed extract
+  --redo` is the deliberate way to pay for the backlog again. That is a feature of the freeze, not
+  a bug to route around: after 2026-09-18 a prompt edit is a decision with a price.
+
 - **Held-out set:** 153 pins, one pin per cluster, drawn in proportion to the output.
   - Draw only from stories first seen at least 7 days after the freeze.
   - The pipeline runs on the schedule during those 7 days.
@@ -1037,6 +1054,21 @@ budget the gate allows (3 wrong in 153, about 2%):
 
 Both are worth a prompt rule with a negative example and a code check, measured against the dev set
 rather than guessed at.
+
+**Fixed on 2026-09-18, before the freeze.** Each got a prompt rule carrying the real failing quote
+as its negative example, and a code check: `check_evidence()` in `newsfeed/extract.py`, run only
+after the quote check has proved the quote is real.
+
+Measured against the 172 real pinnable extractions in the store rather than the dev set, which does
+not exist yet (M4). The attribution rule catches the Aleppo quote and one other quote it must NOT
+catch showed why the narrow form was needed: "Iranian strikes damaged multiple American military
+aircraft this week on the Muwaffaq Salti Air Base in Jordan, a U.S. official told Reuters" is real
+evidence, and a rule that looked for "told Reuters" anywhere in the quote would have thrown it away.
+The rule therefore fires only when the place sits immediately after the attribution, which is what
+makes the quote about the interview. On those 172, it rejects exactly one quote and keeps the other.
+
+Re-measure both against the dev set when M4 exists. The figures above are from real output, but 172
+quotes is a small sample and neither rule has been checked against a labelled negative.
 
 ## 14. Milestones
 

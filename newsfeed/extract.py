@@ -10,11 +10,15 @@ The checks, in order:
 1. Schema. Valid JSON in the right shape, with the category on the closed list.
 2. Quote. With whitespace normalised, the quote is a verbatim substring of the article text, and
    the place name appears inside the quote.
-3. Date. The event date falls between the published time minus 3 days and plus 1 day.
-4. Country veto. An outlet's own place tags can veto a place but never supply one. Not enforced
+3. Evidence. The quote shows the happening at the place, rather than merely naming it. A verbatim
+   quote containing the place name can still be an interview location or a hearing that has not
+   been held, and check 2 passes both. Section 13 found each at about 1 to 1.5% of pinnable
+   extractions, against an error budget of 3 wrong in 153.
+4. Date. The event date falls between the published time minus 3 days and plus 1 day.
+5. Country veto. An outlet's own place tags can veto a place but never supply one. Not enforced
    yet: it needs GeoNames to turn a tag like "Nigeria" into a country code, which is M6. The check
    records itself as skipped rather than quietly passing.
-5. Format. A story with a format flag, or with no text, is not a physical event whatever the model
+6. Format. A story with a format flag, or with no text, is not a physical event whatever the model
    said.
 
 A failed schema check gets exactly one retry with the error appended. Any other failure is stored
@@ -26,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -172,6 +177,62 @@ def check_quote(payload: dict[str, Any], text: str | None) -> str | None:
     return None
 
 
+# A reporter being spoken to somewhere. Section 6.1: a dateline says where the reporter was, not
+# where the event happened, and the same is true of an interview.
+ATTRIBUTION_RE = re.compile(
+    r"\b(told|tells|spoke to|speaking to|said to|talking to)\s+(the\s+)?"
+    r"(Reuters|BBC|Guardian|PBS|New York Times|NYT|AP|AFP|CNN|reporters|journalists|"
+    r"our correspondent)\b",
+    re.IGNORECASE,
+)
+
+# The place immediately after the attribution, which is what makes the quote about the interview
+# rather than about the event.
+ATTRIBUTION_PLACE_RE = r"\s*,?\s*(in|at|from|near|outside)\s+"
+
+# An event that has not happened. Section 10.4 counts planned, threatened and hypothetical as wrong.
+PLANNED_RE = re.compile(
+    r"\b(is|are|was|were)\s+(scheduled|due|expected|set|slated)\s+to\b"
+    r"|\bwill\s+(appear|take place|be held|go on trial|face)\b"
+    r"|\bplanned for\b|\bplans to\b|\bis to (appear|stand trial|be held)\b",
+    re.IGNORECASE,
+)
+
+
+def check_evidence(payload: dict[str, Any]) -> str | None:
+    """The quote shows the event happening at the place, not something else that names it.
+
+    Section 13 found both of these by reading real output, each at about 1 to 1.5% of pinnable
+    extractions, against an error budget of 3 wrong in 153. check_quote proves a quote is real and
+    contains the place name. Neither of these failures breaks that, which is the point: they are
+    verbatim quotes containing the place name that are still not evidence.
+
+    1. "Yasser Salim told Reuters in Aleppo." That is where a person spoke to a reporter.
+    2. "Alex Saab is scheduled to appear ... in Miami." That is a hearing that has not happened.
+
+    The attribution test requires the place to sit immediately AFTER the attribution. A quote that
+    names the place first and attributes afterwards is ordinary reporting and must survive:
+    "Iranian strikes damaged aircraft on the Muwaffaq Salti Air Base in Jordan, a U.S. official told
+    Reuters" is real evidence, and an attribution test that only looked for `told Reuters` anywhere
+    in the quote would throw it away. Measured on 172 real pinnable extractions: the narrow test
+    catches the one bad quote and keeps that one.
+    """
+    place = payload.get("event_place") or {}
+    quote = normalise_text(place.get("quote", ""))
+    name = normalise_text(place.get("name", ""))
+    if not quote or not name:
+        return None
+
+    for match in ATTRIBUTION_RE.finditer(quote):
+        following = quote[match.end() : match.end() + 40]
+        if re.match(ATTRIBUTION_PLACE_RE + re.escape(name), following, re.IGNORECASE):
+            return "the quote says where someone spoke to a reporter, not where the event happened"
+
+    if PLANNED_RE.search(quote):
+        return "the quote describes an event that is planned rather than one that happened"
+    return None
+
+
 def check_date(payload: dict[str, Any], published: str | None) -> str | None:
     """The event date sits in the window around the story's published time (section 6.1)."""
     event = _parse_date(payload.get("event_date"))
@@ -248,10 +309,18 @@ def apply_checks(
 
     quote_failure = check_quote(payload, text)
     checks["quote"] = "passed" if quote_failure is None else f"failed: {quote_failure}"
+    # Only worth asking once the quote is known to be real and to name the place: this check reads
+    # the quote as evidence, and a quote that failed above is not evidence of anything.
+    evidence_failure = None if quote_failure else check_evidence(payload)
+    checks["evidence"] = (
+        "not applicable: the quote check failed"
+        if quote_failure
+        else ("passed" if evidence_failure is None else f"failed: {evidence_failure}")
+    )
     date_failure = check_date(payload, published)
     checks["date"] = "passed" if date_failure is None else f"failed: {date_failure}"
 
-    failure = quote_failure or date_failure
+    failure = quote_failure or evidence_failure or date_failure
     if failure is not None:
         payload = dict(payload)
         payload["is_physical_event"] = False
@@ -436,6 +505,12 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         "--dry-run", action="store_true",
         help="Say what would be extracted, and what the store already holds, without calling the model.",
     )
+    parser.add_argument(
+        "--redo", action="store_true",
+        help="Also extract stories already marked extracted that have no answer under the current "
+             "config hash. This is what re-runs a backlog after a prompt change, and it costs the "
+             "same as extracting those stories the first time.",
+    )
 
 
 def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
@@ -444,7 +519,16 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
     config_hash = extract_config_hash(args.model)
 
     with Store(settings.news_db) as store:
-        waiting = store.scalar("SELECT COUNT(*) FROM stories WHERE status = ?", (STATUS_SCRAPED,))
+        if args.redo:
+            waiting = store.scalar(
+                """SELECT COUNT(*) FROM stories s
+                   WHERE s.text_hash IS NOT NULL
+                     AND NOT EXISTS (SELECT 1 FROM extractions e
+                                     WHERE e.story_id = s.story_id AND e.config_hash = ?)""",
+                (config_hash,),
+            )
+        else:
+            waiting = store.scalar("SELECT COUNT(*) FROM stories WHERE status = ?", (STATUS_SCRAPED,))
         done = store.scalar(
             "SELECT COUNT(*) FROM extractions WHERE config_hash = ?", (config_hash,)
         )
@@ -459,7 +543,12 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
 
         key = settings.require("deepseek_api_key")
         client = Client(key, model=args.model)
-        claimed = [args.story] if args.story else store.claim_stories(STATUS_SCRAPED, args.limit)
+        if args.story:
+            claimed = [args.story]
+        elif args.redo:
+            claimed = store.claim_missing_extractions(config_hash, args.limit)
+        else:
+            claimed = store.claim_stories(STATUS_SCRAPED, args.limit)
         if not claimed:
             print("Nothing waiting.", file=sys.stderr)
             return 0

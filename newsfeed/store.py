@@ -445,6 +445,45 @@ class Store:
                 )
         return claimed
 
+    def claim_missing_extractions(
+        self, config_hash: str, limit: int, owner: str | None = None,
+        lease_seconds: int = LEASE_SECONDS,
+    ) -> list[str]:
+        """Claim stories with no extraction under this config hash, whatever status they are in.
+
+        Stories move to `extracted` and are never claimed by status again, so changing a prompt
+        moves the config hash and nothing re-extracts: the new hash simply has no rows, and every
+        stage downstream reads empty. That is the right default, because re-extracting a backlog
+        costs money and must be asked for. This is how it is asked for.
+
+        Newest first, like claim_stories, so a budget that runs out mid-backlog leaves the oldest
+        stories undone rather than the most recent ones.
+        """
+        held_by = owner or self.owner
+        until = (datetime.now(timezone.utc) + timedelta(seconds=lease_seconds)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = now_utc()
+        with self.write() as connection:
+            rows = connection.execute(
+                """SELECT s.story_id FROM stories s
+                    WHERE (s.lease_until IS NULL OR s.lease_until < ?)
+                      AND s.text_hash IS NOT NULL
+                      AND NOT EXISTS (
+                          SELECT 1 FROM extractions e
+                          WHERE e.story_id = s.story_id AND e.config_hash = ?
+                      )
+                    ORDER BY COALESCE(s.published, s.first_seen_at) DESC
+                    LIMIT ?""",
+                (now, config_hash, limit),
+            ).fetchall()
+            claimed = [row["story_id"] for row in rows]
+            if claimed:
+                placeholders = ",".join("?" * len(claimed))
+                connection.execute(
+                    f"UPDATE stories SET lease_owner = ?, lease_until = ? WHERE story_id IN ({placeholders})",
+                    (held_by, until, *claimed),
+                )
+        return claimed
+
     def release_stories(self, story_ids: Sequence[str], status: str | None = None) -> None:
         """Drop the lease on these stories, and optionally move them to their next status."""
         if not story_ids:
