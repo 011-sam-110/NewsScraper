@@ -111,6 +111,10 @@ CREATE TABLE IF NOT EXISTS build_meta (
 );
 """
 
+# How many place rows to hold in memory at once while building the name index. See build_database:
+# reading the whole table instead reached 2 GB of RSS on a host with under 1 GB free.
+READ_BATCH = 200_000
+
 # Built after the rows are in. Writing rows into an indexed table is far slower than indexing once.
 INDEXES = """
 CREATE INDEX IF NOT EXISTS names_folded      ON names(folded);
@@ -299,35 +303,52 @@ def build_database(
 
     # A place own name and its ASCII form are searchable spellings too, and they come free from
     # rows already stored, so they are read back rather than buffered during the pass above.
-    own = connection.execute("SELECT geonames_id, name, ascii_name FROM places").fetchall()
+    #
+    # READ IN BATCHES, NEVER ALL AT ONCE. The first build of this did `.fetchall()` here and
+    # reached 2 GB of RSS on a 7.6 GB host that was down to 911 MB free. That host also runs the
+    # graphical session Reuters depends on, so an OOM kill there costs an outlet as well as the
+    # build. A batch is read to the end before anything is written, so no statement is stepping
+    # over `places` while `names` is being inserted into.
+    last_id = -1
+    while True:
+        batch = connection.execute(
+            "SELECT geonames_id, name, ascii_name FROM places WHERE geonames_id > ?"
+            " ORDER BY geonames_id LIMIT ?",
+            (last_id, READ_BATCH),
+        ).fetchall()
+        if not batch:
+            break
+        last_id = batch[-1][0]
 
-    def own_rows() -> Iterator[tuple[str, int, str]]:
-        nonlocal names
-        for geonames_id, name, ascii_name in own:
+        spellings: list[tuple[str, int, str]] = []
+        for geonames_id, name, ascii_name in batch:
             folded = fold(name)
             if folded:
-                names += 1
-                yield (folded, geonames_id, "name")
+                spellings.append((folded, geonames_id, "name"))
             if ascii_name:
                 ascii_folded = fold(ascii_name)
                 if ascii_folded and ascii_folded != folded:
-                    names += 1
-                    yield (ascii_folded, geonames_id, "ascii")
-
-    connection.executemany("INSERT INTO names VALUES (?,?,?)", own_rows())
-
-    # Alternates for places we did not keep would match a name and then resolve to nothing, so
-    # they are filtered against the places table rather than stored and skipped later.
-    kept = {row[0] for row in connection.execute("SELECT geonames_id FROM places")}
+                    spellings.append((ascii_folded, geonames_id, "ascii"))
+        names += len(spellings)
+        connection.executemany("INSERT INTO names VALUES (?,?,?)", spellings)
 
     def alternate_rows() -> Iterator[tuple[str, int, str]]:
         nonlocal names
         for folded, geonames_id, source in parse_alternate_names(alternate_lines):
-            if geonames_id in kept and folded:
+            if folded:
                 names += 1
                 yield (folded, geonames_id, source)
 
     connection.executemany("INSERT INTO names VALUES (?,?,?)", alternate_rows())
+
+    # An alternate for a place we did not keep would match a name and then resolve to nothing.
+    # They are removed in SQL rather than filtered in Python against a set of every kept id: that
+    # set is about 6.6 million integers, which is the same memory mistake in a different shape.
+    removed = connection.execute(
+        "DELETE FROM names WHERE NOT EXISTS"
+        " (SELECT 1 FROM places p WHERE p.geonames_id = names.geonames_id)"
+    ).rowcount
+    names -= max(0, removed)
     connection.executescript(INDEXES)
     connection.commit()
     return {"places": places, "names": names}
