@@ -771,6 +771,53 @@ secret set". Production answers 401, so the secret is configured and the door is
 Article text may be sent and is input only. Provenance's `NewsItem` has no text field by design:
 these are other people's articles and we have a link, not a licence.
 
+### 9.0.1 Stage: rail (built 2026-09-18)
+
+`python -m newsfeed rail` pushes scraped stories to the live route above. It is `newsfeed/rail.py`,
+and it is NOT the publish stage: publish builds the section 8 snapshot of located pins and has
+nowhere to send it until M9.
+
+**Why this exists before publish.** The rail takes stories, not pins, so it does not wait for the
+M8 gate. A pin asserts that something happened at a place, and a wrong one is the GDELT failure in
+section 3, so it must wait for evidence. A story on the rail is a headline and a link the outlet
+has already published, so it asserts nothing this project has to stand behind. That makes the rail
+the only path from this pipeline to production that is open today.
+
+**The wire contract is Provenance's, not this document's.** It is read from
+`lib/news/ingest.ts` at `origin/main`, and the parts that matter are:
+
+| | Value |
+|---|---|
+| Signing string | `provenance-news-ingest-v1:<timestamp ms>:<sha256 hex of the body>` |
+| Signature header | `x-provenance-signature: sha256=<hex hmac>` |
+| Also sent | `x-provenance-timestamp` (ms), `x-provenance-content-sha256` |
+| Signed over | the UNCOMPRESSED JSON, then gzipped, because Cloudflare rewrites wire bytes |
+| Caps | 500 items, 8 MiB body, 4 MiB wire, 5 minute skew |
+| `generatedAt` | an RFC3339 STRING, although the far end's interface types it as a number |
+
+That last row is the kind of thing that costs an afternoon. The receiving type says
+`generatedAt: number`, which is the PARSED form; the parser reads the field with `epochMs`, which
+requires a string and returns 0 for anything else. Sending the number the interface names is
+silently discarded.
+
+**The cursor belongs to the box.** A batch with `items: []` is a valid request that returns the
+cursor, so a cold start asks with one signed POST rather than a second authenticated GET. The
+cursor is the high-water mark of what the box ACCEPTED, never what the sender claimed to send, so
+resuming from it cannot skip a row that was refused. A refused push does not advance it, which is
+why a 503 behind the maintenance curtain loses nothing. Rows reported in `droppedIds` were refused
+for their SHAPE and will be refused again: log them, never rewind for them.
+
+**The signature is cross-checked against the real TypeScript.** `tests/test_newsfeed_rail.py`
+carries vectors produced by running the actual functions out of `lib/news/ingest.ts` under node,
+including a non-ASCII body. A Python HMAC that agrees with itself and disagrees with the far end
+would otherwise show up only as a 401 with nothing in either log to explain it.
+
+**What is not sent.** Author names, which `CLAUDE.md` forbids in a published body and the far end's
+parser drops anyway; not sending them removes the conflict rather than relying on the far end to
+keep removing it. `placeHints` is sent empty, because an outlet tag is veto-only by contract at
+both ends: it can rule a place out and can never supply one. Article text IS sent, because section
+9.0 sanctions it and Provenance's `NewsItem` has no text field by design.
+
 ### 9.1 PR A: the ingest route, merged dormant (M3)
 
 New files:

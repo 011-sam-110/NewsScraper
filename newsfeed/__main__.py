@@ -13,6 +13,7 @@ import sys
 from . import extract as extract_stage
 from . import cluster as cluster_stage
 from . import geonames as geonames_stage
+from . import rail as rail_stage
 from . import resolve as resolve_stage
 from . import scrape as scrape_stage
 from . import status as status_stage
@@ -54,6 +55,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cluster_stage.add_arguments(cluster_parser)
 
+    rail_parser = stages.add_parser(
+        "rail",
+        help="Push scraped stories to Provenance's live news rail. Not the section 8 snapshot: "
+             "see section 9.0.",
+    )
+    rail_stage.add_arguments(rail_parser)
+
     for name, milestone in PLANNED_STAGES.items():
         stages.add_parser(name, help=f"Not built yet: milestone {milestone}.", add_help=False)
     return parser
@@ -82,6 +90,8 @@ def main(argv: list[str] | None = None) -> int:
             return resolve_stage.run(args)
         if args.stage == "cluster":
             return cluster_stage.run(args)
+        if args.stage == "rail":
+            return rail_stage.run(args)
     except SettingsError as error:
         print(f"Settings: {error}", file=sys.stderr)
         return 2
