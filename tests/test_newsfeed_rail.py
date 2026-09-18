@@ -106,11 +106,16 @@ class CrossImplementationTests(unittest.TestCase):
 
 class HeaderTests(unittest.TestCase):
     def test_every_header_the_route_reads_is_sent(self) -> None:
+        """The exact set, pinned. A header added without a reason is a header nobody decided on.
+
+        `user-agent` is not read by the route. It is read by Cloudflare in front of it, which
+        answers the urllib default with 403 before Next ever sees the request. See UserAgentTests.
+        """
         sent = headers(VECTOR_SECRET, b"{}", timestamp_ms=1)
         self.assertEqual(
             sorted(sent),
-            ["content-type", "x-provenance-content-sha256", "x-provenance-signature",
-             "x-provenance-timestamp"],
+            ["content-type", "user-agent", "x-provenance-content-sha256",
+             "x-provenance-signature", "x-provenance-timestamp"],
         )
 
     def test_the_declared_digest_agrees_with_the_signed_one(self) -> None:
@@ -338,3 +343,36 @@ class SecretHygieneTests(unittest.TestCase):
         for line in source.splitlines():
             if "secret" in line.lower():
                 self.assertNotRegex(line, r'secret\s*=\s*"[A-Za-z0-9+/]{16,}"')
+
+
+class UserAgentTests(unittest.TestCase):
+    """The client names itself, because the default one never reaches the route.
+
+    Provenance sits behind Cloudflare. Its browser integrity check answers `Python-urllib/3.13`
+    with 403 and error code 1010, before the request reaches Next at all, so the failure reads as
+    the box refusing us when the box never saw it. Measured against production on 2026-09-18.
+    """
+
+    def test_every_request_carries_a_user_agent(self) -> None:
+        sent = rail.headers("secret", b"{}")
+        self.assertIn("user-agent", sent)
+        self.assertEqual(sent["user-agent"], rail.USER_AGENT)
+
+    def test_it_is_not_the_default_one_cloudflare_refuses(self) -> None:
+        self.assertNotIn("urllib", rail.USER_AGENT.lower())
+        self.assertNotIn("python", rail.USER_AGENT.lower())
+
+    def test_it_names_the_sender_and_where_to_find_it(self) -> None:
+        """What a server operator wants when they look a client up in their logs."""
+        self.assertIn("NewsScraper", rail.USER_AGENT)
+        self.assertIn("https://", rail.USER_AGENT)
+
+    def test_it_does_not_claim_to_be_a_browser(self) -> None:
+        for lie in ("Mozilla", "Chrome", "Safari", "AppleWebKit"):
+            self.assertNotIn(lie, rail.USER_AGENT)
+
+    def test_the_user_agent_is_not_signed_over(self) -> None:
+        """The signature covers the body. A header the CDN may rewrite must not be in it."""
+        first = rail.sign("secret", 1_700_000_000_000, b'{"a":1}')
+        self.assertEqual(first, rail.sign("secret", 1_700_000_000_000, b'{"a":1}'))
+        self.assertNotIn(rail.USER_AGENT, rail.signing_string(1_700_000_000_000, "deadbeef"))

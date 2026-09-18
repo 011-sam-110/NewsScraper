@@ -79,6 +79,21 @@ def sign(secret: str, timestamp_ms: int, body: bytes) -> str:
     return f"sha256={digest}"
 
 
+# Provenance sits behind Cloudflare, whose browser integrity check answers the default
+# `Python-urllib/3.13` with 403 and Cloudflare error 1010. The request never reaches the route, so
+# the failure looks like the box refusing us when the box never saw it. Measured against production
+# on 2026-09-18, same body, same second:
+#
+#   User-Agent: Python-urllib/3.13    403, Cloudflare 1010
+#   User-Agent: the string below      401, which is the route itself refusing an unsigned body
+#
+# This names what we are and links to the code, which is what a server operator wants to find when
+# they look up a client in their logs. It is NOT the rule in CLAUDE.md about not changing the user
+# agent: that one is about the Reuters scraper and DataDome, where the agent is part of a
+# fingerprint that was proven to work. This is our own client talking to our own server.
+USER_AGENT = "NewsScraper-rail/1 (+https://github.com/011-sam-110/NewsScraper)"
+
+
 def headers(secret: str, body: bytes, timestamp_ms: int | None = None) -> dict[str, str]:
     """Every header the route reads, including the optional declared digest.
 
@@ -90,6 +105,7 @@ def headers(secret: str, body: bytes, timestamp_ms: int | None = None) -> dict[s
     stamp = timestamp_ms if timestamp_ms is not None else int(time.time() * 1000)
     return {
         "content-type": "application/json",
+        "user-agent": USER_AGENT,
         TIMESTAMP_HEADER: str(stamp),
         SIGNATURE_HEADER: sign(secret, stamp, body),
         DIGEST_HEADER: body_digest_hex(body),
