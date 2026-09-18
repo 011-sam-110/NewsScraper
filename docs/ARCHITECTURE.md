@@ -926,6 +926,24 @@ carries vectors produced by running the actual functions out of `lib/news/ingest
 including a non-ASCII body. A Python HMAC that agrees with itself and disagrees with the far end
 would otherwise show up only as a 401 with nothing in either log to explain it.
 
+**Cloudflare answers the default user agent before Provenance sees the request.** The first real
+call failed with `403: error code: 1010`, which reads as the box refusing us, and the box never saw
+it. Cloudflare's browser integrity check refuses `Python-urllib/3.13`. Measured against production
+on 2026-09-18, same body, same second:
+
+| User-Agent | Answer |
+|---|---|
+| `Python-urllib/3.13` | 403, Cloudflare error 1010 |
+| `NewsScraper-rail/1 (+https://github.com/011-sam-110/NewsScraper)` | 401, the route itself refusing an unsigned body |
+
+So the rail names itself. It does not claim to be a browser, and a test holds that. This is not the
+`CLAUDE.md` rule about not changing the user agent: that rule is about the Reuters scraper and
+DataDome, where the agent is part of a fingerprint proven to work. This is our own client talking to
+our own server, and an operator reading their logs should be able to find out what it is.
+
+Worth keeping because the shape recurs: a CDN in front of a route can refuse a request the route
+would have accepted, and the status it returns describes the CDN's opinion, not the route's.
+
 **What is not sent.** Author names, which `CLAUDE.md` forbids in a published body and the far end's
 parser drops anyway; not sending them removes the conflict rather than relying on the far end to
 keep removing it. `placeHints` is sent empty, because an outlet tag is veto-only by contract at
