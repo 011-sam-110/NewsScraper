@@ -154,7 +154,12 @@ Then install the timers:
 
 ```
 deploy/install-systemd.sh
-sudo loginctl enable-linger $USER    # so the timers survive a logout
+loginctl enable-linger              # so the timers survive a logout. No sudo, no
+                                    # username: with neither, logind uses its
+                                    # set-self-linger rule, which an ordinary user is
+                                    # allowed. Naming the user makes it an admin action
+                                    # and asks for a password, which over `ssh host cmd`
+                                    # has no terminal to ask on.
 ```
 
 ## The schedule
@@ -234,7 +239,7 @@ listing. Two things follow:
 | One outlet goes quiet, the rest are fine | That outlet's parser broke. Save the new response into `tests/fixtures/<outlet>/`, write a test against it, then fix the parser. |
 | `database is locked` | Should not happen: WAL is on with a 30 second busy timeout. Check nothing has copied the store into a synced folder. |
 | The store looks wrong and you want to start again | Stop the timers, delete `~/.local/share/newsscraper/news.sqlite3*`, then seed again. Story ids are derived from outlet ids, so a rebuild gives the same ids for the same stories. |
-| A timer did not run | `systemctl --user list-timers 'newsfeed-*' --all`, then `journalctl --user -u <unit>`. If the account had logged out, `loginctl enable-linger` was not set. |
+| A timer did not run | `systemctl --user list-timers 'newsfeed-*' --all`, then `journalctl --user -u <unit>`. If the account had logged out, `loginctl enable-linger` was not set. Check with `loginctl show-user $USER -p Linger`. |
 
 ## What M1 left for later milestones
 

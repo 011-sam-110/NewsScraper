@@ -99,7 +99,7 @@ done
 if ! loginctl show-user "$USER" --property=Linger 2>/dev/null | grep -q 'Linger=yes'; then
   echo
   echo "Timers stop when this account logs out. To keep them running, an administrator runs:"
-  echo "  sudo loginctl enable-linger $USER"
+  echo "  loginctl enable-linger"   # no sudo, no username: see docs/HOST.md
 fi
 
 echo
