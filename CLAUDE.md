@@ -98,10 +98,15 @@ python -m newsfeed status                                  # what the store hold
 python -m newsfeed extract                                 # M5, DeepSeek, not yet on a timer
 python -m newsfeed geonames-build                          # M6, monthly, downloads the dumps
 python -m newsfeed resolve --dry-run                       # M6, place name to coordinate
+python -m newsfeed cluster                                 # M7, same event across outlets
 ```
 
-Built: the store and scrape (M1), extract (M5), and the gazetteer and resolve (M6). cluster (M7),
-publish and health (M10) and eval (M4) exit 2 and name their milestone. The store lives in `NEWSFEED_DATA_DIR`, never in this checkout.
+Built: the store and scrape (M1), extract (M5), the gazetteer and resolve (M6), cluster (M7), and
+the snapshot BUILDER half of publish (M10, `newsfeed/publish.py`). Nothing is live: publish cannot
+send yet, because `/api/ingest/newsfeed` answers 404 until Provenance pull request B (M9) exists,
+and pins stay withheld until the M8 gate passes, which cannot happen before 2026-09-25, seven days
+after the prompt freeze. Health (M10) and eval (M4) exit 2 and name their milestone. The store lives
+in `NEWSFEED_DATA_DIR`, never in this checkout.
 
 ## Design summary
 
