@@ -102,11 +102,13 @@ python -m newsfeed cluster                                 # M7, same event acro
 python -m newsfeed rail --dry-run                          # push stories to Provenance's LIVE news rail
 ```
 
-Built: the store and scrape (M1), extract (M5), the gazetteer and resolve (M6), cluster (M7), and
-the snapshot BUILDER half of publish (M10, `newsfeed/publish.py`). Nothing is live: publish cannot
-send yet, because `/api/ingest/newsfeed` answers 404 until Provenance pull request B (M9) exists,
-and pins stay withheld until the M8 gate passes, which cannot happen before 2026-09-25, seven days
-after the prompt freeze. The `rail` stage (`newsfeed/rail.py`) pushes scraped stories to Provenance's ALREADY LIVE
+Built: the store and scrape (M1), extract (M5), the gazetteer and resolve (M6), cluster (M7), the
+snapshot BUILDER half of publish (M10, `newsfeed/publish.py`) and the independent reader of the
+section 8.1 contract that checks it (`newsfeed/contract.py`). Publish cannot send: it posts to
+`/api/ingest/newsfeed`, which answers 404 because Provenance PR A was never written, not because it
+is dormant (checked against `origin/main` on 2026-09-18, section 9.0). Pins would stay withheld
+anyway until the M8 gate passes, which cannot happen before 2026-09-25, seven days after the prompt
+freeze. The `rail` stage (`newsfeed/rail.py`) pushes scraped stories to Provenance's ALREADY LIVE
 `POST /api/news/ingest`, which is a different contract from section 8 and does not wait for
 the gate: see section 9.0. It needs `NEWSFEED_INGEST_SECRET`, the same value as the box's
 `NEWS_INGEST_SECRET`. Health (M10) and eval (M4) exit 2 and name their milestone. The store lives

@@ -1,8 +1,10 @@
 """Stage: publish (M10). Build the `provenance.newsfeed/1` snapshot from the store.
 
 This module is the BUILDER only. Sending it is section 7.10 steps 2 to 6 and is not here yet,
-because the route it posts to does not exist on the box: Provenance pull request B (section 9.1) is
-unwritten and `/api/ingest/newsfeed` answers 404 today. Building and sending are separated on
+because the route it posts to does not exist: Provenance pull request A (section 9.1) was never
+written, so `/api/ingest/newsfeed` answers 404 as an absent route rather than a dormant one.
+`newsfeed/contract.py` reads section 8.1 independently of this module and is what the sending half
+must put every body through before posting it. Building and sending are separated on
 purpose, so the part that can be tested offline against fixtures is tested that way, and the part
 that needs a live box is the only thing waiting on one.
 

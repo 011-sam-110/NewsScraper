@@ -767,6 +767,48 @@ Python signs with `hmac` and `hashlib`. The box verifies with `crypto.subtle.ver
 
 After a restart the store is empty and a GET answers null. The next publish run, within a minute, sends the current snapshot again.
 
+### 8.5 Reading the contract twice (built 2026-09-18)
+
+`newsfeed/contract.py` answers one question: does this body satisfy section 8.1? It is written from
+the table above and knows nothing about `newsfeed/publish.py`. That separation is the whole value.
+The builder and its tests were written together, so they agree with each other by construction and
+cannot catch a field that both of them get wrong the same way. Two readings of one table can.
+
+It is also the specification Provenance's own `validateSnapshot()` has to match (section 9.1). When
+the two disagree, one of them is wrong, and the disagreement is visible instead of being a 422 with
+nothing in either log to explain it.
+
+Its tests read the example in section 8.2 OUT of this document rather than copying it, so an edit
+that breaks the document's own example turns them red. Every rule in the tables gets one mutation,
+because a validator nobody has watched go red is decoration.
+
+**What the second reading found.** Section 8.1 defines the lead report as the earliest PUBLISHED
+story in a cluster, and says the title and `firstReportedAt` then describe the same report.
+`publish.py` ordered the reports by published time but took the `title` from the stored founder,
+which is the story that CREATED the cluster. Those are usually the same story. They are not always:
+a story published earlier can be scraped and extracted later, and it then joins a cluster somebody
+else founded.
+
+Measured on the live store the same day: 1 of the 68 multi-member clusters. A BBC report of NATO
+downing a drone over Lithuania, published 16 hours before the Guardian piece that founded the
+cluster, so the item carried the Guardian's much broader headline over the BBC's timestamp. The gap
+widens as the outlets fall further out of step, and Reuters already runs on a three hour timer
+against everyone else's hour.
+
+Only the title moved. The category, the event date, the coordinates and the quote stay with the
+founder, because section 7.8 makes the founder the single subject of the pin decision, and a
+cluster with two notions of its own subject would be worse than one with an unexpected title.
+
+**One disagreement is left open on purpose.** `dataAsOf` is typed as a string, and this document
+marks a field nullable when it means it (`eventDate`, `lastNewStoryAt`). A store that has never
+finished a scrape run has no time to report, and `publish.py` sends null. The answer is not to
+invent a time. It is that a store which has never finished a scrape has nothing worth publishing,
+so the SENDING half must put every body through `contract.validate()` and refuse to send one that
+fails, rather than the builder filling the field in. A test holds that case red on purpose.
+
+**The real snapshot passes.** 1,458 items, 64 pins, 809 KiB, built from the live store on
+2026-09-18 and checked field by field against the table above: no problems.
+
 ## 9. Provenance work
 
 Two pull requests in `011-sam-110/Provenance`, opened by the host Claude. Follow Provenance's own `CLAUDE.md` and PR process. Paths below are from the Provenance repo root.
@@ -802,7 +844,43 @@ without the extract, resolve, cluster and gate chain. The section 8 snapshot con
 carries located pins, is still unbuilt on the Provenance side: that is PR B below, milestone M9.
 
 **Milestone M3's exit check is overtaken.** It ends "after merge, production answers 404 with no
-secret set". Production answers 401, so the secret is configured and the door is open and waiting.
+secret set". The route that shipped is the rail, and it answers 401, so ITS secret is configured
+and that door is open and waiting. This sentence used to stop there, and read as though the section
+8 route were the one standing open. It is not. Measured again on 2026-09-18:
+
+| Request | Answer | What that means |
+|---|---|---|
+| `POST /api/news/ingest` unsigned | 401 | the rail is live and its secret is set |
+| `GET /api/ingest/newsfeed` | 404 | |
+| `POST /api/ingest/newsfeed` unsigned | 404 | |
+| `GET /api/world-news` | 404 | |
+
+A 404 cannot tell a dormant route from an absent one, because section 8.4 makes dormant answer 404
+on purpose. The repository can: `git ls-tree -r origin/main` in `011-sam-110/Provenance` holds no
+`lib/newsfeed/`, no `app/api/ingest/newsfeed/` and no `app/api/world-news/`. **PR A was never
+written.** The heading on section 9.1 said "merged dormant (M3)" and was wrong.
+
+**The map layer that IS live does not use section 8 at all.** Provenance merged #248 "Accept news
+stories pushed from the NewsScraper host" and #249 "Put scraped stories on the map and give the news
+feed a board". The pins come from the rail's `event` field, which `lib/news/ingest.ts` names as "the
+ONLY field that can put a story on the map", and the coordinates come from Photon, Komoot's keyless
+OSM geocoder, inside `lib/news/places.ts`. That file refuses any match outside the country the
+article named, publishes Photon's own label as `resolvedTo` so a reader can judge the match, and
+caps its lookups because Photon is a community server.
+
+So there are now TWO routes from this pipeline to a pin on the map, and they disagree about who
+geocodes:
+
+| | The rail, live today | Section 8, unbuilt at both ends |
+|---|---|---|
+| Sends | one story at a time, with its extraction | clusters, already resolved and gated |
+| Coordinates from | Photon (OSM), on the Provenance side | GeoNames, on this machine |
+| Same event across outlets | not grouped | one item, its reports listed |
+| Held back until the section 10 gate passes | no | yes |
+| Blocked on | `NEWSFEED_INGEST_SECRET` on provenance-1 | PR A, then PR B, then the gate |
+
+This is Sam's call and not a decision to make quietly. The rail reaches the map this week; section 8
+carries the evidence and the gate. Nothing here removes either.
 
 Article text may be sent and is input only. Provenance's `NewsItem` has no text field by design:
 these are other people's articles and we have a link, not a licence.
@@ -854,7 +932,11 @@ keep removing it. `placeHints` is sent empty, because an outlet tag is veto-only
 both ends: it can rule a place out and can never supply one. Article text IS sent, because section
 9.0 sanctions it and Provenance's `NewsItem` has no text field by design.
 
-### 9.1 PR A: the ingest route, merged dormant (M3)
+### 9.1 PR A: the ingest route (M3, NOT WRITTEN)
+
+**Status corrected 2026-09-18.** This heading read "merged dormant". None of the files below
+exist on `origin/main`, and production answers 404 because the route is absent, not because it
+is dormant. Everything below is still the design; none of it is built.
 
 New files:
 
