@@ -589,6 +589,14 @@ Each report has these fields:
 | `url` | `http` or `https` only, at most 600 characters |
 | `publishedAt` | UTC |
 
+**The lead report is the cluster's founder**, which is the earliest PUBLISHED story in it, not the
+first one the pipeline happened to insert. Decided 2026-09-18, during M10, because the contract uses
+the phrase four times and never says which report it means. The founder is already the anchor of
+section 7.8: every same-event comparison is made against it and never against the latest member, so
+using anything else here would give a cluster two different notions of its own lead. It also reads
+correctly: the lead is the outlet that reported the event first, and `title`, `link` and
+`firstReportedAt` then all describe the same report.
+
 **Never in the body:** article text, descriptions, author names, the model's reasoning, or any text a model wrote. The only quoted text is `evidence`, at most 200 characters.
 
 **Windows.** A pin stays for 7 days from `lastReportedAt`, and a World news item for 72 hours. The home machine applies the windows. The box shows what it was sent and drops nothing on its own.
