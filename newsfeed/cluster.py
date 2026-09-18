@@ -531,6 +531,37 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def estimate(store: Store, pending: Sequence[Any], extract_hash: str, resolve_hash: str,
+             config_hash: str) -> str:
+    """An UPPER BOUND on the model calls a real run would make, without making any.
+
+    Counting candidates against the stored clusters alone reports zero on a cold store, which is
+    both useless and reassuring in the wrong direction. So this simulates the run: each story is
+    tested against the clusters that already exist AND against the ones the earlier stories in this
+    batch would have opened.
+
+    It assumes every verdict is `different`. That is the worst case and not a pessimistic guess: a
+    `same` makes place_story stop at the first match, so it costs one call and opens no new cluster
+    for later stories to be tested against. The real number can only come in under this one.
+    """
+    opened: list[ClusterFacts] = []
+    pairs = 0
+    for row in pending:
+        subject = story_facts(row)
+        stored = open_clusters(store, subject, extract_hash, resolve_hash, config_hash)
+        for cluster in [*stored, *opened]:
+            if candidate_reasons(subject, cluster):
+                pairs += 1
+        opened.append(
+            ClusterFacts(make_cluster_id(subject.outlet, subject.primary_alias), subject, [subject])
+        )
+    return (
+        f"would place {len(pending)} stories with at most {pairs} model calls. "
+        "That is the worst case, where the model calls every pair different: a match stops the "
+        "calls for that story and opens no cluster for the next one to be tested against."
+    )
+
+
 def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
     settings = settings or load()
     settings.ensure_data_dir()
@@ -564,16 +595,7 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
             return 0
 
         if args.dry_run:
-            pairs = 0
-            for row in pending:
-                subject = story_facts(row)
-                clusters = open_clusters(store, subject, extract_hash, resolve_hash, config_hash)
-                pairs += sum(1 for c in clusters if candidate_reasons(subject, c))
-            print(
-                f"would place {len(pending)} stories and offer the model {pairs} pairs. "
-                "The real run makes at most one call a pair and stops at the first match.",
-                file=sys.stderr,
-            )
+            print(estimate(store, pending, extract_hash, resolve_hash, config_hash), file=sys.stderr)
             return 0
 
         client = Client(settings.require("deepseek_api_key"), model=args.model)
