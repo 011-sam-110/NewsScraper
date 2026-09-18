@@ -692,6 +692,42 @@ After a restart the store is empty and a GET answers null. The next publish run,
 
 Two pull requests in `011-sam-110/Provenance`, opened by the host Claude. Follow Provenance's own `CLAUDE.md` and PR process. Paths below are from the Provenance repo root.
 
+### 9.0 What actually shipped, read from production on 2026-09-18
+
+**Read this before writing the publish stage.** Provenance has already merged and deployed an
+ingest route, and it is NOT the section 8 snapshot contract. Building publish from section 8 alone
+would post to a route that does not exist.
+
+What is live at `provenance-online.com`:
+
+| | Section 8 says | What shipped |
+|---|---|---|
+| Route | `/api/ingest/newsfeed` | `POST /api/news/ingest` |
+| Payload | one snapshot of clusters and pins | a batch of raw scraped stories, `{version, generatedAt, items}` |
+| Asking what the box holds | a signed `GET` | a cursor probe: the same `POST` with `items: []` |
+| `GET` | 200 with `snapshotId` | 405, the route only exports POST |
+| Signature prefix | `provenance.newsfeed/1` | `provenance-news-ingest-v1` |
+| Headers | not fixed | `x-provenance-timestamp`, `x-provenance-signature`, `x-provenance-content-sha256` |
+| What is signed | the body | the UNCOMPRESSED body, because Cloudflare rewrites wire bytes |
+| Ceilings | 4 MB | 500 items, 8 MiB decompressed, 4 MiB on the wire |
+| Dormant | 404 | 404 when the secret is unset, and production answers **401**, so the secret IS set |
+
+The cursor is a high-water mark over `lastSeenAt`, and it is the accepted rows only, never what the
+sender claimed to send. An empty cursor means send everything. The store is process memory hanging
+off `globalThis`, capped at 1,500 items and 400 bodies, so a restart empties it and the recovery
+path is the first-run path. While the maintenance curtain is up a push gets 503 and the cursor does
+not advance, so nothing is lost.
+
+**This route feeds the news rail, not the map.** It takes stories, not pins, so it is reachable
+without the extract, resolve, cluster and gate chain. The section 8 snapshot contract, which
+carries located pins, is still unbuilt on the Provenance side: that is PR B below, milestone M9.
+
+**Milestone M3's exit check is overtaken.** It ends "after merge, production answers 404 with no
+secret set". Production answers 401, so the secret is configured and the door is open and waiting.
+
+Article text may be sent and is input only. Provenance's `NewsItem` has no text field by design:
+these are other people's articles and we have a link, not a licence.
+
 ### 9.1 PR A: the ingest route, merged dormant (M3)
 
 New files:

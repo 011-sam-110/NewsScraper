@@ -36,7 +36,8 @@ write-ahead log.
 ## First install
 
 ```
-sudo dnf install -y google-chrome-stable xorg-x11-server-Xvfb
+# xdpyinfo lets the Reuters wrapper prove the display answers before spending a request.
+sudo dnf install -y google-chrome-stable xorg-x11-utils
 git clone https://github.com/011-sam-110/NewsScraper.git ~/NewsScraper
 cd ~/NewsScraper
 python3 -m venv .venv
@@ -52,22 +53,47 @@ normal and proves nothing is wrong.
 ### The Reuters probe (milestone M0)
 
 ```
-xvfb-run -a --server-args="-screen 0 1920x1080x24" \
-  .venv/bin/python main.py --sections reuters:africa --max-pages 1 -o /tmp/probe
+# Two sections, not one. Under a bad setup the FIRST section still passes.
+deploy/reuters-display.sh \
+  .venv/bin/python main.py --sections reuters:africa reuters:americas --max-pages 1 -o /tmp/probe
 ```
 
 A pass is rows saved with exit code 0. A 401 or 403 means DataDome refused this machine or network;
 check no VPN or proxy is on, then tell Sam rather than trying to work around it.
 
 Run on this host on 2026-09-15 with Google Chrome 153.0.8010.36 under `xvfb-run`: 8 rows, all 8 with
-article text, exit 0. Reuters works here, so all five outlets are on the schedule.
+article text, exit 0. **That pass was misleading and cost three days of Reuters.** It probed one
+section, and under Xvfb the first section of a session succeeds before DataDome refuses the rest:
+23 of the next 24 hourly runs failed on every section they tried. A one-section probe cannot tell
+a working setup from a broken one here. Probe at least two sections.
+
+Re-run on the real display on 2026-09-18: all 15 sections, 296 rows, 137 new stories, 0 failures.
 
 ### Reuters and DataDome
 
-DataDome rate-limits the Chrome session, not just the machine. On 2026-09-15 a run that pulled 312
-rows in eleven minutes was answered with HTTP 401 on its last two sections. A single light request
-a few minutes later succeeded, so the machine was never banned: the session had simply asked for
-too much, too fast.
+**Reuters needs the seat's real display. Xvfb does not work, and this is measured.** DataDome
+scores the WebGL renderer. Same public IP, minutes apart on 2026-09-18:
+
+| How Chrome was started | Renderer it reports | Reuters |
+|---|---|---|
+| real display `:0` | `ANGLE (Mesa, zink Vulkan 1.4(NVIDIA GeForce GTX 1650 (NVK TU117)), OpenGL 4.6)` | 200 |
+| `xvfb-run` | `ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)` | 401 |
+| `xvfb-run --use-gl=egl` | the same SwiftShader string | no better |
+| `xvfb-run --use-angle=vulkan` | no WebGL at all, a worse signal still | no better |
+
+`navigator.webdriver` was false in all four, so the renderer is the signal and the IP is not
+blocked. `deploy/reuters-display.sh` finds the display, proves it answers before spending a
+Reuters request on it, and exits 3 with a readable message when there is none.
+
+**The cost, stated plainly: Reuters now needs a logged-in graphical session on this box.** The
+other four outlets need no display and are unaffected. If the seat is logged out, the Reuters
+timer fails loudly rather than quietly collecting 401s.
+
+DataDome does also rate-limit the Chrome session. On 2026-09-15 a run that pulled 312 rows in
+eleven minutes was answered 401 on its last two sections, and a light request minutes later
+worked. That is why Reuters is scheduled slower and shallower than the other four, and it is
+worth doing on its own. It was not the cause of the outage above, and making it gentler did not
+fix anything.
 
 What follows from that:
 
@@ -93,7 +119,7 @@ Seed the store with a bounded run, because an empty store has nothing to stop a 
 
 ```
 .venv/bin/python -m newsfeed scrape --sources bbc guardian pbs nyt --max-pages 2
-xvfb-run -a .venv/bin/python -m newsfeed scrape --sources reuters --max-pages 2
+deploy/reuters-display.sh .venv/bin/python -m newsfeed scrape --sources reuters --max-pages 2
 .venv/bin/python -m newsfeed status
 ```
 
@@ -113,7 +139,7 @@ sudo loginctl enable-linger $USER    # so the timers survive a logout
 | Timer | When | What |
 |---|---|---|
 | `newsfeed-scrape.timer` | hourly, on the hour | BBC, the Guardian, PBS, NYT |
-| `newsfeed-scrape-reuters.timer` | hourly, at 20 past | Reuters, under `xvfb-run` |
+| `newsfeed-scrape-reuters.timer` | hourly, at 20 past | Reuters, on the seat's real display |
 
 The four browser-free outlets run with `--max-pages 10`. Reuters runs with `--max-pages 3 --delay 3`,
 because it is the one outlet that can be refused: see "Reuters and DataDome" below.
@@ -125,9 +151,10 @@ a section's whole archive, which for `reuters:ukraine-russia-war` is hundreds of
 thousands of requests from the one IP DataDome trusts. Ten pages is far more than an hour of news
 for any section.
 
-Reuters runs on its own timer and under a virtual display because it drives a visible Google Chrome
-window. `xvfb-run` gives that window a display of its own, so the run does not need anyone logged
-in and does not put a browser window in front of whoever is.
+Reuters runs on its own timer and on the seat's real display, because it drives a real Google
+Chrome window and DataDome refuses the software renderer a virtual display gives it. The unit
+sets `NEWS_SCRAPER_CHROME_ARGS=--window-position=-32000,-32000` so the hourly window does not
+appear in front of whoever is at the keyboard.
 
 Both timers use `Persistent=true`, so a run missed while the machine was off or asleep is caught up
 once. systemd will not start a second instance of a service that is still running, and
