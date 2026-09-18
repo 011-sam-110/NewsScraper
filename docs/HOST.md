@@ -162,7 +162,19 @@ sudo loginctl enable-linger $USER    # so the timers survive a logout
 | Timer | When | What |
 |---|---|---|
 | `newsfeed-scrape.timer` | hourly, on the hour | BBC, the Guardian, PBS, NYT |
-| `newsfeed-scrape-reuters.timer` | hourly, at 20 past | Reuters, on the seat's real display |
+| `newsfeed-scrape-reuters.timer` | every three hours, at 20 past | Reuters, on the seat's real display |
+| `newsfeed-pipeline.timer` | hourly, at half past | extract, resolve, cluster |
+| `newsfeed-rail.timer` | hourly, at quarter to | push the stories to Provenance |
+
+The order inside the hour is the point: scrape, then read what was scraped, then push what was
+read. A story pushed before the pipeline has seen it still reaches the World news feed, because
+that feed needs a headline and a link and nothing else, but it carries no event and so cannot
+reach the map until a later push.
+
+Reuters is the exception to hourly, and not because of this order. DataDome rate-limits a session,
+and a 15-section run an hour after another 15-section run was refused on every section from the
+first one (measured 2026-09-18, same machine, same IP, real display). Two runs is an estimate of
+where that limit sits, not a measurement of it.
 
 The four browser-free outlets run with `--max-pages 10`. Reuters runs with `--max-pages 3 --delay 3`,
 because it is the one outlet that can be refused: see "Reuters and DataDome" below.

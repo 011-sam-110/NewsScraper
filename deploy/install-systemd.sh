@@ -15,8 +15,10 @@ units_target="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 env_file="${XDG_CONFIG_HOME:-$HOME/.config}/newsfeed/newsfeed.env"
 units=(newsfeed-scrape.service newsfeed-scrape.timer
        newsfeed-scrape-reuters.service newsfeed-scrape-reuters.timer
-       newsfeed-pipeline.service newsfeed-pipeline.timer)
-timers=(newsfeed-scrape.timer newsfeed-scrape-reuters.timer newsfeed-pipeline.timer)
+       newsfeed-pipeline.service newsfeed-pipeline.timer
+       newsfeed-rail.service newsfeed-rail.timer)
+timers=(newsfeed-scrape.timer newsfeed-scrape-reuters.timer newsfeed-pipeline.timer
+        newsfeed-rail.timer)
 
 case "${1:-install}" in
   --status)

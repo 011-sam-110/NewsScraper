@@ -1,0 +1,17 @@
+[Unit]
+Description=NewsScraper: hourly push to Provenance's live news rail
+
+[Timer]
+# Quarter to, which is after the pipeline. The scrape starts on the hour, the pipeline
+# runs at :30 and takes a minute or two, so a push at :45 sends stories that have been
+# through extract, resolve and cluster rather than raw rows with no event on them. A row
+# with no event reaches the World news feed either way, but it cannot reach the map.
+OnCalendar=*:45
+RandomizedDelaySec=2min
+# Catch up after the machine was asleep or off. This matters more here than on the other
+# timers: a missed push is not a gap in the store, it is a layer reporting nothing.
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

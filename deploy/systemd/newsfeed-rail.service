@@ -1,0 +1,36 @@
+[Unit]
+Description=NewsScraper: push scraped stories to Provenance's live news rail
+Documentation=file:///home/sampo/NewsScraper/docs/ARCHITECTURE.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/NewsScraper
+EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
+
+# WHY THIS RUNS ON A SCHEDULE AND NOT BY HAND.
+# The far end keeps the stories in PROCESS MEMORY, so every restart of the Provenance
+# service empties them, and a deploy is a restart. Pushed by hand, the News coverage
+# layer therefore reports "no push received" from the next deploy until somebody
+# notices, which is the failure mode the layer was built to make visible rather than
+# one to accept.
+#
+# No --from-scratch, and this is the reason the refill needs no flag: the rail asks the
+# box for its cursor first, an empty store answers with an empty cursor, and an empty
+# cursor means send the whole window. A box that lost its memory refills itself on the
+# next run without anybody deciding anything.
+#
+# The limit is the CLI default written out, so this file says what it sends. The route
+# caps its own batches under it.
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed rail --limit 2000
+
+# A push is minutes at worst, and a run that has not finished in a quarter of an hour is
+# stuck rather than slow. The next run resends what this one did not: a refused push
+# never advances the box's cursor, so nothing is lost by cutting one short.
+TimeoutStartSec=15min
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=default.target
