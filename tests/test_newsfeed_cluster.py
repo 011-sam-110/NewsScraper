@@ -9,6 +9,9 @@ rather than proving one absent.
 
 from __future__ import annotations
 
+import argparse
+import contextlib
+import io
 import unittest
 from datetime import datetime, timedelta, timezone
 
@@ -483,6 +486,117 @@ class JsonListTest(unittest.TestCase):
 
     def test_non_string_members_are_read_as_text(self) -> None:
         self.assertEqual(cluster._json_list('["a", 2, null, {"x": 1}]'), ["a", "2"])
+
+
+class RunOrderGuardTest(unittest.TestCase):
+    """Cluster must refuse to run before resolve has placed the events it will read.
+
+    This is not hypothetical. The first real run of this stage was done on a store where resolve
+    had only ever been run with --dry-run, so `resolutions` was empty. Nothing failed: 2278 stories
+    were clustered without a single coordinate, every one of the 153 event founders fell to
+    `founder_place_not_pinnable`, and the rows were recorded as current under a config hash that
+    covers the resolve CONFIG rather than whether resolve ever ran.
+    """
+
+    def setUp(self) -> None:
+        import sqlite3
+        import tempfile
+        from pathlib import Path
+
+        from newsfeed import geonames
+        from newsfeed.identity import now_utc
+        from newsfeed.settings import Settings
+        from newsfeed.store import Store
+
+        self.sqlite3 = sqlite3
+        self.Store = Store
+        self.settings = Settings(
+            data_dir=Path(tempfile.mkdtemp()),
+            deepseek_api_key=None,
+            ingest_url=None,
+            ingest_secret=None,
+            daily_budget_usd=1.0,
+            telegram_bot_token=None,
+            telegram_chat_id=None,
+            deadman_url=None,
+            proxy=None,
+        )
+
+        fixtures = Path(__file__).parent / "fixtures" / "geonames"
+        connection = sqlite3.connect(self.settings.geonames_db)
+        geonames.build_database(
+            connection,
+            (fixtures / "allCountries.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (fixtures / "alternateNamesV2.sample.txt").read_text(encoding="utf-8").splitlines(),
+        )
+        connection.close()
+
+        self.extract_hash = cluster.extract_config_hash("deepseek-flash")
+        now = now_utc()
+        with Store(self.settings.news_db) as store:
+            store.migrate()
+            with store.write() as db:
+                db.execute(
+                    """INSERT INTO stories (story_id, outlet, primary_alias, headline, published,
+                                            first_seen_at, last_seen_at, status)
+                       VALUES ('st_1', 'bbc', 'st_1', 'Fire in Paris', ?, ?, ?, 'extracted')""",
+                    (now, now, now),
+                )
+                db.execute(
+                    """INSERT INTO extractions (story_id, config_hash, accepted, is_physical_event,
+                                                place_name, place_country, place_kind, created_at)
+                       VALUES ('st_1', ?, 1, 1, 'Paris', 'FR', 'city', ?)""",
+                    (self.extract_hash, now),
+                )
+
+    def args(self, **over):
+        fields = dict(limit=10, model="deepseek-flash", dry_run=False, allow_unresolved=False)
+        fields.update(over)
+        return argparse.Namespace(**fields)
+
+    def placed_rows(self) -> int:
+        with self.Store(self.settings.news_db) as store:
+            store.migrate()
+            return store.scalar("SELECT COUNT(*) FROM cluster_members")
+
+    def test_an_unresolved_event_refuses_the_run(self) -> None:
+        self.assertEqual(cluster.run(self.args(), self.settings), 2)
+        self.assertEqual(self.placed_rows(), 0, "a refused run must write nothing")
+
+    def test_the_refusal_names_the_command_that_fixes_it(self) -> None:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            cluster.run(self.args(), self.settings)
+        message = stderr.getvalue()
+        self.assertIn("python -m newsfeed resolve", message)
+        self.assertIn("1 physical events", message)
+
+    def test_a_dry_run_is_refused_too(self) -> None:
+        """A dry run that reports on a store cluster will not touch is worse than no estimate."""
+        self.assertEqual(cluster.run(self.args(dry_run=True), self.settings), 2)
+
+    def test_allow_unresolved_gets_past_it(self) -> None:
+        """The escape hatch exists, and a dry run under it does not call the model."""
+        code = cluster.run(self.args(dry_run=True, allow_unresolved=True), self.settings)
+        self.assertEqual(code, 0)
+        self.assertEqual(self.placed_rows(), 0)
+
+    def test_a_resolved_event_does_not_trip_the_guard(self) -> None:
+        from newsfeed import resolve as resolve_stage
+
+        resolve_stage.run(argparse.Namespace(limit=10, story=None, dry_run=False), self.settings)
+        code = cluster.run(self.args(dry_run=True), self.settings)
+        self.assertEqual(code, 0, "resolve has placed it, so cluster may run")
+
+    def test_a_non_event_never_trips_the_guard(self) -> None:
+        """Only physical events with a place are resolve's job. World news has nothing to wait for."""
+        with self.Store(self.settings.news_db) as store:
+            store.migrate()
+            with store.write() as db:
+                db.execute(
+                    "UPDATE extractions SET is_physical_event = 0, place_name = NULL"
+                )
+        self.assertEqual(cluster.run(self.args(dry_run=True), self.settings), 0)
 
 if __name__ == "__main__":
     unittest.main()

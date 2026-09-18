@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from dataclasses import dataclass, field
@@ -533,6 +534,30 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help="Say how many stories are waiting and how many pairs the gate would offer the model, "
              "without calling it.",
     )
+    parser.add_argument(
+        "--allow-unresolved", action="store_true",
+        help="Cluster even though resolve has not placed every physical event. The unplaced ones "
+             "become World news and stay that way, so this is for a store that will never be "
+             "resolved, not for getting past the check.",
+    )
+
+
+# Physical events that resolve should have placed, but has not. Cluster reads the coordinate that
+# resolve wrote and never computes one, so running out of order does not fail: it quietly produces
+# clusters that could not use place as a candidate reason, and pins nothing, under a config hash
+# that says the run is current. The hash covers the resolve CONFIG, not whether resolve ever ran.
+UNRESOLVED_SQL = """
+SELECT COUNT(*)
+FROM extractions e
+WHERE e.config_hash = ?
+  AND e.accepted = 1
+  AND e.is_physical_event = 1
+  AND e.place_name IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1 FROM resolutions r
+      WHERE r.story_id = e.story_id AND r.config_hash = ?
+  )
+"""
 
 
 def estimate(store: Store, pending: Sequence[Any], extract_hash: str, resolve_hash: str,
@@ -584,6 +609,20 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
 
     with Store(settings.news_db) as store:
         store.migrate()
+
+        unresolved = store.scalar(UNRESOLVED_SQL, (extract_hash, resolve_hash))
+        if unresolved and not args.allow_unresolved:
+            print(
+                f"{unresolved} physical events have no place under resolve config {resolve_hash}. "
+                "Clustering now would pin none of them and would record that as done."
+                + os.linesep
+                + "  Run: python -m newsfeed resolve"
+                + os.linesep
+                + "Pass --allow-unresolved to cluster them as World news on purpose.",
+                file=sys.stderr,
+            )
+            return 2
+
         pending = store.query(PENDING_SQL, (extract_hash, resolve_hash, config_hash, args.limit))
         placed_already = store.scalar(
             "SELECT COUNT(*) FROM cluster_members WHERE config_hash = ?", (config_hash,)
