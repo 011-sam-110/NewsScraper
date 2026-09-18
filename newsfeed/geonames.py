@@ -598,6 +598,23 @@ class Gazetteer:
                 return shorter
         return built[:DISPLAY_MAX].rstrip(" ,")
 
+    def place(self, geonames_id: int | None) -> Place | None:
+        """One place by its GeoNames id, or None.
+
+        This is the path from a stored resolution to a display name. `resolutions` keeps the
+        `geonames_id` and no name, deliberately: the display string is built at publish time from
+        whatever gazetteer is current, so a rebuild that improves a name reaches every existing pin
+        without re-resolving anything and without paying the model again.
+        """
+        if geonames_id is None:
+            return None
+        row = self.connection.execute(
+            "SELECT geonames_id, name, latitude, longitude, feature_class, feature_code,"
+            " country, admin1, admin2, population FROM places WHERE geonames_id = ?",
+            (geonames_id,),
+        ).fetchone()
+        return Place(*row) if row else None
+
     def candidates(self, name: str, country: str | None = None) -> list[Place]:
         """Every place called name, optionally restricted to one country."""
         folded = fold(name)

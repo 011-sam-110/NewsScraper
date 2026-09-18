@@ -388,3 +388,35 @@ class SurveyedShapesTests(unittest.TestCase):
             dict(parse_countries(["BQ\tBES\t535\t\tBonaire, Saint Eustatius and Saba \tKralendijk"])),
             {"BQ": "Bonaire, Saint Eustatius and Saba"},
         )
+
+
+class PlaceByIdTests(unittest.TestCase):
+    """`Gazetteer.place` is the path from a stored resolution to a display name.
+
+    `resolutions` keeps a `geonames_id` and no name, so without this there is no way to get from a
+    row the resolver wrote to the string section 8.1 asks for, and `display_name` would have no
+    caller that could ever reach it from the store.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.gazetteer = build_gazetteer()
+
+    def test_it_returns_the_same_row_the_raw_query_returns(self) -> None:
+        # place_by_id runs its own SQL, so this compares the method against an independent read
+        # rather than against itself.
+        for geonames_id in (LONDON, WESTMINSTER_HOTEL, PARIS_TEXAS, MONTE_CARLO):
+            with self.subTest(geonames_id=geonames_id):
+                self.assertEqual(
+                    self.gazetteer.place(geonames_id), place_by_id(self.gazetteer, geonames_id)
+                )
+
+    def test_an_unknown_id_is_none_rather_than_an_exception(self) -> None:
+        """A resolution can outlive the row it matched: a rebuild can retire a GeoNames id."""
+        self.assertIsNone(self.gazetteer.place(999_999_999))
+        self.assertIsNone(self.gazetteer.place(None))
+
+    def test_a_resolution_can_be_displayed_end_to_end(self) -> None:
+        place = self.gazetteer.place(LONDON)
+        assert place is not None
+        self.assertEqual(self.gazetteer.display_name(place), "London, Greater London, United Kingdom")
