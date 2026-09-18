@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
+import os
 import re
+import shlex
 import sys
 import time
 from functools import cached_property
@@ -49,6 +51,18 @@ DEFAULT_DEPLOYMENT = "382"
 DEPLOYMENT_PATTERN = re.compile(r"[?&]d=(\d{1,6})\b")
 _browser_session: list[Any] = []
 _deployment: list[str] = []
+
+
+def extra_chrome_args() -> list[str]:
+    """Extra Chrome flags from NEWS_SCRAPER_CHROME_ARGS, space separated and shell quoted.
+
+    The scheduled run uses this to put the window off the visible screen, because the
+    run needs a real display and the person at the keyboard should not get a browser
+    window every hour. It is NOT a place for fingerprint flags: --use-gl=egl and
+    --use-angle=vulkan were both measured against this box on 2026-09-18 and neither
+    reaches the GPU under Xvfb. See deploy/reuters-display.sh.
+    """
+    return shlex.split(os.environ.get("NEWS_SCRAPER_CHROME_ARGS", ""))
 
 
 def browser_proxy() -> Any:
@@ -173,7 +187,7 @@ def get_browser_session() -> Any:
             channel="chrome",
             headless=False,
             proxy=browser_proxy(),
-            args=["--disable-blink-features=AutomationControlled"],
+            args=["--disable-blink-features=AutomationControlled", *extra_chrome_args()],
             ignore_default_args=["--enable-automation"],
         )
         context = browser.new_context()

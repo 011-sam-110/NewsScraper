@@ -1,0 +1,5 @@
+# Shell scripts run on the Linux host. A CRLF line ending in the shebang makes the
+# kernel refuse the file with "bad interpreter", so keep these LF whatever the checkout
+# platform does.
+*.sh text eol=lf
+deploy/systemd/* text eol=lf

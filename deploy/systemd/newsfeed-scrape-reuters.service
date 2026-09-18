@@ -7,20 +7,32 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory=%h/NewsScraper
+# Put the Chrome window off the visible screen. The run needs the seat's real display,
+# so without this the person at the keyboard gets a browser window every hour. The
+# settings file is read after this line and can override it.
+Environment=NEWS_SCRAPER_CHROME_ARGS=--window-position=-32000,-32000
 EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
-# Reuters is fetched from inside installed Google Chrome with a visible window: DataDome answers
-# Playwright's bundled Chromium, Chrome for Testing and curl with 401. xvfb-run gives that window a
-# display of its own, so the run does not depend on someone being logged in, and does not put a
-# Chrome window in front of whoever is.
-# Reuters is the outlet to be gentle with, because it is the one that can be refused. On
-# 2026-09-15 a run that fetched 312 rows in eleven minutes was answered with HTTP 401 on its last
-# two sections: DataDome rate-limited the session, not the machine. So this unit is slower and
-# shallower than the other four.
+# Reuters is fetched from inside installed Google Chrome: DataDome answers Playwright's
+# bundled Chromium, Chrome for Testing and curl with 401.
 #
-# --max-pages is a backstop, not the normal stop. A section normally stops at the first listing
-# page where the store already holds every story, which is one page once the store is caught up.
-# Three pages is 24 stories a section an hour, well above what any Reuters section publishes.
-ExecStart=/usr/bin/xvfb-run -a --server-args="-screen 0 1920x1080x24" %h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources reuters --max-pages 3 --delay 3
+# IT NEEDS THE REAL DISPLAY, NOT XVFB, AND THAT IS MEASURED. DataDome scores the WebGL
+# renderer. Under xvfb-run Chrome has no GPU and reports SwiftShader, and every section
+# is refused; on this seat's display it reports the GTX 1650 and the same fetch from the
+# same IP returns 200. deploy/reuters-display.sh holds the full measurement and exits 3
+# with a readable message when no display is there.
+#
+# This unit used to run under xvfb-run on the reasoning that a display of its own kept
+# the run independent of anyone being logged in. That reasoning was sound and the result
+# was still a total outage: 23 of the 24 hourly runs to 2026-09-18 00:22 failed. An
+# earlier reading blamed request rate, which is why this unit is slower and shallower
+# than the other four; that change did not fix anything and the rate limits are kept
+# only because being gentle with Reuters is worth doing anyway.
+#
+# --max-pages is a backstop, not the normal stop. A section normally stops at the first
+# listing page where the store already holds every story, which is one page once the
+# store is caught up. Three pages is 24 stories a section an hour, well above what any
+# Reuters section publishes.
+ExecStart=%h/NewsScraper/deploy/reuters-display.sh %h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources reuters --max-pages 3 --delay 3
 TimeoutStartSec=45min
 Nice=10
 IOSchedulingClass=idle
