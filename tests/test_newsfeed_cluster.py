@@ -529,6 +529,9 @@ class RunOrderGuardTest(unittest.TestCase):
             connection,
             (fixtures / "allCountries.sample.txt").read_text(encoding="utf-8").splitlines(),
             (fixtures / "alternateNamesV2.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (fixtures / "countryInfo.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (fixtures / "admin1Codes.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (fixtures / "admin2Codes.sample.txt").read_text(encoding="utf-8").splitlines(),
         )
         connection.close()
 
@@ -654,6 +657,9 @@ class ShuffledRerunTest(unittest.TestCase):
             connection,
             (fixtures / "allCountries.sample.txt").read_text(encoding="utf-8").splitlines(),
             (fixtures / "alternateNamesV2.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (fixtures / "countryInfo.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (fixtures / "admin1Codes.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (fixtures / "admin2Codes.sample.txt").read_text(encoding="utf-8").splitlines(),
         )
         connection.close()
 

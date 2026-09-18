@@ -1,0 +1,5 @@
+FR.11	Île-de-France	Ile-de-France	3012874
+GB.ENG	England	England	6269131
+US.GA	Georgia	Georgia	4197000
+US.TX	Texas	Texas	4736286
+US.CO	Colorado	Colorado	5417618

@@ -37,7 +37,12 @@ def build_gazetteer() -> Gazetteer:
     connection = sqlite3.connect(":memory:")
     places = (FIXTURES / "allCountries.sample.txt").read_text(encoding="utf-8").splitlines()
     alternates = (FIXTURES / "alternateNamesV2.sample.txt").read_text(encoding="utf-8").splitlines()
-    geonames.build_database(connection, places, alternates)
+    geonames.build_database(
+        connection, places, alternates,
+        (FIXTURES / "countryInfo.sample.txt").read_text(encoding="utf-8").splitlines(),
+        (FIXTURES / "admin1Codes.sample.txt").read_text(encoding="utf-8").splitlines(),
+        (FIXTURES / "admin2Codes.sample.txt").read_text(encoding="utf-8").splitlines(),
+    )
     return Gazetteer(connection)
 
 
@@ -297,7 +302,12 @@ class StageTests(unittest.TestCase):
         connection = sqlite3.connect(self.settings.geonames_db)
         places = (FIXTURES / "allCountries.sample.txt").read_text(encoding="utf-8").splitlines()
         alternates = (FIXTURES / "alternateNamesV2.sample.txt").read_text(encoding="utf-8").splitlines()
-        geonames.build_database(connection, places, alternates)
+        geonames.build_database(
+            connection, places, alternates,
+            (FIXTURES / "countryInfo.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (FIXTURES / "admin1Codes.sample.txt").read_text(encoding="utf-8").splitlines(),
+            (FIXTURES / "admin2Codes.sample.txt").read_text(encoding="utf-8").splitlines(),
+        )
         connection.close()
 
     def seed_extraction(self, **over: object) -> None:

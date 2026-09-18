@@ -80,6 +80,11 @@ PRECISION_BY_CODE: dict[str, str] = {
 # Precisions a pin may carry. Section 6.1: region and country are never pinned.
 PINNABLE_PRECISIONS = frozenset({"point", "district", "city"})
 
+# Section 8.1 caps location.place at 120 characters. It lives here rather than in the publish stage
+# because this module is what builds the string, and a cap the builder does not know about is a cap
+# that gets exceeded and then truncated by whoever notices last.
+DISPLAY_MAX = 120
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS places (
     geonames_id   INTEGER PRIMARY KEY,
@@ -98,6 +103,15 @@ CREATE TABLE IF NOT EXISTS names (
     folded      TEXT    NOT NULL,
     geonames_id INTEGER NOT NULL,
     source      TEXT    NOT NULL
+);
+CREATE TABLE IF NOT EXISTS countries (
+    code TEXT PRIMARY KEY,
+    name TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS admin_areas (
+    code  TEXT PRIMARY KEY,
+    name  TEXT NOT NULL,
+    level INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS build (
     file          TEXT PRIMARY KEY,
@@ -278,15 +292,90 @@ def _zip_lines(path: Path, member: str) -> Iterator[str]:
                 yield line
 
 
+def _text_lines(path: Path) -> Iterator[str]:
+    """A plain source file, streamed. The three name files are small, but so is the code to stream
+    them, and reading them whole would be a second memory habit in a module that already learned."""
+    with path.open(encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            yield line
+
+
+def parse_countries(lines: Iterable[str]) -> Iterator[tuple[str, str]]:
+    """`countryInfo.txt` to (code, name). Column 4 is the name; column 0 is the ISO code.
+
+    This file is CRLF where `admin1CodesASCII.txt` and `admin2Codes.txt` are LF, measured on the
+    real downloads on 2026-09-18. The name is column 4 of 19, so a stray carriage return would only
+    damage the last column and nothing here would look wrong, which is exactly why every line is
+    stripped of both endings rather than split on one of them.
+
+    It is also the only one of the three with comment lines, about 50 of them, each starting with a
+    hash. They carry the column headings.
+    """
+    for line in lines:
+        stripped = line.rstrip("\r\n")
+        if not stripped or stripped.startswith("#"):
+            continue
+        parts = stripped.split("\t")
+        if len(parts) < 5:
+            continue
+        code, name = parts[0].strip(), parts[4].strip()
+        if code and name:
+            yield code, name
+
+
+def parse_admin_areas(lines: Iterable[str], level: int) -> Iterator[tuple[str, str, int]]:
+    """An admin codes file to (code, name, level).
+
+    The key is dotted and carries the country: `GB.ENG` at level 1, `GB.ENG.GLA` at level 2. Column
+    1 is the real name and column 2 is its ASCII form. Column 1 is taken, accents and all, because
+    this is the string a reader sees: Ile-de-France is not what anyone calls it.
+
+    Nothing here checks the shape of the key. A place is looked up by building the same dotted
+    string from its own columns, so a key that does not fit the pattern simply never matches, and a
+    place with no admin row gets a shorter display name rather than a wrong one.
+    """
+    for line in lines:
+        stripped = line.rstrip("\r\n")
+        if not stripped or stripped.startswith("#"):
+            continue
+        parts = stripped.split("\t")
+        if len(parts) < 2:
+            continue
+        code, name = parts[0].strip(), parts[1].strip()
+        if code and name:
+            yield code, name, level
+
+
 def build_database(
     connection: sqlite3.Connection,
     place_lines: Iterable[str],
     alternate_lines: Iterable[str],
+    country_lines: Iterable[str],
+    admin1_lines: Iterable[str],
+    admin2_lines: Iterable[str],
 ) -> dict[str, int]:
-    """Fill a gazetteer from already-opened sources. Separate from download so tests can use it."""
+    """Fill a gazetteer from already-opened sources. Separate from download so tests can use it.
+
+    The three name sources have no default. A build that omitted them would produce a gazetteer
+    that resolves every place correctly and then displays "GB" where a reader expects "United
+    Kingdom": right coordinates, wrong words, and nothing failing. Making them required means that
+    mistake is a TypeError at the call site instead.
+    """
     connection.executescript(SCHEMA)
     connection.execute("DELETE FROM places")
     connection.execute("DELETE FROM names")
+    connection.execute("DELETE FROM countries")
+    connection.execute("DELETE FROM admin_areas")
+
+    connection.executemany(
+        "INSERT OR REPLACE INTO countries VALUES (?,?)", parse_countries(country_lines)
+    )
+    connection.executemany(
+        "INSERT OR REPLACE INTO admin_areas VALUES (?,?,?)", parse_admin_areas(admin1_lines, 1)
+    )
+    connection.executemany(
+        "INSERT OR REPLACE INTO admin_areas VALUES (?,?,?)", parse_admin_areas(admin2_lines, 2)
+    )
 
     places = 0
     names = 0
@@ -351,7 +440,12 @@ def build_database(
     names -= max(0, removed)
     connection.executescript(INDEXES)
     connection.commit()
-    return {"places": places, "names": names}
+    return {
+        "places": places,
+        "names": names,
+        "countries": connection.execute("SELECT COUNT(*) FROM countries").fetchone()[0],
+        "admin_areas": connection.execute("SELECT COUNT(*) FROM admin_areas").fetchone()[0],
+    }
 
 
 def record_build(connection: sqlite3.Connection, paths: Iterable[Path]) -> dict[str, str]:
@@ -391,6 +485,9 @@ def build(data_dir: Path, log: Any = None) -> dict[str, Any]:
             connection,
             _zip_lines(by_name["allCountries.zip"], "allCountries.txt"),
             _zip_lines(by_name["alternateNamesV2.zip"], "alternateNamesV2.txt"),
+            _text_lines(by_name["countryInfo.txt"]),
+            _text_lines(by_name["admin1CodesASCII.txt"]),
+            _text_lines(by_name["admin2Codes.txt"]),
         )
         hashes = record_build(connection, paths)
     finally:
@@ -419,6 +516,78 @@ class Gazetteer:
                 f"No gazetteer at {path}. Build it with: python -m newsfeed geonames-build"
             )
         return cls(sqlite3.connect(f"file:{path}?mode=ro", uri=True))
+
+    def country_name(self, code: str | None) -> str | None:
+        """The display name for a country code, or None when the gazetteer does not know it."""
+        if not code:
+            return None
+        row = self.connection.execute(
+            "SELECT name FROM countries WHERE code = ?", (code,)
+        ).fetchone()
+        return row[0] if row else None
+
+    def admin_name(self, *parts: str | None) -> str | None:
+        """The display name for a dotted admin key, or None. `admin_name("GB", "ENG", "GLA")`.
+
+        A missing part means there is nothing to look up, so it returns None rather than building a
+        key with a hole in it: "GB..GLA" would never match, but it would also never say why.
+        """
+        if not all(parts):
+            return None
+        row = self.connection.execute(
+            "SELECT name FROM admin_areas WHERE code = ?", (".".join(p for p in parts if p),)
+        ).fetchone()
+        return row[0] if row else None
+
+    def display_name(self, place: "Place") -> str:
+        """Section 8.1 `location.place`, built only from GeoNames. At most DISPLAY_MAX characters.
+
+        Three parts at most: the place, the administrative area holding it, and the country. The
+        document writes the example as "Westminster, London, United Kingdom". What GeoNames
+        actually supports is "Westminster, Greater London, United Kingdom", because it knows
+        Westminster sits in admin2 GLA and has no notion of a parent city. The document example is
+        prose, not a fixture, and the alternative is the model naming the middle part, which
+        section 3 forbids: nothing a model wrote is ever shown.
+
+        ONE middle part, never two. "Westminster, Greater London, England, United Kingdom" is
+        accurate and is not how anyone writes an address. The smaller unit wins when both exist.
+
+        A part that repeats another is dropped, so a country resolves to "Ukraine" rather than
+        "Ukraine, Ukraine", and a region to "Texas, United States" rather than "Texas, Texas,
+        United States".
+
+        A lookup that misses costs a part, never correctness. That is deliberate: `admin1` is
+        sometimes "00" in the source, which is GeoNames for "none", and building "GB.00" simply
+        finds nothing. Guarding the codes by hand would be a second place to get it wrong.
+        """
+        parts: list[str] = [place.name]
+
+        middle = self.admin_name(place.country, place.admin1, place.admin2) or self.admin_name(
+            place.country, place.admin1
+        )
+        if middle:
+            parts.append(middle)
+
+        country = self.country_name(place.country)
+        if country:
+            parts.append(country)
+
+        seen: list[str] = []
+        for part in parts:
+            folded = fold(part)
+            if folded and folded not in {fold(kept) for kept in seen}:
+                seen.append(part)
+
+        built = ", ".join(seen)
+        if len(built) <= DISPLAY_MAX:
+            return built
+        # Too long. Drop the middle before cutting a word in half: a place and its country still
+        # locate the pin, where a truncated administrative area only looks broken.
+        if len(seen) == 3:
+            shorter = f"{seen[0]}, {seen[2]}"
+            if len(shorter) <= DISPLAY_MAX:
+                return shorter
+        return built[:DISPLAY_MAX].rstrip(" ,")
 
     def candidates(self, name: str, country: str | None = None) -> list[Place]:
         """Every place called name, optionally restricted to one country."""

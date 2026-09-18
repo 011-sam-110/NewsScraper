@@ -3,3 +3,10 @@
 # platform does.
 *.sh text eol=lf
 deploy/systemd/* text eol=lf
+
+# GeoNames name files are fixtures of a real download. countryInfo.txt is CRLF where the
+# other two are LF, and the parser is tested against that, so git must not normalise it.
+tests/fixtures/geonames/* -text
+# -text on the whole directory, not just the CRLF one. Git was about to convert the two LF
+# files to CRLF on a Windows checkout, which would have left every fixture in this directory
+# CRLF and the LF half of the parser untested while the tests still passed.

@@ -380,6 +380,14 @@ None of these retries uses up the one schema retry.
 
 - Download from download.geonames.org: `allCountries.zip`, `alternateNamesV2.zip`, `admin1CodesASCII.txt`, `admin2Codes.txt` and `countryInfo.txt`. From the alternate names, keep only English and preferred names.
 - Write `geonames.sqlite3` with a name index. Record each source file's SHA-256 and download date in a `build` table. Those hashes are part of the config hash.
+- **The three code files become name tables**, added on 2026-09-18: `countries(code, name)` from
+  column 4 of `countryInfo.txt`, and `admin_areas(code, name, level)` from column 1 of the two
+  admin files, keyed by the dotted GeoNames code (`GB.ENG` at level 1, `GB.ENG.GLA` at level 2).
+  `Gazetteer.display_name()` reads them for section 8.1 `location.place`. They feed display only:
+  matching a place never reads them, so a missing row shortens a name and can never move a pin.
+  `countryInfo.txt` is CRLF and carries about 50 comment lines; the two admin files are LF and
+  carry none. Column 1 of the admin files is taken rather than the ASCII column 2, because the
+  accented form is the one a reader expects.
 - **Only feature classes A, P and S are stored** (decided during M6). The precision table below can
   give a precision to no other class, and a place with no precision is treated exactly as no match
   at all, so L, R, H and the rest would add rows that cannot change an answer. `KEPT_CLASSES` and
@@ -1096,15 +1104,30 @@ These are not blocking. Each is decided when its milestone arrives.
 2. **World Headlines.** Whether World news later replaces it. World Headlines reads six English-language RSS feeds and one Telegram channel (`lib/console/help.ts:187`).
 3. **Dead-man service.** Which one to use.
 4. **Categories (M4).** The final category list, refined with Sam.
-5. **BLOCKS M9/M10: the gazetteer holds no place NAMES for display.** Section 8.1 wants
+5. **CLOSED 2026-09-18: the gazetteer holds no place NAMES for display.** Section 8.1 wants
    `location.place` as `Westminster, London, United Kingdom`. `admin1CodesASCII.txt`,
-   `admin2Codes.txt` and `countryInfo.txt` are downloaded and hashed into the build
-   (`SOURCE_FILES` in `newsfeed/geonames.py`) but are never parsed into a table, so the gazetteer
-   knows `GB` and admin code `ENG` and cannot turn either into a name. Found on 2026-09-18 while
+   `admin2Codes.txt` and `countryInfo.txt` were downloaded and hashed into the build
+   (`SOURCE_FILES` in `newsfeed/geonames.py`) but never parsed into a table, so the gazetteer knew
+   `GB` and admin code `ENG` and could not turn either into a name. Found on 2026-09-18 while
    writing the publish stage.
 
-   Fixing it means parsing those three files into the build, which moves the gazetteer hash and so
-   the resolve and cluster hashes. That is cheap and is NOT a reason to delay: resolve is local and
-   free, and a full recluster of the current store costs about $0.006. The expensive stage, extract,
-   does not depend on the gazetteer and is unaffected. Do it before M9, not after, so the display
-   name is right the first time Provenance renders a dossier.
+   Fixed by parsing the three files into two tables, `countries(code, name)` and
+   `admin_areas(code, name, level)`, keyed by the dotted GeoNames code (`GB.ENG`, `GB.ENG.GLA`).
+   `Gazetteer.display_name()` builds at most three parts: the place, ONE administrative area
+   (admin2 if the gazetteer has it, else admin1) and the country, dropping any part that repeats
+   another. What GeoNames actually supports is `Westminster, Greater London, United Kingdom`: it
+   knows Westminster sits in admin2 GLA and has no notion of a parent city. The section 8.1 example
+   is prose, not a fixture, and the alternative is the model naming the middle part, which section 3
+   forbids.
+
+   **This does NOT move the gazetteer hash, contrary to what this item first said.** `build_hash`
+   is taken over the `build` table, which records one sha256 per downloaded FILE, and all five files
+   including these three were already recorded. The hash therefore covers the resolution INPUTS,
+   not the schema built from them. That is correct here, because nothing in resolve or cluster
+   reads the new tables and both stages return exactly what they returned before. It is also a trap
+   worth naming: two gazetteer databases can carry the same hash and hold different tables, so the
+   hash is not a statement that a rebuild is unnecessary. The rebuild is still required, and until
+   it runs, `display_name` falls back to the bare place name.
+
+   M10 must put the display rule in the PUBLISH config hash, not the gazetteer one: `DISPLAY_MAX`
+   and the one-middle-part rule change published text while changing no coordinate.

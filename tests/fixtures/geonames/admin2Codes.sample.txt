@@ -1,0 +1,5 @@
+FR.11.75	Paris	Paris	2968815
+GB.ENG.GLA	Greater London	Greater London	2648110
+GB.ENG.J8	Nottingham	Nottingham	3333178
+US.TX.277	Lamar County	Lamar County	4705086
+US.CO.001	Adams County	Adams County	5411363
