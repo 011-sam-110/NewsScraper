@@ -11,17 +11,17 @@ import argparse
 import sys
 
 from . import extract as extract_stage
+from . import geonames as geonames_stage
+from . import resolve as resolve_stage
 from . import scrape as scrape_stage
 from . import status as status_stage
 from .settings import SettingsError
 
 # Stage -> the milestone in docs/ARCHITECTURE.md section 14 that builds it.
 PLANNED_STAGES = {
-    "resolve": "M6",
     "cluster": "M7",
     "publish": "M10",
     "health": "M10",
-    "geonames-build": "M6",
     "eval": "M4",
 }
 
@@ -38,6 +38,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     extract_parser = stages.add_parser("extract", help="Ask DeepSeek what each new story reports.")
     extract_stage.add_arguments(extract_parser)
+
+    geonames_parser = stages.add_parser(
+        "geonames-build", help="Build the local GeoNames gazetteer. Monthly."
+    )
+    geonames_stage.add_arguments(geonames_parser)
+
+    resolve_parser = stages.add_parser(
+        "resolve", help="Turn each extracted place into a GeoNames coordinate, or into nothing."
+    )
+    resolve_stage.add_arguments(resolve_parser)
 
     for name, milestone in PLANNED_STAGES.items():
         stages.add_parser(name, help=f"Not built yet: milestone {milestone}.", add_help=False)
@@ -61,6 +71,10 @@ def main(argv: list[str] | None = None) -> int:
             return status_stage.run(args)
         if args.stage == "extract":
             return extract_stage.run(args)
+        if args.stage == "geonames-build":
+            return geonames_stage.run(args)
+        if args.stage == "resolve":
+            return resolve_stage.run(args)
     except SettingsError as error:
         print(f"Settings: {error}", file=sys.stderr)
         return 2

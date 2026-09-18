@@ -173,7 +173,37 @@ CREATE INDEX llm_calls_created ON llm_calls(created_at);
 CREATE INDEX llm_calls_stage ON llm_calls(stage, created_at);
 """
 
-MIGRATIONS: tuple[tuple[int, str], ...] = ((1, MIGRATION_1), (2, MIGRATION_2))
+# Migration 3 is the resolve stage (M6): which GeoNames row an extracted place landed on, and why.
+# Keyed by (story_id, config_hash) for the same reason extractions is, so rebuilding the gazetteer
+# or moving a threshold writes new rows beside the old ones rather than destroying the evidence a
+# published pin was based on.
+#
+# THE REASON COLUMN IS NOT A LOG LINE. A pin that turns out to be wrong has to be explainable after
+# the fact, and "matched Paris (PPLC)" or "Westminster is ambiguous in GB; climbed to London" is
+# the whole explanation. Storing only the coordinate would leave the weekly audit guessing.
+MIGRATION_3 = """
+CREATE TABLE resolutions (
+    story_id        TEXT NOT NULL REFERENCES stories(story_id) ON DELETE CASCADE,
+    config_hash     TEXT NOT NULL,
+    extract_hash    TEXT NOT NULL,
+    resolved        INTEGER NOT NULL DEFAULT 0,
+    geonames_id     INTEGER,
+    matched_name    TEXT,
+    latitude        REAL,
+    longitude       REAL,
+    feature_code    TEXT,
+    place_precision TEXT,
+    pinnable        INTEGER NOT NULL DEFAULT 0,
+    climbed         INTEGER NOT NULL DEFAULT 0,
+    reason          TEXT NOT NULL,
+    created_at      TEXT NOT NULL,
+    PRIMARY KEY (story_id, config_hash)
+);
+CREATE INDEX resolutions_config ON resolutions(config_hash, pinnable);
+CREATE INDEX resolutions_geonames ON resolutions(geonames_id);
+"""
+
+MIGRATIONS: tuple[tuple[int, str], ...] = ((1, MIGRATION_1), (2, MIGRATION_2), (3, MIGRATION_3))
 SCHEMA_VERSION = MIGRATIONS[-1][0]
 
 

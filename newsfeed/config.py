@@ -65,3 +65,37 @@ def extract_components(model: str = DEFAULT_MODEL) -> dict[str, Any]:
 
 def extract_config_hash(model: str = DEFAULT_MODEL) -> str:
     return hash_components(extract_components(model))
+
+
+def resolve_components(gazetteer_hash: str) -> dict[str, Any]:
+    """Everything that can move a coordinate, including the bytes the gazetteer was built from.
+
+    The gazetteer hash is an argument rather than read here, because reading it means opening the
+    database, and config.py is imported by code that must work without one. Passing it in also
+    makes it impossible to compute this hash while forgetting which gazetteer it describes.
+    """
+    from .geonames import KEPT_CLASSES, PINNABLE_PRECISIONS, PRECISION_BY_CODE
+    from .resolve import (
+        AMBIGUITY_DISTANCE_KM,
+        AMBIGUITY_POPULATION_RATIO,
+        CITY_RADIUS_KM,
+        KIND_PRECISION,
+        REGION_RADIUS_KM,
+    )
+
+    return {
+        "stage": "resolve",
+        "gazetteer": gazetteer_hash,
+        "kept_classes": sorted(KEPT_CLASSES),
+        "precision_by_code": dict(sorted(PRECISION_BY_CODE.items())),
+        "pinnable": sorted(PINNABLE_PRECISIONS),
+        "kind_precision": dict(sorted(KIND_PRECISION.items())),
+        "city_radius_km": CITY_RADIUS_KM,
+        "region_radius_km": REGION_RADIUS_KM,
+        "ambiguity_distance_km": AMBIGUITY_DISTANCE_KM,
+        "ambiguity_population_ratio": AMBIGUITY_POPULATION_RATIO,
+    }
+
+
+def resolve_config_hash(gazetteer_hash: str) -> str:
+    return hash_components(resolve_components(gazetteer_hash))

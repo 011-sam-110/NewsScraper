@@ -8,7 +8,9 @@ Scrapes world and regional news from five outlets into JSON Lines. This file is 
 2. An AI step (DeepSeek) reads each new story, decides if it reports an event at an identifiable place, groups the same event across outlets and assigns a category.
 3. Push the result to Provenance (repo `011-sam-110/Provenance`). Located events become map pins. Everything else goes into a "World news" widget.
 
-Today only step 1 exists, and only as a one-shot CLI. Steps 2 and 3 are designed in `docs/ARCHITECTURE.md`, agreed with Sam on 2026-09-15, and not built. Build from that document, one milestone at a time (section 14).
+Step 1 runs on a schedule. Step 2 is part built: extract (M5) and resolve (M6) exist, cluster
+and the quality gate do not. Step 3 is not built. The design is `docs/ARCHITECTURE.md`, agreed
+with Sam on 2026-09-15. Build from that document, one milestone at a time (section 14).
 
 ## Run
 
@@ -57,13 +59,22 @@ Rights: the Guardian's robots header forbids LLM/AI and commercial use, and NYT 
 Reuters is the risk. It launches installed Google Chrome with a visible window (`scraper/reuters.py`, `channel="chrome"`, `headless=False`). DataDome returns 401 to Playwright's bundled Chromium, Chrome for Testing, curl and curl_cffi. Do not change the user agent.
 
 1. Install Google Chrome (the real browser, not `playwright install chromium`).
-2. On Linux with no display, run under a virtual display: `xvfb-run -a python main.py ...`.
+2. On Linux, Reuters needs the seat's REAL display. `xvfb-run` does not work: with no GPU,
+   Chrome reports the SwiftShader renderer and DataDome answers every section with 401.
+   Measured on the Fedora host on 2026-09-18, same public IP, minutes apart: real display 200,
+   xvfb-run 401, `xvfb-run --use-gl=egl` still SwiftShader, `--use-angle=vulkan` no WebGL at
+   all. `deploy/reuters-display.sh` finds the display and refuses to run without one.
 3. Prove Reuters works on this machine before anything else:
    `python main.py --sections reuters:africa --max-pages 1 -o /tmp/probe`
    Pass = rows saved and exit code 0. A 401/403 means DataDome refused this machine or network. A VPN or rotating proxy can cause it. `NEWS_SCRAPER_PROXY` sets a proxy for every outlet.
 4. Only a home IP is proven to work (2026-09-14). If Reuters fails here, report it to Sam. Run the other four outlets without it (`--sources bbc guardian pbs nyt`).
-   Proven on the Fedora host on 2026-09-15 with Google Chrome 153 under `xvfb-run`: 8 rows, all with text, exit 0. See `docs/HOST.md`.
-   DataDome also rate-limits the session, not only the machine: a run that pulled 312 rows in eleven minutes was answered 401 on its last two sections, and a light request minutes later worked. Reuters is scheduled slower and shallower than the other four, and is never backfilled.
+   The 2026-09-15 reading that Xvfb was proven here was wrong, and cost three days of Reuters:
+   only its FIRST section succeeded, and 23 of the next 24 hourly runs failed on every section.
+   On the real display the same unit fetched 296 rows and 137 new stories with 0 failures
+   (2026-09-18). See `docs/HOST.md`.
+   DataDome does also rate-limit a session, so Reuters stays scheduled slower and shallower
+   than the other four and is never backfilled. That is worth doing on its own, but it was not
+   the cause of the outage and making it gentler did not fix anything.
 5. Keep pipeline state out of synced folders. The SQLite databases go in `NEWSFEED_DATA_DIR` (default `%LOCALAPPDATA%\NewsScraper` on Windows). This checkout lives under OneDrive, and sync corrupts SQLite write-ahead logs.
 
 ## Known gaps before this can run on a schedule
@@ -79,9 +90,13 @@ Reuters is the risk. It launches installed Google Chrome with a visible window (
 ```
 python -m newsfeed scrape --sources bbc guardian pbs nyt   # M1, on an hourly systemd timer
 python -m newsfeed status                                  # what the store holds, per outlet
+python -m newsfeed extract                                 # M5, DeepSeek, not yet on a timer
+python -m newsfeed geonames-build                          # M6, monthly, downloads the dumps
+python -m newsfeed resolve --dry-run                       # M6, place name to coordinate
 ```
 
-Built: the store and the scrape stage (M1). Every other stage exits 2 and names its milestone. The store lives in `NEWSFEED_DATA_DIR`, never in this checkout.
+Built: the store and scrape (M1), extract (M5), and the gazetteer and resolve (M6). cluster (M7),
+publish and health (M10) and eval (M4) exit 2 and name their milestone. The store lives in `NEWSFEED_DATA_DIR`, never in this checkout.
 
 ## Design summary
 

@@ -380,6 +380,14 @@ None of these retries uses up the one schema retry.
 
 - Download from download.geonames.org: `allCountries.zip`, `alternateNamesV2.zip`, `admin1CodesASCII.txt`, `admin2Codes.txt` and `countryInfo.txt`. From the alternate names, keep only English and preferred names.
 - Write `geonames.sqlite3` with a name index. Record each source file's SHA-256 and download date in a `build` table. Those hashes are part of the config hash.
+- **Only feature classes A, P and S are stored** (decided during M6). The precision table below can
+  give a precision to no other class, and a place with no precision is treated exactly as no match
+  at all, so L, R, H and the rest would add rows that cannot change an answer. `KEPT_CLASSES` and
+  `PRECISION_BY_CODE` in `newsfeed/geonames.py` must be widened together.
+- **The alternate names are load-bearing, not an optimisation.** The London district is stored as
+  "City of Westminster"; the only GB row actually NAMED "Westminster" is a hotel in Nottingham. The
+  first golden test below passes only because "Westminster" is a preferred English alternate for
+  the ADM3 row.
 - GeoNames data is CC BY 4.0. The Provenance layer's attribution credits GeoNames (section 9.2).
 
 **Matching an `event_place`:**
@@ -387,6 +395,17 @@ None of these retries uses up the one schema retry.
 1. Restrict candidates to the extraction's country.
 2. Find candidates whose name, or an English alternate name, equals `name` after folding case and accents.
 3. If `within` is given, resolve it first. Then keep only candidates close to it: within 30 km of a city, 150 km of a region, or inside the country. Distance is used because GeoNames admin codes are too uneven across countries to rely on alone.
+
+   **Amended 2026-09-18, during M6, on a measurement.** The radius rule throws away this section's
+   own second golden test. Texas is about 1,200 km across, and Paris, Texas sits roughly 440 km
+   from the point GeoNames gives as the Texas centroid, so a 150 km radius excludes the right
+   answer. Any radius wide enough for Texas is meaningless for a small region. Containment is now
+   read from the admin code when the container IS an admin area (ADM1 against `admin1`, ADM2
+   against `admin2` and `admin1`, within the one country already fixed by step 1), and from
+   distance in every other case, including when either side leaves the admin column empty. The
+   warning above still stands and is the reason codes are not used to decide which LEVEL a place
+   sits at, only whether one named container holds it. `tests/test_newsfeed_resolve.py` keeps the
+   440 km measurement as a test so the radius rule is not reinstated.
 4. Rank how well each candidate's feature code fits `kind`. `venue` fits S class. `district` fits PPLX, ADM3 and ADM4. `city` fits PPL, PPLA to PPLA4, and PPLC. Break ties by population.
 5. **Ambiguity.** If the top two candidates rank about equally and are more than 25 km apart, the name is ambiguous. Climb to `within` and resolve that instead, at its own precision. If `within` is ambiguous too, the place is unresolved and the story is World news.
 
