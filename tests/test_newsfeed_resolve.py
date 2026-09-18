@@ -6,6 +6,7 @@ those tests name, so a rule that passes here passes against the bytes the gazett
 GeoNames data is CC BY 4.0.
 """
 
+import argparse
 import sqlite3
 import sys
 import unittest
@@ -268,3 +269,117 @@ class PrecisionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StageTests(unittest.TestCase):
+    """The stage itself, not just the rules: a runtime fault here is invisible to every test above."""
+
+    def setUp(self) -> None:
+        import tempfile
+        from newsfeed.settings import Settings
+        from newsfeed.store import Store
+
+        self.data_dir = Path(tempfile.mkdtemp())
+        self.settings = Settings(
+            data_dir=self.data_dir,
+            deepseek_api_key=None,
+            ingest_url=None,
+            ingest_secret=None,
+            daily_budget_usd=1.0,
+            telegram_bot_token=None,
+            telegram_chat_id=None,
+            deadman_url=None,
+            proxy=None,
+        )
+        self.Store = Store
+
+    def write_gazetteer(self) -> None:
+        connection = sqlite3.connect(self.settings.geonames_db)
+        places = (FIXTURES / "allCountries.sample.txt").read_text(encoding="utf-8").splitlines()
+        alternates = (FIXTURES / "alternateNamesV2.sample.txt").read_text(encoding="utf-8").splitlines()
+        geonames.build_database(connection, places, alternates)
+        connection.close()
+
+    def seed_extraction(self, **over: object) -> None:
+        from newsfeed.identity import now_utc
+
+        now = now_utc()
+        with self.Store(self.settings.news_db) as store:
+            store.migrate()
+            with store.write() as connection:
+                connection.execute(
+                    """INSERT INTO stories (story_id, outlet, primary_alias, published,
+                                            first_seen_at, last_seen_at, status)
+                       VALUES ('st_1', 'reuters', 'st_1', ?, ?, ?, 'extracted')""",
+                    (now, now, now),
+                )
+                row = {
+                    "place_name": "Paris",
+                    "place_within": None,
+                    "place_country": "FR",
+                    "place_kind": "city",
+                }
+                row.update(over)
+                connection.execute(
+                    """INSERT INTO extractions (story_id, config_hash, accepted, is_physical_event,
+                                                place_name, place_within, place_country, place_kind,
+                                                created_at)
+                       VALUES ('st_1', 'cfgtest', 1, 1, ?, ?, ?, ?, ?)""",
+                    (
+                        row["place_name"],
+                        row["place_within"],
+                        row["place_country"],
+                        row["place_kind"],
+                        now,
+                    ),
+                )
+
+    def resolutions(self) -> list[sqlite3.Row]:
+        with self.Store(self.settings.news_db) as store:
+            store.migrate()
+            return store.query("SELECT * FROM resolutions")
+
+    def test_a_run_writes_a_resolution_row(self) -> None:
+        self.write_gazetteer()
+        self.seed_extraction()
+        code = resolve.run(
+            argparse.Namespace(limit=10, story=None, dry_run=False), self.settings
+        )
+        self.assertEqual(code, 0)
+        rows = self.resolutions()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["geonames_id"], PARIS_FRANCE)
+        self.assertEqual(rows[0]["place_precision"], "city")
+        self.assertEqual(rows[0]["pinnable"], 1)
+        self.assertEqual(rows[0]["extract_hash"], "cfgtest")
+
+    def test_a_second_run_does_not_redo_the_work(self) -> None:
+        self.write_gazetteer()
+        self.seed_extraction()
+        args = argparse.Namespace(limit=10, story=None, dry_run=False)
+        resolve.run(args, self.settings)
+        resolve.run(args, self.settings)
+        self.assertEqual(len(self.resolutions()), 1)
+
+    def test_a_dry_run_writes_nothing(self) -> None:
+        self.write_gazetteer()
+        self.seed_extraction()
+        resolve.run(argparse.Namespace(limit=10, story=None, dry_run=True), self.settings)
+        self.assertEqual(self.resolutions(), [])
+
+    def test_an_unresolved_place_is_still_recorded_with_its_reason(self) -> None:
+        # A place that resolves to nothing must leave a row saying so. Without one, the next run
+        # asks the same question again forever, and nothing can report how often this happens.
+        self.write_gazetteer()
+        self.seed_extraction(place_name="Atlantis")
+        resolve.run(argparse.Namespace(limit=10, story=None, dry_run=False), self.settings)
+        rows = self.resolutions()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["resolved"], 0)
+        self.assertEqual(rows[0]["pinnable"], 0)
+        self.assertIn("Atlantis", rows[0]["reason"])
+
+    def test_no_gazetteer_exits_2_and_says_how_to_build_one(self) -> None:
+        self.seed_extraction()
+        code = resolve.run(argparse.Namespace(limit=10, story=None, dry_run=False), self.settings)
+        self.assertEqual(code, 2)
