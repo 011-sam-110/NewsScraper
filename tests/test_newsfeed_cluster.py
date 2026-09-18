@@ -746,3 +746,85 @@ class ShuffledRerunTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NeverPinnedCategoryTests(unittest.TestCase):
+    """A court proceeding is never a pin, however well it resolves. Section 3.
+
+    This rule exists because of a measurement, not a hunch. On 2026-09-18 the store held 72 pins
+    and 8 of them were `courts_and_justice`: a sentencing in Los Angeles for crimes in Syria, a
+    trial in Paris, a plea in Miami, judges convening in Brasilia. The clearest was an acquittal in
+    Malaysia pinned at the school, carrying the ORIGINAL stabbing's quote as its evidence, which is
+    section 3's GDELT example almost word for word.
+
+    Every one of those stories genuinely happened somewhere: a courtroom is a place and a hearing
+    is an event. What makes them wrong is that the pin claims the story is about that place, and it
+    is not. The story is about something that happened somewhere else, some time ago.
+    """
+
+    def facts(self, **kwargs) -> ClusterFacts:
+        founder = story("s1", "A headline", **kwargs)
+        return ClusterFacts("nf_x", founder, [founder])
+
+    def test_a_court_story_is_world_news_with_a_reason(self) -> None:
+        self.assertEqual(
+            pin_decision(self.facts(category="courts_and_justice")),
+            (False, "founder_category_never_pins"),
+        )
+
+    def test_the_same_story_in_another_category_still_pins(self) -> None:
+        """Without this the first test would pass for any reason at all, including a broken
+        fixture that could never pin in the first place."""
+        self.assertEqual(pin_decision(self.facts(category="attack_or_violent_crime")), (True, None))
+        self.assertEqual(pin_decision(self.facts(category="conflict")), (True, None))
+
+    def test_a_missing_category_does_not_block_a_pin(self) -> None:
+        """An extraction from before the category existed must not be silently unpinnable."""
+        self.assertEqual(pin_decision(self.facts(category=None)), (True, None))
+        self.assertEqual(pin_decision(self.facts(category="")), (True, None))
+
+    def test_the_rule_reads_the_founder_not_a_member(self) -> None:
+        """The pin claims to be about the founder, so the founder decides. A court report that
+        joins a cluster founded on the attack itself must not veto the attack's pin."""
+        founder = story("s1", "Man stabbed in Westminster", category="attack_or_violent_crime")
+        court = story("s2", "Man charged over Westminster stabbing", category="courts_and_justice")
+        self.assertEqual(pin_decision(ClusterFacts("nf_x", founder, [founder, court])), (True, None))
+
+    def test_an_opinion_piece_is_not_a_pin_either(self) -> None:
+        """`opinion_analysis` was already marked unpinnable in the taxonomy and nothing read the
+        flag, so an opinion piece that resolved cleanly would have been pinned. Section 3 names
+        commentary in the same breath as verdicts."""
+        self.assertEqual(
+            pin_decision(self.facts(category="opinion_analysis")),
+            (False, "founder_category_never_pins"),
+        )
+
+    def test_the_rule_reads_the_taxonomy_rather_than_a_second_list(self) -> None:
+        """`pin_possible` was declared and read by nothing. A separate list in this module would
+        have left the dead flag in place and given two answers to one question."""
+        from newsfeed.taxonomy import CATEGORIES, can_pin
+
+        for entry in CATEGORIES:
+            with self.subTest(category=entry.id):
+                self.assertEqual(can_pin(entry.id), entry.pin_possible)
+
+    def test_the_pin_flags_are_in_the_config_hash(self) -> None:
+        """A rule that changes is_pin and not the hash is the worst of both: stored clusters keep
+        the old answer, new ones get the new one, and nothing reports the disagreement."""
+        from newsfeed.config import cluster_components
+
+        components = cluster_components("resolve-hash", "extract-hash")
+        self.assertIs(components["pin_possible"]["courts_and_justice"], False)
+        self.assertIs(components["pin_possible"]["conflict"], True)
+
+    def test_flipping_a_flag_moves_the_hash(self) -> None:
+        """The guard that makes the one above mean something."""
+        from unittest.mock import patch
+
+        from newsfeed import taxonomy
+        from newsfeed.config import cluster_config_hash
+
+        before = cluster_config_hash("r", "e")
+        flipped = dict(taxonomy.pin_possible_map(), conflict=False)
+        with patch.object(taxonomy, "pin_possible_map", return_value=flipped):
+            self.assertNotEqual(cluster_config_hash("r", "e"), before)

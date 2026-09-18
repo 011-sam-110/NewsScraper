@@ -36,6 +36,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Iterable, Sequence
 
+from . import taxonomy
 from .config import cluster_config_hash, extract_config_hash, resolve_config_hash
 from .deepseek import (
     DEFAULT_MODEL,
@@ -64,6 +65,7 @@ CANDIDATE_RADIUS_KM = 50.0
 # Section 7.8 step 5. Deliberately the same figure as the candidate radius: a member that could
 # not have made the cluster a candidate on distance cannot keep it a pin either.
 PIN_SPREAD_KM = 50.0
+
 
 # How much of two headlines must overlap before they are worth a model call. Low on purpose: this
 # gate only has to be cheaper than the call, and a pair it wrongly drops is never reconsidered.
@@ -111,6 +113,7 @@ class StoryFacts:
     cluster_hint: str | None = None
     event_date: str | None = None
     place_name: str | None = None
+    category: str | None = None
 
     @property
     def is_live_blog(self) -> bool:
@@ -220,6 +223,8 @@ def pin_decision(cluster: ClusterFacts) -> tuple[bool, str | None]:
         return False, "live_blog"
     if not founder.is_physical_event:
         return False, "founder_not_an_event"
+    if not taxonomy.can_pin(founder.category):
+        return False, "founder_category_never_pins"
     if not founder.pinnable or not founder.located:
         return False, "founder_place_not_pinnable"
 
@@ -306,6 +311,7 @@ def story_facts(row: dict[str, Any]) -> StoryFacts:
         cluster_hint=row["cluster_hint"],
         event_date=row["event_date"],
         place_name=row["place_name"],
+        category=row["category"],
     )
 
 
@@ -323,6 +329,7 @@ def _json_list(raw: Any) -> list[str]:
 STORY_COLUMNS = """
     s.story_id, s.outlet, s.primary_alias, s.headline, s.published, s.format_flags,
     e.is_physical_event, e.place_country, e.key_entities, e.cluster_hint, e.event_date, e.place_name,
+    e.category,
     r.latitude, r.longitude, r.place_precision, r.pinnable
 """
 

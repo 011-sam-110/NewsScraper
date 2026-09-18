@@ -22,7 +22,7 @@ import hashlib
 import json
 from typing import Any
 
-from . import prompts
+from . import prompts, taxonomy
 from .deepseek import DEFAULT_MAX_TOKENS, DEFAULT_MODEL
 from .taxonomy import (
     CATEGORY_IDS,
@@ -132,6 +132,7 @@ def cluster_components(
         "headline_overlap": HEADLINE_OVERLAP,
         "stop_words": sorted(STOP_WORDS),
         "joining_verdicts": sorted(JOINING_VERDICTS),
+        "pin_possible": taxonomy.pin_possible_map(),
         **prompts.cluster_prompt_components(),
     }
 

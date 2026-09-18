@@ -30,7 +30,12 @@ CATEGORIES: tuple[Category, ...] = (
     Category("accident", "Transport crashes, industrial accidents, collapses, explosions with no attacker", True),
     Category("health", "Outbreaks and public-health events at a place", True),
     Category("politics_and_diplomacy", "Elections, government decisions, summits, diplomacy", True),
-    Category("courts_and_justice", "Trials, verdicts, sentencing, inquiries", True),
+    # NOT pinnable. Every story here reports a legal PROCESS about something that happened
+    # somewhere else, at some other time. A courtroom is a place and a hearing is an event,
+    # which is exactly why this needs saying: the pin would be defensible and still wrong,
+    # because it claims the story is about that place. Section 3, and measured: on
+    # 2026-09-18 all 8 of the store's courts_and_justice pins were court proceedings.
+    Category("courts_and_justice", "Trials, verdicts, sentencing, inquiries", False),
     Category("economy_and_business", "Markets, companies, trade, jobs", True),
     Category("science_climate_tech", "Research, climate, technology, space", True),
     Category("society_culture_sport", "Culture, religion, sport, human interest", True),
@@ -58,3 +63,24 @@ EVENT_DATE_DAYS_AFTER = 1
 def category_lines() -> str:
     """The category list as the prompt shows it. Part of the prompt, so part of the config hash."""
     return "\n".join(f"- {category.id}: {category.covers}" for category in CATEGORIES)
+
+
+def can_pin(category: str | None) -> bool:
+    """May a story in this category be pinned? Section 3 and the table above.
+
+    An unknown or missing category is pinnable. That is the deliberate direction to fail in: the
+    extract schema already restricts the category to this table, so an unknown one should not
+    happen, and if the table and the model ever do drift apart, a permissive default drops a few
+    wrong pins where a strict one would silently stop pinning ANYTHING and look like a quiet week.
+    """
+    if not category:
+        return True
+    for entry in CATEGORIES:
+        if entry.id == category:
+            return entry.pin_possible
+    return True
+
+
+def pin_possible_map() -> dict[str, bool]:
+    """The pin flags, for the cluster config hash. Changing one changes which stories pin."""
+    return {entry.id: entry.pin_possible for entry in CATEGORIES}
