@@ -1096,3 +1096,15 @@ These are not blocking. Each is decided when its milestone arrives.
 2. **World Headlines.** Whether World news later replaces it. World Headlines reads six English-language RSS feeds and one Telegram channel (`lib/console/help.ts:187`).
 3. **Dead-man service.** Which one to use.
 4. **Categories (M4).** The final category list, refined with Sam.
+5. **BLOCKS M9/M10: the gazetteer holds no place NAMES for display.** Section 8.1 wants
+   `location.place` as `Westminster, London, United Kingdom`. `admin1CodesASCII.txt`,
+   `admin2Codes.txt` and `countryInfo.txt` are downloaded and hashed into the build
+   (`SOURCE_FILES` in `newsfeed/geonames.py`) but are never parsed into a table, so the gazetteer
+   knows `GB` and admin code `ENG` and cannot turn either into a name. Found on 2026-09-18 while
+   writing the publish stage.
+
+   Fixing it means parsing those three files into the build, which moves the gazetteer hash and so
+   the resolve and cluster hashes. That is cheap and is NOT a reason to delay: resolve is local and
+   free, and a full recluster of the current store costs about $0.006. The expensive stage, extract,
+   does not depend on the gazetteer and is unaffected. Do it before M9, not after, so the display
+   name is right the first time Provenance renders a dossier.
