@@ -471,11 +471,47 @@ Every extracted story joins exactly one cluster.
 2. **Same-event check.** For each candidate, one `deepseek-flash` call compares this story with the cluster's **founding story only**. The model gets both stories' headline, date, place, casualty or damage figures, and named actors. It answers `same`, `different` or `unsure`, and only `same` joins. Comparing with the founder, never the latest member, stops chaining, where A matches B, B matches C, and A and C are different events.
 3. **No match.** The story founds a new cluster.
 4. **Ids.** A cluster id is `nf_` plus the first 12 hex characters of SHA-256 over the founding story's outlet and first alias. It is minted once and stored, and it never changes. v1 never merges two clusters, so an id on the box always means the same event.
-5. **Pin decision.** A cluster is a pin when both hold:
+5. **Pin decision.** A cluster is a pin when all three hold:
+   - its founding story's CATEGORY may be pinned at all (`pin_possible` in section 6.2);
    - its founding story passes the map rule;
    - every member with a resolved place is within 50 km of the pin.
 
-   If members are further apart, the cluster goes to World news with the reason `members_far_apart`.
+   If members are further apart, the cluster goes to World news with the reason
+   `members_far_apart`. If the category cannot be pinned, the reason is
+   `founder_category_never_pins`.
+
+   **Why the category veto exists, added 2026-09-18.** The first real snapshot built from the live
+   store carried 72 pins. Sixty-four were good: a shark attack at Sorrento Beach, the Swiss Alps
+   crash near Leukerbad, the news helicopter at Chatsworth, drone strikes at Odesa and Pochaina.
+   All eight of the `courts_and_justice` pins were court proceedings. A sentencing in Los Angeles
+   for crimes committed in Syria. A trial in Paris. A plea in Miami. Judges convening in Brasilia.
+   The clearest was a Malaysian acquittal, pinned at the school, carrying the ORIGINAL stabbing's
+   quote as its evidence, which is section 3's GDELT example almost word for word.
+
+   Each of those genuinely happened somewhere, and that is the point: a courtroom is a place and a
+   hearing is an event, so the pin is defensible and still wrong, because it claims the story is
+   about that place when the story is about something that happened somewhere else. Section 3 already
+   said so, in the words "verdicts about old events". Nothing enforced it.
+
+   At 11% of pins against a gate that allows about 2%, section 10 would have failed, and finding it
+   on 2026-09-25 would have cost the week the gate was waiting for.
+
+   **`pin_possible` was declared in section 6.2 and read by nothing.** The flag existed from the
+   start; the veto is the code that finally reads it. That also closed a hole nobody had hit:
+   `opinion_analysis` was already marked unpinnable, so an opinion piece that resolved cleanly would
+   have been pinned. An unknown or missing category stays pinnable, which is the deliberate direction
+   to fail in: a permissive default ships a few wrong pins, where a strict one would silently stop
+   pinning anything and read as a quiet week.
+
+   The flags are part of the cluster config hash, so changing one forces a recluster. Without that,
+   stored clusters would keep the old answer while new ones got the new one, and nothing would
+   report the disagreement.
+
+   **Known and not fixed: the categories themselves are rough.** In the same 72, two stories about a
+   missing three-year-old and the body found in the search were categorised `society_culture_sport`.
+   The pins are right, the label is not. Fixing it means editing the extract prompt, which moves the
+   extract hash, voids 2,988 paid extractions and restarts the section 10 clock, so it waits for M4
+   and the labelled set rather than being patched now.
 6. **Live blogs.** A live blog never joins a cluster, and no story joins one.
 
 The test that matters: two different stabbings in London on the same day must stay two clusters (M7).
