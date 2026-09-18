@@ -1,0 +1,14 @@
+[Unit]
+Description=NewsScraper: hourly extract, resolve and cluster
+
+[Timer]
+# Half past, so the hourly scrape has finished writing the stories this run reads. The scrape
+# starts on the hour with up to 5 minutes of jitter and is short once the store is caught up.
+OnCalendar=*:30
+RandomizedDelaySec=2min
+# Catch up after the machine was asleep or off, so a gap does not silently stay a gap.
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

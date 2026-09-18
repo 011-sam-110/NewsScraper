@@ -1,0 +1,32 @@
+[Unit]
+Description=NewsScraper: extract, resolve and cluster the stories the scrape brought in
+Documentation=file:///home/sampo/NewsScraper/docs/ARCHITECTURE.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/NewsScraper
+EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
+
+# ONE unit, not three timers. The stages must run in this order: resolve reads what extract wrote
+# and cluster reads what resolve wrote. Three timers would eventually fire out of order after a
+# catch-up or a slow run, and cluster would then place stories with no coordinate, pin none of
+# them, and record that as done. Cluster refuses to start in that state, so three timers would
+# also mean a failed unit most hours. systemd runs these in order and stops at the first failure.
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed extract --limit 400
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed resolve --limit 2000
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed cluster --limit 2000
+
+# Nothing here publishes. Publish is milestone M10 and is deliberately a separate unit, so that
+# this one can run for the week the gate needs (section 14, M8) without anything reaching
+# Provenance.
+
+# extract stops itself at the daily budget and leaves the rest for the next run, so a long run
+# here means an API that is slow rather than a backlog. The hour is a backstop for that.
+TimeoutStartSec=55min
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=default.target

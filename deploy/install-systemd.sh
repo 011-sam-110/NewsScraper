@@ -14,8 +14,9 @@ units_source="$repo/deploy/systemd"
 units_target="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 env_file="${XDG_CONFIG_HOME:-$HOME/.config}/newsfeed/newsfeed.env"
 units=(newsfeed-scrape.service newsfeed-scrape.timer
-       newsfeed-scrape-reuters.service newsfeed-scrape-reuters.timer)
-timers=(newsfeed-scrape.timer newsfeed-scrape-reuters.timer)
+       newsfeed-scrape-reuters.service newsfeed-scrape-reuters.timer
+       newsfeed-pipeline.service newsfeed-pipeline.timer)
+timers=(newsfeed-scrape.timer newsfeed-scrape-reuters.timer newsfeed-pipeline.timer)
 
 case "${1:-install}" in
   --status)
@@ -70,6 +71,13 @@ if ! command -v xdpyinfo >/dev/null 2>&1; then
   echo "before it spends a request on it. It will still run." >&2
   echo "  sudo dnf install -y xorg-x11-utils" >&2
 fi
+# The pipeline timer calls DeepSeek. Without a key, extract exits non-zero every half hour and
+# resolve and cluster never run, so say it here rather than leaving it in the journal.
+if ! grep -qs '^DEEPSEEK_API_KEY=.' "$env_file"; then
+  echo "Warning: no DEEPSEEK_API_KEY in $env_file, so the pipeline timer will fail." >&2
+  echo "  The scrape timers are unaffected." >&2
+fi
+
 if ! command -v google-chrome-stable >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1; then
   echo "Warning: Google Chrome is missing, so Reuters will fail. DataDome refuses every other browser." >&2
   echo "  sudo dnf install -y google-chrome-stable" >&2
