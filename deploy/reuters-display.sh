@@ -64,6 +64,27 @@ if [ -z "${XAUTHORITY:-}" ]; then
   done
 fi
 
+# TAKE THE X11 PATH, NOT THE WAYLAND ONE. Chrome picks its ozone backend from the
+# environment: with WAYLAND_DISPLAY set it talks Wayland, and without it, it uses
+# DISPLAY and XWayland. Both draw on the real GPU. They do NOT report the same WebGL
+# renderer, and the renderer is what DataDome scores.
+#
+#   XWayland (DISPLAY, no WAYLAND_DISPLAY)  ANGLE (Mesa, zink ... GTX 1650 ...) OpenGL 4.6
+#   Wayland  (WAYLAND_DISPLAY=wayland-0)    ANGLE (Mesa, zink ... GTX 1650 ...) OpenGL ES 3.2
+#
+# That one word is the whole difference between a run that works and a run that gets
+# one page and then HTTP 401 on everything else. It went unseen because a login shell
+# has no WAYLAND_DISPLAY and the systemd user manager does, so the command worked every
+# time it was run by hand and failed every time the timer ran it. Measured on this box
+# on 2026-09-18: four scheduled runs took exactly 8 rows each and 401ed the rest, while
+# the same command from a shell, minutes later, took 296 rows with 0 failures.
+#
+# Forcing X11 here rather than in the unit keeps the two paths identical, so running the
+# command by hand reproduces what the timer does. That is the property whose absence
+# hid this.
+unset WAYLAND_DISPLAY
+export XDG_SESSION_TYPE=x11
+
 # Prove the display answers before spending a Reuters request on it. A DISPLAY that is
 # set but dead fails later, inside Chrome, as a timeout that reads like a network fault.
 if command -v xdpyinfo >/dev/null 2>&1; then

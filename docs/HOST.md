@@ -80,9 +80,32 @@ scores the WebGL renderer. Same public IP, minutes apart on 2026-09-18:
 | `xvfb-run` | `ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)` | 401 |
 | `xvfb-run --use-gl=egl` | the same SwiftShader string | no better |
 | `xvfb-run --use-angle=vulkan` | no WebGL at all, a worse signal still | no better |
+| under systemd, Wayland backend | `ANGLE (Mesa, zink ... GTX 1650 ...), OpenGL ES 3.2` | 401 after one page |
 
-`navigator.webdriver` was false in all four, so the renderer is the signal and the IP is not
-blocked. `deploy/reuters-display.sh` finds the display, proves it answers before spending a
+`navigator.webdriver` was false in all of them, so the renderer is the signal and the IP is not
+blocked.
+
+**The fifth row is the one that cost a day, and it was found on 2026-09-18 after the fix above was
+already believed to work.** Every scheduled Reuters run between 01:25 and 09:21 took exactly 8 rows,
+one page of one section, and answered 401 to everything after it. The same command run by hand,
+minutes after one of those failures, took 296 rows with 0 failures. The box, the IP, the display,
+the GPU and `navigator.webdriver` were identical.
+
+The difference was one environment variable. Chrome chooses its ozone backend from the environment:
+with `WAYLAND_DISPLAY` set it talks Wayland, and without it, it uses `DISPLAY` and XWayland. Both
+draw on the real GPU, and they do not report the same renderer string. A login shell has no
+`WAYLAND_DISPLAY`; the systemd user manager has `WAYLAND_DISPLAY=wayland-0` and
+`XDG_SESSION_TYPE=wayland`. So the command worked every time a person ran it and failed every time
+the timer ran it, which is the worst shape a fault can have.
+
+`deploy/reuters-display.sh` now unsets `WAYLAND_DISPLAY` and sets `XDG_SESSION_TYPE=x11`, so both
+paths start the same browser. Proved by running the same WebGL probe under `systemd-run --user`
+with and without the variable: `OpenGL ES 3.2` with it, `OpenGL 4.6` without it, matching the shell
+byte for byte down to the window position.
+
+**How to tell this has come back.** A Reuters run that reports exactly 8 rows and fails every
+section after the first is this fault, not a rate limit. A rate limit refuses the first section too.
+ `deploy/reuters-display.sh` finds the display, proves it answers before spending a
 Reuters request on it, and exits 3 with a readable message when there is none.
 
 **The cost, stated plainly: Reuters now needs a logged-in graphical session on this box.** The

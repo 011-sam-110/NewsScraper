@@ -71,7 +71,13 @@ Reuters is the risk. It launches installed Google Chrome with a visible window (
    The 2026-09-15 reading that Xvfb was proven here was wrong, and cost three days of Reuters:
    only its FIRST section succeeded, and 23 of the next 24 hourly runs failed on every section.
    On the real display the same unit fetched 296 rows and 137 new stories with 0 failures
-   (2026-09-18). See `docs/HOST.md`.
+   (2026-09-18). That was true of a run started BY HAND, and it did not hold for one scheduled
+   run: all four between 01:25 and 09:21 took exactly 8 rows and answered 401 to everything
+   after the first page. The cause was `WAYLAND_DISPLAY`, which the systemd user manager sets
+   and a login shell does not, so Chrome took the Wayland backend and reported a different WebGL
+   renderer. `deploy/reuters-display.sh` now forces the X11 path. A run that reports exactly 8
+   rows and fails every section after the first is this fault, not a rate limit: a rate limit
+   refuses the first section too. See `docs/HOST.md`.
    DataDome does also rate-limit a session, so Reuters stays scheduled slower and shallower
    than the other four and is never backfilled. That is worth doing on its own, but it was not
    the cause of the outage and making it gentler did not fix anything.
