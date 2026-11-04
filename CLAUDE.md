@@ -39,6 +39,16 @@ Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code
 - `deploy/`: systemd units, the settings example and the installer for the host.
 - `docs/ARCHITECTURE.md`: the design for the AI layer and the Provenance upload.
 - `docs/HOST.md`: the runbook for the machine that runs the schedule.
+- `sources/incident/`: the Ukraine GeoConfirmed parser, optional DeepSeek interpretation, Supabase writer and CLI.
+- `scripts/set-ukraine-incident-env.sh`: hidden-prompt environment setup with a fake-value mode and a current-user-only Windows ACL.
+
+## Ukraine incident worker (DEV only)
+
+Run `python -m sources incident-ukraine [--fixture PATH] [--write] [--no-deepseek]`. The worker keeps dated Ukraine VID/UAV/PIC rows with source coordinates, builds `provenance.incident/1`, and preserves claims and receipts. Structured parsing needs no model key. `DEEPSEEK_KEY_UKRAINE` enables the optional interpretation, which cannot supply coordinates or final prose.
+
+The environment script writes `~/.config/provenance-incident/ukraine.env`. It uses `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` and `DEEPSEEK_KEY_UKRAINE`. Never paste those values into a chat, a command line, source control or a log.
+
+A real `--write` needs Sam's separate approval and the dev schema. Production schema stays unapplied. Run the 16 incident tests with `python -m unittest discover -s tests -k incident`.
 
 ## Outlets
 
