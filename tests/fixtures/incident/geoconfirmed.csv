@@ -1,0 +1,4 @@
+Conflict;Date;Name;Faction;Origin;Latitude;Longitude;PlusCode;Description;Source;Geolocation;Equipment;EquipmentItems;Units;OrbatUnits;Id
+Ukraine;2026-10-27;27 OCT 2026;Russia;UAV;50.334626;36.20466;9G2R86M3+VV Kozacha Lopan' Kharkiv Oblast Ukraine;0:22-0:26 - Rubicon unit drone drops on claimed Ukrainian position, Kozacha Lopan, Kharkiv Oblast;https://x.com/Bielitzling/status/2115583852903313543, https://t.me/icpbtrubicon/2997;https://x.com/Bielitzling/status/2115583846637039828;;(Multi-Purpose) Bomber UAV;;Center for Advanced Unmanned Aerial Technologies "Rubicon";4b70e207-3abf-4d63-8f10-0715fb05e60b
+Iran;2026-10-27;27 OCT 2026;;SAT;35.123456;51.123456;;Satellite image of a military storage site, not an event;https://example.com/satellite;;;;;satellite-site-row
+Ukraine;2026-10-27;27 OCT 2026;Ukraine;PIC;49.987654;36.123456;;A second visually located drone impact with no equipment details;https://example.com/visual-report;;;;;;second-visual-row
