@@ -22,7 +22,7 @@ python main.py --list-sections
 python main.py                                  # every section of every outlet
 python main.py --sources bbc pbs --max-pages 3
 python main.py --sections reuters:africa -o news
-python -m unittest discover -s tests            # 741 tests, offline fixtures
+python -m unittest discover -s tests            # 755 tests, offline fixtures
 ```
 
 Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code is 1 if any outlet failed.
@@ -125,6 +125,8 @@ python -m newsfeed cluster                                 # M7, same event acro
 python -m newsfeed rail --dry-run                          # push stories to Provenance's LIVE news rail
 python -m newsfeed health --dry-run                        # every health check, nothing posted
 python -m newsfeed drop-outlets                            # dry run: what forgetting the Guardian and NYT removes
+python -m newsfeed extract --feeds                         # the feed rows, read from headline and RSS summary
+python -m newsfeed headline-places --dry-run                # the places Provenance's Headline sources would get
 ```
 
 Built: the store and scrape (M1), extract (M5), the gazetteer and resolve (M6), cluster (M7), the
@@ -138,6 +140,8 @@ freeze. The `rail` stage (`newsfeed/rail.py`) pushes scraped stories to Provenan
 the gate: see section 9.0. It needs `NEWSFEED_INGEST_SECRET`, the same value as the box's
 `NEWS_INGEST_SECRET`. Eval (M4) exits 2 and names its milestone. Health is built. The store lives
 in `NEWSFEED_DATA_DIR`, never in this checkout.
+
+**Headline sources** (`newsfeed/headline_places.py`): `extract --feeds` reads the feed rows with the same prompt and checks, and the row keeps status `feed`, so resolve and cluster never read it and the rail sends it with no event. `headline-places` sends one signed relay snapshot (`/api/relay/headline-places`, `newsfeed/relay.py`) of each placed feed row: its URL, the GeoNames place (point, district or city, never a climbed answer) and the verified quote. Provenance uses it only when its switch is on, after the labelled gate. The units are `deploy/systemd/newsfeed-headline-places.*`, not installed.
 
 ## Design summary
 

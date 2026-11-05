@@ -14,6 +14,7 @@ from . import extract as extract_stage
 from . import cluster as cluster_stage
 from . import drop as drop_stage
 from . import geonames as geonames_stage
+from . import headline_places as headline_places_stage
 from . import health as health_stage
 from . import rail as rail_stage
 from . import resolve as resolve_stage
@@ -63,6 +64,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     rail_stage.add_arguments(rail_parser)
 
+    headline_places_parser = stages.add_parser(
+        "headline-places",
+        help="Send Provenance the places DeepSeek read out of the feed headlines (one signed relay snapshot).",
+    )
+    headline_places_stage.add_arguments(headline_places_parser)
+
     health_parser = stages.add_parser(
         "health", help="Is news still arriving and reaching the site? Posts changes to the agent hub."
     )
@@ -103,6 +110,8 @@ def main(argv: list[str] | None = None) -> int:
             return cluster_stage.run(args)
         if args.stage == "rail":
             return rail_stage.run(args)
+        if args.stage == "headline-places":
+            return headline_places_stage.run(args)
         if args.stage == "health":
             return health_stage.run(args)
         if args.stage == "drop-outlets":

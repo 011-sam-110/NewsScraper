@@ -1,0 +1,27 @@
+[Unit]
+Description=NewsScraper: read the new feed headlines with DeepSeek, then send their places to Provenance's relay
+Documentation=file:///home/sampo/NewsScraper/newsfeed/headline_places.py
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/NewsScraper
+EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
+# RELAY_SIGNING_SECRET and PROVENANCE_RELAY_URL, the same file the war feeds use.
+EnvironmentFile=-%h/.config/provenance-sources/sources.env
+
+# First read the feed rows no answer covers yet (headline and RSS summary). The day's model budget
+# (NEWSFEED_DAILY_BUDGET_USD) is shared with the main extract and stops this run when it is spent.
+# The leading "-": a stopped extract must not stop the push of what is already placed.
+ExecStart=-%h/NewsScraper/.venv/bin/python -m newsfeed extract --feeds --limit 150
+# Then one signed snapshot of every placed feed row of the last 48 hours. Provenance keeps it in
+# process memory, so a deploy empties it and the next run refills it.
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed headline-places
+
+TimeoutStartSec=9min
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=default.target
