@@ -22,7 +22,7 @@ python main.py --list-sections
 python main.py                                  # every section of every outlet
 python main.py --sources bbc pbs --max-pages 3
 python main.py --sections reuters:africa -o news
-python -m unittest discover -s tests            # 755 tests, offline fixtures
+python -m unittest discover -s tests            # 756 tests, offline fixtures
 ```
 
 Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code is 1 if any outlet failed.
