@@ -29,7 +29,10 @@ from typing import Any
 from .identity import now_utc
 
 BUSY_TIMEOUT_MS = 30_000
-LEASE_SECONDS = 600
+# A claim must outlive the run that holds it, or a second run (a manual --redo) takes the same stories and
+# pays for them twice. At max effort an extract call averages 6.2 s and took up to 13.6 s (2026-11-05), so a
+# run of 200 stories takes about 21 minutes and 45 at the slowest. An hour covers it.
+LEASE_SECONDS = 3600
 
 # Status values, in the only order a story moves through them (section 7.4).
 STATUS_SCRAPED = "scraped"

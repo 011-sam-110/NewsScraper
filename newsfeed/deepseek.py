@@ -34,9 +34,17 @@ API_ROOT = "https://api.deepseek.com"
 CHAT_URL = f"{API_ROOT}/chat/completions"
 MODELS_URL = f"{API_ROOT}/models"
 
+# v1 flash on max effort, for every call (Sam, 2026-11-05). DeepSeek's model list names this id
+# "DeepSeek-V4.1-Flash", the only Flash model it serves. `reasoning_effort: "max"` turns thinking on at the
+# highest level (https://api-docs.deepseek.com/api/create-chat-completion). tests/test_deepseek_max_effort.py
+# fails if a stage builds its own request or names another model.
 DEFAULT_MODEL = "deepseek-flash"
-VERIFY_MODEL = "deepseek-v4-pro"
-DEFAULT_MAX_TOKENS = 800
+EFFORT = "max"
+# At max effort the model reasons first, and those tokens count against max_tokens. Measured 2026-11-05:
+# extract answers took 315 to 2,198 tokens, War news 352 to 929. A cap is a ceiling: DeepSeek bills only the
+# tokens it writes, and the daily budget still applies.
+DEFAULT_MAX_TOKENS = 8192
+# The slowest call measured at max effort took 13.6 s.
 DEFAULT_TIMEOUT = 120
 
 # Tries for the 429, 5xx, timeout and connection-error class, and for empty 200s.
@@ -58,8 +66,9 @@ class Prices:
     output: float
 
 
-# Peak rates from https://api-docs.deepseek.com/quick_start/pricing, read on 2026-09-15.
-# deepseek-flash's rates took effect at 04:00 UTC on 2026-09-10. Off-peak is half of these.
+# Peak rates from https://api-docs.deepseek.com/quick_start/pricing, read on 2026-09-15 and again on
+# 2026-11-05 (unchanged). deepseek-flash's rates took effect at 04:00 UTC on 2026-09-10. Off-peak is half of
+# these. Reasoning tokens are billed as output: they are part of completion_tokens.
 # These numbers are part of what the cost column means, so re-read the page whenever the model or
 # the prompts change, and record the change beside the config hash (section 10.5).
 PRICES: dict[str, Prices] = {
@@ -226,7 +235,10 @@ class Client:
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": self.model,
-            "thinking": {"type": "disabled"},
+            "thinking": {"type": "enabled"},
+            "reasoning_effort": EFFORT,
+            # DeepSeek ignores temperature in thinking mode. It stays in the request and in the config hash
+            # so the stages read as they did, but answers are no longer repeatable call to call.
             "temperature": temperature,
             "max_tokens": max_tokens,
             "messages": [

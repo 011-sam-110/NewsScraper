@@ -81,10 +81,12 @@ class RequestShapeTests(unittest.TestCase):
         self.assertEqual(sent["headers"]["Authorization"], "Bearer sk-test-key")
         payload = sent["payload"]
         self.assertEqual(payload["model"], "deepseek-flash")
-        self.assertEqual(payload["thinking"], {"type": "disabled"})
+        # Sam, 2026-11-05: v1 flash on max effort, everywhere.
+        self.assertEqual(payload["thinking"], {"type": "enabled"})
+        self.assertEqual(payload["reasoning_effort"], "max")
         self.assertEqual(payload["response_format"], {"type": "json_object"})
         self.assertEqual(payload["temperature"], 0.0)
-        self.assertEqual(payload["max_tokens"], 800)
+        self.assertEqual(payload["max_tokens"], 8192)
         self.assertEqual([m["role"] for m in payload["messages"]], ["system", "user"])
 
     def test_the_system_message_comes_first_and_never_varies(self) -> None:

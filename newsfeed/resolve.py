@@ -37,7 +37,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from .config import resolve_config_hash
+from .config import extract_config_hash, resolve_config_hash
 from .geonames import Gazetteer, Place, build_hash
 from .settings import Settings, load
 from .store import Store
@@ -253,21 +253,28 @@ def run(args: "argparse.Namespace", settings: "Settings | None" = None) -> int:
         # Only accepted physical events with a place carry a coordinate worth resolving. Anything
         # else is World news already and asking the gazetteer about it would cost time and answer
         # nothing.
+        #
+        # Only answers under the CURRENT extract hash, and a story is resolved again when its stored
+        # coordinate came from another answer. Found 2026-11-05: a story extracted again under a new hash
+        # kept the coordinate its OLD answer made, because this query skipped any story with a row under
+        # the resolve hash, whatever extraction had made it. Cluster reads only the current extract hash, so
+        # an older answer has nothing to resolve for.
         sql = (
             "SELECT e.story_id, e.config_hash AS extract_hash, e.place_name, e.place_within,"
             " e.place_country, e.place_kind"
             " FROM extractions e"
             " WHERE e.accepted = 1 AND e.is_physical_event = 1"
             " AND e.place_name IS NOT NULL AND e.place_name <> ''"
+            " AND e.config_hash = ?"
         )
-        values: list[Any] = []
+        values: list[Any] = [extract_config_hash()]
         if args.story:
             sql += " AND e.story_id = ?"
             values.append(args.story)
         else:
             sql += (
                 " AND NOT EXISTS (SELECT 1 FROM resolutions r"
-                " WHERE r.story_id = e.story_id AND r.config_hash = ?)"
+                " WHERE r.story_id = e.story_id AND r.config_hash = ? AND r.extract_hash = e.config_hash)"
             )
             values.append(config_hash)
         sql += " ORDER BY e.created_at DESC LIMIT ?"
@@ -321,6 +328,6 @@ def run(args: "argparse.Namespace", settings: "Settings | None" = None) -> int:
     print(
         f"resolve: {len(rows)} places, {counts['resolved']} resolved "
         f"({counts['pinnable']} pinnable, {counts['climbed']} climbed), "
-        f"{counts['unresolved']} unresolved  [config {config_hash}]"
+        f"{counts['unresolved']} unresolved  [config {config_hash}, extract {extract_config_hash()}]"
     )
     return 0

@@ -23,7 +23,7 @@ import json
 from typing import Any
 
 from . import prompts, taxonomy
-from .deepseek import DEFAULT_MAX_TOKENS, DEFAULT_MODEL
+from .deepseek import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, EFFORT
 from .taxonomy import (
     CATEGORY_IDS,
     EVENT_DATE_DAYS_AFTER,
@@ -38,7 +38,10 @@ HASH_LENGTH = 16
 
 EXTRACT_TEMPERATURE = 0.0
 EXTRACT_MAX_TOKENS = DEFAULT_MAX_TOKENS
-EXTRACT_THINKING = "disabled"
+# Thinking on at max effort since 2026-11-05 (Sam). This moves the extract hash from 633932b5b392beb3, so the
+# cut-over extracts the stories of the last 72 hours again with `extract --redo` (section 10.5).
+EXTRACT_THINKING = "enabled"
+EXTRACT_EFFORT = EFFORT
 
 
 def hash_components(components: dict[str, Any]) -> str:
@@ -55,6 +58,7 @@ def extract_components(model: str = DEFAULT_MODEL) -> dict[str, Any]:
         "temperature": EXTRACT_TEMPERATURE,
         "max_tokens": EXTRACT_MAX_TOKENS,
         "thinking": EXTRACT_THINKING,
+        "reasoning_effort": EXTRACT_EFFORT,
         "categories": list(CATEGORY_IDS),
         "not_event_reasons": list(NOT_EVENT_REASONS),
         "place_kinds": list(PLACE_KINDS),
@@ -124,6 +128,8 @@ def cluster_components(
         "stage": "cluster",
         "model": model,
         "temperature": CLUSTER_TEMPERATURE,
+        "thinking": EXTRACT_THINKING,
+        "reasoning_effort": EXTRACT_EFFORT,
         "extract": extract_hash,
         "resolve": resolve_hash,
         "window_hours": CLUSTER_WINDOW_HOURS,

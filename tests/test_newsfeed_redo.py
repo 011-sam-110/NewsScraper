@@ -138,5 +138,94 @@ class RedoCountTests(unittest.TestCase):
         self.assertIn("waiting 0", self.report(redo=False))
 
 
+class StaleHashGuardTests(unittest.TestCase):
+    """A moved hash must stop the pipeline loudly until the recent stories are extracted again.
+
+    Every story is already `extracted` and is never claimed by status again, and cluster reads only the
+    current hash. So after a hash moves, the stages downstream see only stories that arrive later, and
+    nothing reports a fault. The guard turns that into exit 3, which fails the systemd unit.
+    """
+
+    def setUp(self) -> None:
+        RedoClaimTests.setUp(self)
+
+    def seed(self, story_id: str, config_hash: str | None, hours_ago: float = 1.0,
+             text_hash: str | None = "t1") -> None:
+        from datetime import datetime, timedelta, timezone
+
+        seen = (datetime.now(timezone.utc) - timedelta(hours=hours_ago)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        with Store(self.settings.news_db) as store:
+            store.migrate()
+            with store.write() as db:
+                db.execute(
+                    """INSERT INTO stories (story_id, outlet, primary_alias, published, text_hash,
+                                            first_seen_at, last_seen_at, status)
+                       VALUES (?, 'bbc', ?, ?, ?, ?, ?, 'extracted')""",
+                    (story_id, story_id, seen, text_hash, seen, seen),
+                )
+                if config_hash:
+                    db.execute(
+                        """INSERT INTO extractions (story_id, config_hash, accepted, created_at)
+                           VALUES (?, ?, 1, ?)""",
+                        (story_id, config_hash, seen),
+                    )
+
+    def run_extract(self, redo: bool = False, dry_run: bool = False) -> tuple[object, str]:
+        import contextlib
+        from newsfeed import extract
+        from newsfeed.settings import SettingsError
+
+        args = argparse.Namespace(limit=10, story=None, model="deepseek-flash", dry_run=dry_run, redo=redo)
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            try:
+                result: object = extract.run(args, self.settings)
+            except SettingsError:
+                # No key in these settings: reaching the key check means the guard let the run through.
+                result = "passed the guard"
+        return result, stderr.getvalue()
+
+    def current(self) -> str:
+        from newsfeed import extract
+
+        return extract.extract_config_hash("deepseek-flash")
+
+    def test_a_recent_story_only_under_an_older_hash_stops_the_run_with_exit_3(self) -> None:
+        self.seed("st_recent", PREVIOUS, hours_ago=2)
+        code, report = self.run_extract()
+        self.assertEqual(code, 3)
+        self.assertIn("--redo", report)
+        self.assertIn("1 ", report)
+
+    def test_redo_is_not_stopped(self) -> None:
+        self.seed("st_recent", PREVIOUS, hours_ago=2)
+        self.assertEqual(self.run_extract(redo=True)[0], "passed the guard")
+
+    def test_a_dry_run_warns_but_is_not_stopped(self) -> None:
+        self.seed("st_recent", PREVIOUS, hours_ago=2)
+        code, report = self.run_extract(dry_run=True)
+        self.assertEqual(code, 0)
+        self.assertIn("--redo", report)
+
+    def test_a_story_older_than_48_hours_does_not_count(self) -> None:
+        self.seed("st_old", PREVIOUS, hours_ago=60)
+        self.assertEqual(self.run_extract()[0], "passed the guard")
+
+    def test_a_story_with_no_text_does_not_count(self) -> None:
+        # --redo never claims a story with no text, so counting one would stop the pipeline for ever.
+        self.seed("st_textless", PREVIOUS, hours_ago=2, text_hash=None)
+        self.assertEqual(self.run_extract()[0], "passed the guard")
+
+    def test_a_story_done_under_the_current_hash_too_does_not_count(self) -> None:
+        self.seed("st_both", PREVIOUS, hours_ago=2)
+        with Store(self.settings.news_db) as store:
+            with store.write() as db:
+                db.execute(
+                    "INSERT INTO extractions (story_id, config_hash, accepted, created_at) VALUES (?, ?, 1, ?)",
+                    ("st_both", self.current(), now_utc()),
+                )
+        self.assertEqual(self.run_extract()[0], "passed the guard")
+
+
 if __name__ == "__main__":
     unittest.main()

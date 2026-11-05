@@ -513,6 +513,38 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
 
+# A moved config hash must not pass in silence. Every story is already `extracted` and is never claimed by
+# status again, and cluster reads only the current hash, so after a change to the prompt, the model or its
+# settings the stages downstream see only stories that arrive later, and nothing reports a fault. A plain run
+# therefore stops with STALE_HASH_EXIT while recent stories hold an answer only under an older hash. That fails
+# the pipeline unit, and the message names the redo. The window is the cluster window (48 hours).
+STALE_WINDOW_HOURS = 48
+STALE_HASH_EXIT = 3
+
+
+def stale_recent(store: Store, config_hash: str, now: datetime | None = None) -> int:
+    """Stories with text, first seen in the window, that hold an answer only under another hash.
+
+    Only stories with text count, because --redo never claims one without: counting those would stop the
+    pipeline for good.
+    """
+    cutoff = ((now or datetime.now(timezone.utc)) - timedelta(hours=STALE_WINDOW_HOURS)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
+    return int(
+        store.scalar(
+            """SELECT COUNT(*) FROM stories s
+               WHERE s.text_hash IS NOT NULL AND s.first_seen_at >= ?
+                 AND EXISTS (SELECT 1 FROM extractions e
+                             WHERE e.story_id = s.story_id AND e.config_hash <> ?)
+                 AND NOT EXISTS (SELECT 1 FROM extractions e
+                                 WHERE e.story_id = s.story_id AND e.config_hash = ?)""",
+            (cutoff, config_hash, config_hash),
+        )
+        or 0
+    )
+
+
 def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
     settings = settings or load()
     settings.ensure_data_dir()
@@ -538,6 +570,17 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
             f"already extracted {done}  spent today ${spent:.4f} of ${settings.daily_budget_usd:.2f}",
             file=sys.stderr,
         )
+        stale = stale_recent(store, config_hash)
+        if stale:
+            print(
+                f"{stale} {'story' if stale == 1 else 'stories'} from the last {STALE_WINDOW_HOURS} hours "
+                f"{'holds' if stale == 1 else 'hold'} an answer only under an older config hash. Cluster reads "
+                f"only {config_hash}, so they would drop out with no fault reported. Extract them again first: "
+                "python -m newsfeed extract --redo --limit 200 (docs/ARCHITECTURE.md section 10.5).",
+                file=sys.stderr,
+            )
+            if not (args.dry_run or args.redo or args.story):
+                return STALE_HASH_EXIT
         if args.dry_run:
             return 0
 
