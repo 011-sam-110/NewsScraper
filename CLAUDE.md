@@ -126,6 +126,7 @@ python -m newsfeed rail --dry-run                          # push stories to Pro
 python -m newsfeed health --dry-run                        # every health check, nothing posted
 python -m newsfeed drop-outlets                            # dry run: what forgetting the Guardian and NYT removes
 python -m newsfeed extract --feeds                         # the feed rows, read from headline and RSS summary
+python -m newsfeed verify --dry-run                         # how many headline pins wait for the second check
 python -m newsfeed headline-places --dry-run                # the places Provenance's Headline sources would get
 ```
 
@@ -141,7 +142,7 @@ the gate: see section 9.0. It needs `NEWSFEED_INGEST_SECRET`, the same value as 
 `NEWS_INGEST_SECRET`. Eval (M4) exits 2 and names its milestone. Health is built. The store lives
 in `NEWSFEED_DATA_DIR`, never in this checkout.
 
-**Headline sources** (`newsfeed/headline_places.py`): `extract --feeds` reads the feed rows with the same prompt and checks, and the row keeps status `feed`, so resolve and cluster never read it and the rail sends it with no event. `headline-places` sends one signed relay snapshot (`/api/relay/headline-places`, `newsfeed/relay.py`) of each placed feed row: its URL, the GeoNames place (point, district or city, never a climbed answer) and the verified quote. Provenance uses it only when its switch is on, after the labelled gate. The units are `deploy/systemd/newsfeed-headline-places.*`, not installed.
+**Headline sources** (`newsfeed/headline_places.py`): `extract --feeds` reads the feed rows with the same prompt and checks, and the row keeps status `feed`, so resolve and cluster never read it and the rail sends it with no event. `verify` (`newsfeed/verify.py`, section 7.9) asks a fresh DeepSeek call to judge every pin, the GeoNames place included, and a critic call settles any flag; only `verified` and `kept_after_review` pins are sent, and it fails closed (no budget, a 402 or two bad answers: no pin that run). `headline-places` sends one signed relay snapshot (`/api/relay/headline-places`, `newsfeed/relay.py`) of each verified feed pin: its URL, the GeoNames place (point, district or city, never a climbed answer except a venue GeoNames lacks, placed on its city at area precision) and the verified quote. Courts and opinion stories never pin (`taxonomy.can_pin`). The snapshot's `configHash` is the placement hash (extract, resolve, verify and these rules). Provenance uses it only when its switch is on, after the labelled gate. The units are `deploy/systemd/newsfeed-headline-places.*`, not installed.
 
 ## Design summary
 

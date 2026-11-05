@@ -425,6 +425,19 @@ None of these retries uses up the one schema retry.
   "City of Westminster"; the only GB row actually NAMED "Westminster" is a hotel in Nottingham. The
   first golden test below passes only because "Westminster" is a preferred English alternate for
   the ADM3 row.
+- **Names rule 2, 2026-11-05: the English Wikipedia title is a name too**, for a populated place
+  (class P) or a spot (class S). GeoNames holds no "Villarreal" for Vila-real (2509509, population
+  50,577), only a `link` row to its English Wikipedia article, titled "Villarreal". Without it,
+  "Villarreal" resolved to a hamlet of population 0 in Badajoz and a Champions League match went on
+  the map there (#861). The title is decoded, and its qualifier is dropped ("Lara (state)" is
+  "Lara", "Athens, Texas" is "Athens"), because resolve takes the container from the story's own
+  `within`. An administrative area takes no title: its article is often the one about its main town,
+  and the Gaza ADM2 (population 505,700), which links "Gaza City", then outranked the city itself.
+  `NAMES_RULE` in `newsfeed/geonames.py` numbers the rule and `build_meta` records it; the build
+  hash cannot, because it covers the source files and rule 2 reads more out of the same files. The
+  resolve hash reads the rule from the gazetteer on disk, so a gazetteer built before the rule keeps
+  the old hash until it is rebuilt, and `resolve`, `verify` and `headline-places` say so on stderr.
+  Measured on the live data: 690,294 English Wikipedia titles, 417,727 of them on kept towns and spots.
 - GeoNames data is CC BY 4.0. The Provenance layer's attribution credits GeoNames (section 9.2).
 
 **Matching an `event_place`:**
@@ -445,6 +458,27 @@ None of these retries uses up the one schema retry.
    440 km measurement as a test so the radius rule is not reinstated.
 4. Rank how well each candidate's feature code fits `kind`. `venue` fits S class. `district` fits PPLX, ADM3 and ADM4. `city` fits PPL, PPLA to PPLA4, and PPLC. Break ties by population.
 5. **Ambiguity.** If the top two candidates rank about equally and are more than 25 km apart, the name is ambiguous. Climb to `within` and resolve that instead, at its own precision. If `within` is ambiguous too, the place is unresolved and the story is World news.
+6. **A region answer never lands on a town** (2026-11-05, `REGION_KINDS` in `newsfeed/resolve.py`).
+   - When the model gives `kind` region or country, only rows that cannot be pinned are candidates.
+     "A magnitude 5.7 earthquake struck Mindanao", kind region, had landed on Mindanaw, a village of
+     population 0 in Cebu, because the island is in a feature class this gazetteer does not keep. With
+     no unpinnable row the answer climbs to a container that cannot be pinned, or is unresolved.
+   - A town of population 0 that lies OUTSIDE a region of the same name never takes the name; the
+     answer is the region. "The town of Lara, west of Caracas" had landed on Guachara in Apure, over
+     the state of Lara (population 1.8 million). A town inside the region of its name keeps it: Dhubab
+     is the seat of the Dhubab district. Population alone is not the rule: 32 of the store's 404 town
+     pins on 2026-11-05 had population 0 and most were right (Kempton Park, Tembisa, Plaka).
+
+**Measured before the change was made** (M1 of the verification plan, 2026-11-05, no model call):
+every place in the store and every place the early gate run extracted was resolved under the old rules
+and under names rule 2 with step 6. Of the store's 865 places, 18 changed: 11 pins gained (six stories
+on King Khalid International Airport, two on Mekelle, two on RAF Fairford, the Kursk nuclear plant), 4
+lost (Mindanao and Lara, both wrong; Taif and Macquarie Island, both answered as a region), and 3 moved
+(Thokoza from Johannesburg to Tokoza and Battersea Power Station from London to the station, both
+better; the village of Komyshuvakha from itself to Zaporizhzhia city, 34 km away, worse: "Zaporizhia" is
+now the city's Wikipedia name, and the main pipeline still pins a place that climbs to a city). Of the
+early gate's 140 headline places, 22 changed: 21 pins gained (17 venue fallbacks, section 7.9) and 1
+moved (Villarreal to Vila-real), none lost.
 
 **Precision** comes from the matched feature:
 
@@ -518,9 +552,31 @@ Every extracted story joins exactly one cluster.
 
 The test that matters: two different stabbings in London on the same day must stay two clusters (M7).
 
-### 7.9 Stage: verify (only if the gate needs it)
+### 7.9 Stage: verify (built 2026-11-05, headline places only)
 
-This stage is added only if M8 fails on pins. A second call sees the founding story and the proposed pin, and it can only veto the pin, never create one. The call uses either `deepseek-flash` with thinking enabled or `deepseek-v4-pro`. Its settings join the config hash.
+Sam on 2026-11-05: "we probably need a second verification layer (a fresh deepseek agent) that checks every claim. If it flags something differently, ANOTHER critic should check it agian". The plan, its measurements and Sam's go: https://claude.ai/artifact/VyUTAasbD7u5Nxxqm6m6qx. The code is `newsfeed/verify.py`, the prompts are in `newsfeed/prompts.py`.
+
+**Where it runs.** On the Headline sources pins first (`extract --feeds`, then `verify`, then `headline-places`). Later, one at a time on Sam's go: refinery strikes, the main pipeline's cluster pins, war news. It sits after resolve, so it judges the GeoNames place itself; placed before resolve it could not see that "Villarreal" had landed on a hamlet.
+
+**Before any call, code drops two kinds of pin.** A story whose category can never pin (`taxonomy.can_pin`: courts_and_justice, opinion_analysis) is no candidate; #95, a jury at Southwark Crown Court, reached the map because headline-places never asked. And a place that resolve could only find by climbing is no place, except the venue fallback: a venue GeoNames does not hold, inside a city or district it does (Metafrique Steel in Douala), is placed on that city at area precision, and the verifier is told so.
+
+**Call 2, verify.** A fresh `deepseek-flash` call at max effort with thinking on reads the story text (a feed row's headline and RSS summary) and the first answer's claims, the GeoNames place included, and never the first call's reasoning. It is told the claim is sometimes wrong, and answers agree, disagree or unsure on four rules (the happening with its date inside the window, the event place, the map place, the precision) and names the one or two categories that fit. A flag is any rule not answered agree, or a category answer in which no accepted category can pin. Measured against a blind second reading on the same 57 pins: the blind reading repeated all four wrong pins; the judge stopped three.
+
+**Call 3, the critic.** Only on a flag, at most once per story. A fresh call reads the text, the claim and the objections, and decides A (the pin stands), B (the objection stands) or unclear.
+
+| Call 2 | Call 3 | Outcome | Pin sent |
+|---|---|---|---|
+| no flag | not asked | `verified` | yes |
+| a flag | A | `kept_after_review` | yes |
+| a flag | B | `overruled` | no |
+| a flag | unclear | `split_dropped` | no |
+| no usable answer | | `not_run` | no |
+
+**It only removes pins, and it fails closed.** No budget, a 402, an error, or two bad answers from one call mean no pin on that run, and the story waits for the next. A story whose calls answer badly on two runs is given up. In a DeepSeek outage the map gets no new headline pins. A "no pin" answer is never turned into a pin: the weekly recall check (section 10.4) asks the same prompt about 100 of them and reports, and nothing it finds reaches the map.
+
+**One row per story and hashes.** Migration 5 adds `verifications`, keyed by the story and the extract, resolve and verify hashes. It keeps the claim, both answers, the flags, the outcome and why, the cost, and the hash of the exact message the verifier read. A final outcome is never asked again: in thinking mode DeepSeek ignores temperature, so a second asking could answer differently. When the story text or the claim changes, the old verdict no longer sends a pin and the story is checked again. `llm_calls` stays the cost ledger, with stages `verify` and `adjudicate`, so the shared daily budget sees both. `status` and `health.json` count the outcomes per day.
+
+**Cost and time, measured 2026-11-05 at the off-peak rate.** Call 2 $0.00103 and 9.8 s a pin, call 3 $0.00159 and 18.1 s a call, about $0.04 a day at 500 headlines and 25 pins a day.
 
 ### 7.10 Stage: publish (every minute)
 
@@ -1171,6 +1227,16 @@ Every report also shows the Wilson 95% interval beside the raw error rate.
   - Each stratum is checked on at least 20 pins.
   - Small strata are topped up with extra draws. These count for that stratum only, not toward the 153.
   - A stratum with 2 or more wrong is withheld from publishing, even if the overall gate passes.
+- **Headline sources (2026-11-05, Sam's go on the verification plan).** The same 59/0 to 153/3 bar on
+  the pins `headline-places` would send, one pin per cluster. The strata differ, because one stratum
+  per outlet would need about 45 days at the measured rate and five outlets had no pin at all:
+  - five regional strata by the pin's country: Europe; Africa; Asia-Pacific; the Americas; the Middle
+    East and Ukraine. Each is checked on at least 20 pins, and a region with 2 or more wrong is
+    withheld from the snapshot;
+  - and facility against area precision.
+  - The freeze starts on the day the final placement hash first runs on the box timer
+    (`newsfeed-headline-places.timer`). The draw takes only stories first seen 7 days after that.
+    The feed list (PR #5) merges before the freeze, so the gate measures the outlets that ship.
 
 ### 10.4 What counts as correct
 
@@ -1189,6 +1255,17 @@ The same bar of at most 3 wrong in 153 applies separately to:
 
 Recall is measured and reported, but not gated. The check is how many real, placed events among 100 World news stories were missed.
 
+**Headline sources, with the verify stage (section 7.9).** The gate counts the final output: only the
+pins the relay would send. A pin the verifier dropped is not a pin. Labels stay blind to every model
+answer and to the verify outcome (10.2). The report also shows:
+
+- the error rate of `verified` pins and of `kept_after_review` pins apart, so a critic that keeps wrong
+  pins shows up;
+- 30 dropped pins (`overruled`, `split_dropped`), labelled, to say how many good pins the check costs.
+  Reported, not gated, like recall;
+- recall, weekly, on 100 headlines with no pin, asked with the "no_pin" half of the verify prompt and
+  labelled. Reported, not gated. Nothing it finds becomes a pin.
+
 ### 10.5 The config hash
 
 The config hash is SHA-256 over all of these:
@@ -1197,10 +1274,24 @@ The config hash is SHA-256 over all of these:
 - `temperature`, `max_tokens` and the thinking setting;
 - the category list;
 - the resolver's code version and thresholds;
-- the GeoNames build hashes;
+- the GeoNames build hashes, and the names rule the gazetteer was built with (`NAMES_RULE`, which the build hashes cannot see);
 - the date rules.
 
 `gate.json` records the hash that passed. Publish sends pins only when the current hash matches a passing one. Changing anything in the list means a new gate run.
+
+**The headline placement hash (2026-11-05).** The snapshot `headline-places` sends carries the
+placement hash as its `configHash`, and `gate.json` records it for the Headline sources layer. It
+covers four parts, each printed by the stages:
+
+| Hash | Covers | Moves when |
+|---|---|---|
+| extract | the extract prompt, the model asked for, effort, the taxonomy, the date rule | unchanged by the verify layer: `3e17b96e25b937c5` |
+| resolve | the gazetteer build hash, the names rule the gazetteer was built with, the kept classes, the precision table, the radii, the region-answer rule | the names rule 2 rebuild, and the region-answer rule (was `b248f0da36db9183`) |
+| verify | both verify prompts and one rendered example of each message, the model, effort, max_tokens, the flag rule, the pin flags, the critic cap, the decision table | any verify prompt or rule |
+| placement | the three above, the pin flags, the precision levels, the venue fallback, which verify outcomes send a pin | any of them |
+
+The resolve hash also enters the cluster hash, so the main pipeline re-resolves (no model call) and
+re-clusters its 48-hour window once after the rebuild.
 
 When several configurations are scored on the same held-out set, the cheapest passing one wins. It must then pass again on a fresh sample, because picking the best of several flatters it.
 
