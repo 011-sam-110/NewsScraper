@@ -1,5 +1,5 @@
 [Unit]
-Description=NewsScraper: push scraped stories to Provenance's live news rail
+Description=NewsScraper: read the RSS feeds, then push the store to Provenance's live news rail
 Documentation=file:///home/sampo/NewsScraper/docs/ARCHITECTURE.md
 After=network-online.target
 Wants=network-online.target
@@ -21,14 +21,21 @@ EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
 # cursor means send the whole window. A box that lost its memory refills itself on the
 # next run without anybody deciding anything.
 #
-# The limit is the CLI default written out, so this file says what it sends. The route
-# caps its own batches under it.
+# First the 26 RSS feeds (scraper/rss_outlets.py), so each push carries what they hold now.
+# A feed read is one request per feed, and a feed lists only its newest items, so it runs
+# just before every push instead of on its own timer. The leading "-" means a failed feed
+# (the scrape exits 1 when any outlet failed) does not stop the push of everything else.
+ExecStart=-%h/NewsScraper/.venv/bin/python -m newsfeed scrape --sources feeds
+#
+# Then the push. The limit is the CLI default written out, so this file says what it sends.
+# The route caps its own batches under it. An empty cursor (after every deploy) sends the
+# last 7 days in one run, whatever this limit says (newsfeed/rail.py, run_limit).
 ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed rail --limit 2000
 
-# A push is minutes at worst, and a run that has not finished in a quarter of an hour is
-# stuck rather than slow. The next run resends what this one did not: a refused push
-# never advances the box's cursor, so nothing is lost by cutting one short.
-TimeoutStartSec=15min
+# A run that has not finished in four minutes is stuck rather than slow, and would run into
+# the next one. The next run resends what this one did not: a refused push never advances
+# the box's cursor, so nothing is lost by cutting one short.
+TimeoutStartSec=4min
 Nice=10
 IOSchedulingClass=idle
 

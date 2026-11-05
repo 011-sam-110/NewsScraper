@@ -145,7 +145,8 @@ SELECT s.story_id, s.outlet, s.headline, s.description, s.url, s.published,
 FROM stories s
 LEFT JOIN story_texts t ON t.story_id = s.story_id
 LEFT JOIN extractions e ON e.story_id = s.story_id AND e.config_hash = ?
-WHERE s.last_seen_at > ?
+WHERE (s.last_seen_at > ? OR e.created_at > ?)
+  AND s.last_seen_at > ?
   AND s.outlet NOT IN ({dropped})
 ORDER BY s.last_seen_at, s.story_id
 LIMIT ?
@@ -392,7 +393,10 @@ def run_limit(cursor: str, limit: int) -> int:
 
 def rows_to_send(store: Store, cursor: str, now: datetime, *, extract_hash: str, limit: int) -> list[dict[str, Any]]:
     """rows_since from the start point: the cursor, moved up to the window when it is older."""
-    return rows_since(store, start_point(cursor, now), extract_hash=extract_hash, limit=limit)
+    return rows_since(
+        store, start_point(cursor, now), extract_hash=extract_hash, limit=limit,
+        floor=start_point("", now),
+    )
 
 
 def send_text_for(row: dict[str, Any], cursor: str, now: datetime) -> bool:
@@ -423,13 +427,23 @@ def record_state(path: Path, **fields: Any) -> None:
     os.replace(temporary, path)
 
 
-def rows_since(store: Store, cursor: str, *, extract_hash: str, limit: int) -> list[dict[str, Any]]:
+def rows_since(
+    store: Store, cursor: str, *, extract_hash: str, limit: int, floor: str = ""
+) -> list[dict[str, Any]]:
     """Stories whose `last_seen_at` is after the cursor, oldest first, with their sections.
 
     Ordering by `last_seen_at` is what makes the cursor work: the far end returns the high-water
     mark of what it ACCEPTED, so resuming from it can never skip a row it refused to store.
+
+    A story whose extraction is newer than the cursor is read again too. The rail runs every 5
+    minutes and extract once an hour, so most scraped stories cross before extract reads them, with
+    no event, and extract does not move `last_seen_at`. Without this their events could never reach
+    the far end. Every row sent has a `last_seen_at` no later than this read, so an extraction
+    written after the read is newer than the cursor the far end returns. The one gap: times are
+    whole seconds, so an extraction stamped in the same second as the newest row sent is missed
+    until the next refill. `floor` keeps both kinds inside the rail's window.
     """
-    rows = [dict(row) for row in store.query(ITEM_SQL, (extract_hash, cursor, limit))]
+    rows = [dict(row) for row in store.query(ITEM_SQL, (extract_hash, cursor, cursor, floor, limit))]
     if not rows:
         return []
 

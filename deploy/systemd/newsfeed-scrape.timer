@@ -1,5 +1,5 @@
 [Unit]
-Description=NewsScraper: hourly scrape of BBC, the Guardian, PBS and NYT
+Description=NewsScraper: hourly scrape of BBC and PBS
 
 [Timer]
 OnCalendar=hourly

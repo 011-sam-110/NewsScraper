@@ -24,12 +24,33 @@ from types import ModuleType
 from typing import Any
 
 from scraper import FEED_GROUP, FEED_OUTLETS, SOURCES
-from scraper.common import scrape
+from scraper.common import PROXY_ENV, scrape
 
 from . import identity
 from .identity import now_utc
-from .settings import Settings, SettingsError, load
+from .settings import Settings, SettingsError, environment, load
 from .store import STATUS_FEED, STATUS_SCRAPED, Store
+
+# The variables the scraper package reads from os.environ itself.
+SCRAPER_VARIABLES = (
+    PROXY_ENV,
+    "NEWS_SCRAPER_CHROME_PROFILE",
+    "NEWS_SCRAPER_REUTERS_PROXY",
+    "NEWS_SCRAPER_CHROME_ARGS",
+)
+
+
+def export_scraper_settings(values: dict[str, str] | None = None) -> None:
+    """Copy the scraper's variables from the settings files into os.environ, where it reads them.
+
+    A scheduled run gets them from the unit's EnvironmentFile=; a run by hand did not, so the two
+    behaved differently. A variable already in the environment wins, even when it is empty.
+    """
+    values = environment() if values is None else values
+    for name in SCRAPER_VARIABLES:
+        if name not in os.environ and values.get(name):
+            os.environ[name] = values[name]
+
 
 # Fields copied straight from a row onto the story, once mapped through identity.
 EMPTY_VALUES: tuple[Any, ...] = (None, "", [], {})
@@ -344,7 +365,10 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
 
 def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
     """Scrape into the store. Returns 1 if any outlet failed, as main.py does."""
-    settings = settings or load()
+    if settings is None:
+        # Only for a real run: a test that passes its own settings must not pick up the host's proxy.
+        export_scraper_settings()
+        settings = load()
     settings.ensure_data_dir()
     if args.size < 1 or args.delay < 0 or args.max_pages < 0:
         print("--size must be positive; --delay and --max-pages cannot be negative.", file=sys.stderr)

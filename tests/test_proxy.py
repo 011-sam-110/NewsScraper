@@ -196,5 +196,39 @@ class RedactionTest(unittest.TestCase):
             self.assertNotIn(USER, where)
 
 
+
+class SettingsFileTest(unittest.TestCase):
+    """A run by hand reads ~/.config/newsfeed/newsfeed.env through newsfeed.settings, but the
+    scraper reads os.environ. The scrape stage copies the scraper's own variables across, so a run
+    by hand and a scheduled run (systemd EnvironmentFile=) behave the same."""
+
+    def test_the_scraper_variables_are_copied_from_the_settings_file(self) -> None:
+        from newsfeed import scrape as scrape_stage  # noqa: PLC0415
+
+        file_values = {
+            common.PROXY_ENV: PROXY,
+            "NEWS_SCRAPER_CHROME_PROFILE": "/home/x/chrome-reuters",
+            "DEEPSEEK_API_KEY": "not-a-scraper-variable",
+        }
+        with mock.patch.dict(os.environ, {}, clear=True):
+            scrape_stage.export_scraper_settings(file_values)
+            self.assertEqual(os.environ[common.PROXY_ENV], PROXY)
+            self.assertEqual(os.environ["NEWS_SCRAPER_CHROME_PROFILE"], "/home/x/chrome-reuters")
+            self.assertNotIn("DEEPSEEK_API_KEY", os.environ)
+
+    def test_a_real_environment_variable_wins(self) -> None:
+        from newsfeed import scrape as scrape_stage  # noqa: PLC0415
+
+        with mock.patch.dict(os.environ, {common.PROXY_ENV: ""}, clear=True):
+            scrape_stage.export_scraper_settings({common.PROXY_ENV: PROXY})
+            self.assertEqual(os.environ[common.PROXY_ENV], "", "an explicit empty value turns the proxy off")
+
+    def test_the_settings_read_the_new_variable_name(self) -> None:
+        from newsfeed.settings import load  # noqa: PLC0415
+
+        with tempfile.TemporaryDirectory() as folder:
+            loaded = load({"NEWSFEED_DATA_DIR": folder, common.PROXY_ENV: PROXY})
+        self.assertEqual(loaded.proxy, PROXY)
+
 if __name__ == "__main__":
     unittest.main()

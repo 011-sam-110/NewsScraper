@@ -193,5 +193,5 @@ def load(env: dict[str, str] | None = None) -> Settings:
         telegram_bot_token=optional("TELEGRAM_BOT_TOKEN"),
         telegram_chat_id=optional("TELEGRAM_CHAT_ID"),
         deadman_url=optional("NEWSFEED_DEADMAN_URL"),
-        proxy=optional("NEWS_SCRAPER_PROXY"),
+        proxy=optional("NEWS_PROXY_URL"),
     )

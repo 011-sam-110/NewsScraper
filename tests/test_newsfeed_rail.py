@@ -361,6 +361,68 @@ class RefillAndDropTests(unittest.TestCase):
         self.assertEqual(rail.run_limit("2026-11-05T10:00:00Z", 2000), 2000)
 
 
+class LateExtractionTests(unittest.TestCase):
+    """The rail runs every 5 minutes and extract runs once an hour, so a BBC or PBS story usually
+    crosses before extract has read it, with no event. Its last_seen_at does not move when extract
+    finishes, so a cursor on last_seen_at alone would never send it again and its event could never
+    reach the map. A row whose extraction is newer than the cursor is sent again."""
+
+    NOW = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+    CURSOR = "2026-11-05T11:30:00Z"
+
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.store = Store(Path(self.directory.name) / "news.sqlite3")
+        self.store.migrate()
+        self.addCleanup(self.store.close)
+        stories = [
+            ("st_late", "2026-11-05T11:00:00Z"),    # sent at 11:05, extracted at 11:40
+            ("st_early", "2026-11-05T10:00:00Z"),   # extracted at 11:20, before the far end's cursor
+            ("st_other", "2026-11-05T10:30:00Z"),   # extracted under another configuration
+            ("st_none", "2026-11-05T10:45:00Z"),    # never extracted
+            ("st_stale", "2026-10-20T10:00:00Z"),   # outside the window, extracted just now
+        ]
+        extractions = [
+            ("st_late", "x", "2026-11-05T11:40:00Z"),
+            ("st_early", "x", "2026-11-05T11:20:00Z"),
+            ("st_other", "y", "2026-11-05T11:50:00Z"),
+            ("st_stale", "x", "2026-11-05T11:55:00Z"),
+        ]
+        with self.store.write() as connection:
+            for story_id, seen in stories:
+                connection.execute(
+                    "INSERT INTO stories (story_id, outlet, primary_alias, url, headline,"
+                    " published, first_seen_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (story_id, "bbc", story_id, f"https://example.com/{story_id}", story_id, seen, seen, seen),
+                )
+            for story_id, config_hash, created in extractions:
+                connection.execute(
+                    "INSERT INTO extractions (story_id, config_hash, is_physical_event, created_at)"
+                    " VALUES (?, ?, 0, ?)",
+                    (story_id, config_hash, created),
+                )
+
+    def sent(self, cursor: str) -> list[str]:
+        rows = rail.rows_to_send(self.store, cursor, self.NOW, extract_hash="x", limit=50)
+        return [row["story_id"] for row in rows]
+
+    def test_a_row_extracted_after_the_cursor_is_sent_again_with_its_event(self) -> None:
+        rows = rail.rows_to_send(self.store, self.CURSOR, self.NOW, extract_hash="x", limit=50)
+        self.assertEqual([row["story_id"] for row in rows], ["st_late"])
+        self.assertIsNotNone(rail.build_item(rows[0])["event"])
+
+    def test_an_extraction_the_far_end_already_had_is_not_sent_again(self) -> None:
+        self.assertNotIn("st_early", self.sent(self.CURSOR))
+
+    def test_only_the_current_configuration_counts(self) -> None:
+        self.assertNotIn("st_other", self.sent(self.CURSOR))
+
+    def test_a_row_outside_the_window_stays_out(self) -> None:
+        self.assertNotIn("st_stale", self.sent(self.CURSOR))
+        self.assertNotIn("st_stale", self.sent(""))
+
+
 class TextRuleTests(unittest.TestCase):
     """Text crosses only for a row the far end has not seen, first seen in the last day.
 

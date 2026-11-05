@@ -1,0 +1,20 @@
+[Unit]
+Description=NewsScraper: health checks, posted to the agent hub when they change
+Documentation=file:///home/sampo/NewsScraper/newsfeed/health.py
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/NewsScraper
+EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
+# Failed runs, silent outlets, no new story for an hour, no push for 20 minutes, and what the
+# site itself reports in /api/status. It posts to the agent hub when a check fails or recovers,
+# and once a day whatever the state. It exits 1 while any check fails, so this unit shows as
+# failed in `systemctl --user --failed` for as long as the fault lasts.
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed health
+TimeoutStartSec=2min
+Nice=10
+
+[Install]
+WantedBy=default.target

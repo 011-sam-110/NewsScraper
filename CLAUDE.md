@@ -1,6 +1,6 @@
 # NewsScraper
 
-Scrapes world and regional news from five outlets into JSON Lines. This file is the handoff for the agent that runs the scraper on its host machine.
+Scrapes world and regional news from three scraped outlets and 26 RSS feeds. This file is the handoff for the agent that runs the scraper on its host machine.
 
 ## Goal of the project
 
@@ -22,7 +22,7 @@ python main.py --list-sections
 python main.py                                  # every section of every outlet
 python main.py --sources bbc pbs --max-pages 3
 python main.py --sections reuters:africa -o news
-python -m unittest discover -s tests            # 214 tests, offline fixtures
+python -m unittest discover -s tests            # 719 tests, offline fixtures
 ```
 
 Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code is 1 if any outlet failed.
@@ -32,7 +32,8 @@ Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code
 - `main.py`: CLI only.
 - `scraper/common.py`: HTTP, RSS parsing, `empty_row()` and the one scrape loop (`scrape`, one thread per outlet).
 - `scraper/<outlet>.py`: `NAME`, `SECTIONS`, `list_page(section, page, size)`, optional `article_details(url)` and `close()`.
-- `scraper/feeds.py`: helpers for feed-only outlets (NYT).
+- `scraper/feeds.py`: helpers for feed-only outlets.
+- `scraper/rss_outlets.py`: the 26 RSS feeds, one outlet each. The slugs are Provenance's FEEDS ids.
 - Register a new outlet in `scraper/__init__.py`.
 - `tests/fixtures/<outlet>/`: saved real responses. There is no `tests/__init__.py`, so filter tests with `-k`.
 - `newsfeed/`: the hosted pipeline (store, stages). `main.py` does not use it.
@@ -56,13 +57,18 @@ A real `--write` needs Sam's separate approval and the dev schema. Production sc
 |---|---|---|
 | Reuters | Section API and article pages, fetched from inside a real Chrome tab (DataDome) | yes |
 | BBC | `web-cdn.api.bbci.co.uk` content collections + `__NEXT_DATA__` | yes |
-| Guardian | RSS + `?page=N` + `<article>.json` | yes |
 | PBS | Section and tag pages, article HTML, video transcripts | yes |
-| NYT | RSS feeds only | no |
+| 26 RSS feeds | The same feeds Provenance reads (`scraper/rss_outlets.py`), every 5 minutes, status `feed` | no |
 
 In scraped rows, categories come from each outlet's own taxonomy. Do not infer them there. The AI category (`docs/ARCHITECTURE.md` section 6.2) is a separate field in the pipeline. A story listed in several sections gets one row per section (intentional: "the more data the better, prune later").
 
-Rights: the Guardian's robots header forbids LLM/AI and commercial use, and NYT says automated collection needs written permission. Sam knows this and decided on 2026-09-15 to include all five outlets. Do not remove them. Do not add paywall bypass.
+Rights: Sam dropped the Guardian and NYT on 2026-11-05 (the Guardian's robots header forbids LLM/AI and commercial use; NYT says automated collection needs written permission). Their stored rows are never pushed (`DROPPED_OUTLETS`). Feed rows cross as headline and link only. Al Jazeera and UN News are not read: the paid site does not serve them. Never bypass a paywall, a login or a subscription wall, and never use a CAPTCHA-solving service.
+
+## Proxy
+
+`NEWS_PROXY_URL` is a rotating residential gateway, set only by `deploy/set-news-key.sh` (hidden prompt, checked before it is written). Every outlet is read directly first; a block (401, 403, 429, 451, 503, a timeout or a refused connection) is tried ONCE more through the proxy (`scraper/common.py`, `fetch`). The production site's own feed reads stay direct, and no proxy secret goes onto the production box. Reuters' Chrome uses `NEWS_SCRAPER_REUTERS_PROXY` (off, retry or always). A signed-in Chrome profile (`NEWS_SCRAPER_CHROME_PROFILE`) stays off the proxy by default, because a session that jumps between exit IPs looks stolen. Never read or copy that profile's cookies or passwords.
+
+Every log line and error that can hold the proxy URL goes through `redact()`, and errors are raised without the chained cause that holds the URL. `tests/test_proxy.py` fails if the password can reach a log, an exception or the store.
 
 ## Host setup: do this first
 
@@ -76,8 +82,8 @@ Reuters is the risk. It launches installed Google Chrome with a visible window (
    all. `deploy/reuters-display.sh` finds the display and refuses to run without one.
 3. Prove Reuters works on this machine before anything else:
    `python main.py --sections reuters:africa --max-pages 1 -o /tmp/probe`
-   Pass = rows saved and exit code 0. A 401/403 means DataDome refused this machine or network. A VPN or rotating proxy can cause it. `NEWS_SCRAPER_PROXY` sets a proxy for every outlet.
-4. Only a home IP is proven to work (2026-09-14). If Reuters fails here, report it to Sam. Run the other four outlets without it (`--sources bbc guardian pbs nyt`).
+   Pass = rows saved and exit code 0. A 401/403 means DataDome refused this machine or network. A VPN can cause it. With `NEWS_PROXY_URL` set, a refused Chrome session is retried once through the proxy.
+4. Only a home IP is proven to work (2026-09-14). If Reuters fails here, report it to Sam. Run the others without it (`--sources bbc pbs` and `--sources feeds`).
    The 2026-09-15 reading that Xvfb was proven here was wrong, and cost three days of Reuters:
    only its FIRST section succeeded, and 23 of the next 24 hourly runs failed on every section.
    On the real display the same unit fetched 296 rows and 137 new stories with 0 failures
@@ -102,20 +108,23 @@ Reuters is the risk. It launches installed Google Chrome with a visible window (
 
 1. ~~**Every run overwrites the last run.**~~ Closed by M1. A scheduled run writes to the store, not to JSON Lines. `main.py` still writes JSON Lines, and still with `"w"`, which is what a one-shot CLI should do.
 2. ~~**Nothing persists between runs.**~~ Closed by M1. Stories, aliases and section labels live in SQLite, and a section stops at the first listing page holding no new story.
-3. **No health check.** An outlet can stop sending new stories and nothing fails. Still open: the health stage is milestone M10. Until then `python -m newsfeed status` is the manual check.
+3. ~~**No health check.**~~ Closed on 2026-11-05: `python -m newsfeed health` runs every 15 minutes and posts to the agent hub when a check fails or recovers (`newsfeed/health.py`).
 
 ## The hosted pipeline
 
 `newsfeed/` is the hosted pipeline, designed in `docs/ARCHITECTURE.md` and built one milestone at a time. `docs/HOST.md` is the runbook for the host machine.
 
 ```
-python -m newsfeed scrape --sources bbc guardian pbs nyt   # M1, on an hourly systemd timer
+python -m newsfeed scrape --sources bbc pbs               # M1, on an hourly systemd timer
+python -m newsfeed scrape --sources feeds                 # the 26 RSS feeds, every 5 minutes
 python -m newsfeed status                                  # what the store holds, per outlet
 python -m newsfeed extract                                 # M5, DeepSeek, not yet on a timer
 python -m newsfeed geonames-build                          # M6, monthly, downloads the dumps
 python -m newsfeed resolve --dry-run                       # M6, place name to coordinate
 python -m newsfeed cluster                                 # M7, same event across outlets
 python -m newsfeed rail --dry-run                          # push stories to Provenance's LIVE news rail
+python -m newsfeed health --dry-run                        # every health check, nothing posted
+python -m newsfeed drop-outlets                            # dry run: what forgetting the Guardian and NYT removes
 ```
 
 Built: the store and scrape (M1), extract (M5), the gazetteer and resolve (M6), cluster (M7), the
@@ -127,7 +136,7 @@ anyway until the M8 gate passes, which cannot happen before 2026-09-25, seven da
 freeze. The `rail` stage (`newsfeed/rail.py`) pushes scraped stories to Provenance's ALREADY LIVE
 `POST /api/news/ingest`, which is a different contract from section 8 and does not wait for
 the gate: see section 9.0. It needs `NEWSFEED_INGEST_SECRET`, the same value as the box's
-`NEWS_INGEST_SECRET`. Health (M10) and eval (M4) exit 2 and name their milestone. The store lives
+`NEWS_INGEST_SECRET`. Eval (M4) exits 2 and names its milestone. Health is built. The store lives
 in `NEWSFEED_DATA_DIR`, never in this checkout.
 
 ## Design summary

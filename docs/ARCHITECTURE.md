@@ -233,7 +233,7 @@ Built in M1: `settings.py` also reads the host's own settings file, `~/.config/n
 | `NEWSFEED_DAILY_BUDGET_USD` | extract, cluster, verify | Hard stop on model spend per UTC day. Default 3. |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | health, publish | Where alerts go |
 | `NEWSFEED_DEADMAN_URL` | publish | A dead-man service, pinged after each successful publish |
-| `NEWS_SCRAPER_PROXY` | scrape | Existing: one proxy for every outlet |
+| `NEWS_PROXY_URL` | scrape | The scraping proxy. A blocked request is tried once more through it (`scraper/common.py`). Set by `deploy/set-news-key.sh` |
 
 **Never put the databases in the OneDrive checkout.** This repo lives under OneDrive on Sam's machine, and file sync corrupts SQLite write-ahead logs. `settings.py` refuses to start if `NEWSFEED_DATA_DIR` resolves inside a OneDrive, Dropbox or Google Drive folder.
 
