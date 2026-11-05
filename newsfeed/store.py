@@ -489,6 +489,44 @@ class Store:
                 )
         return claimed
 
+    def claim_feed_extractions(
+        self, config_hash: str, limit: int, since: str, owner: str | None = None,
+        lease_seconds: int = LEASE_SECONDS,
+    ) -> list[str]:
+        """Claim feed rows first seen at or after `since` with no extraction under this config hash.
+
+        A feed row (status `feed`) stays off the scraped path: no plain extract run claims one. Only
+        `extract --feeds` asks for these, for the Headline sources placement (newsfeed/headline_places.py).
+        The row keeps status `feed` after its extraction, so resolve, cluster and the rail never see it.
+        Newest first, like the other claims, so a budget that runs out leaves the oldest undone.
+        """
+        held_by = owner or self.owner
+        until = (datetime.now(timezone.utc) + timedelta(seconds=lease_seconds)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = now_utc()
+        with self.write() as connection:
+            rows = connection.execute(
+                """SELECT s.story_id FROM stories s
+                    WHERE s.status = ?
+                      AND s.first_seen_at >= ?
+                      AND s.headline IS NOT NULL
+                      AND (s.lease_until IS NULL OR s.lease_until < ?)
+                      AND NOT EXISTS (
+                          SELECT 1 FROM extractions e
+                          WHERE e.story_id = s.story_id AND e.config_hash = ?
+                      )
+                    ORDER BY COALESCE(s.published, s.first_seen_at) DESC
+                    LIMIT ?""",
+                (STATUS_FEED, since, now, config_hash, limit),
+            ).fetchall()
+            claimed = [row["story_id"] for row in rows]
+            if claimed:
+                placeholders = ",".join("?" * len(claimed))
+                connection.execute(
+                    f"UPDATE stories SET lease_owner = ?, lease_until = ? WHERE story_id IN ({placeholders})",
+                    (held_by, until, *claimed),
+                )
+        return claimed
+
     def release_stories(self, story_ids: Sequence[str], status: str | None = None) -> None:
         """Drop the lease on these stories, and optionally move them to their next status."""
         if not story_ids:

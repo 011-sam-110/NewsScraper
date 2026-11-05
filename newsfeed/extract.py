@@ -48,7 +48,7 @@ from .deepseek import (
 )
 from .identity import normalise_text, now_utc
 from .settings import Settings, SettingsError, load
-from .store import STATUS_EXTRACTED, STATUS_SCRAPED, Store
+from .store import STATUS_EXTRACTED, STATUS_FEED, STATUS_SCRAPED, Store
 from .taxonomy import (
     CATEGORY_IDS,
     EVENT_DATE_DAYS_AFTER,
@@ -186,6 +186,13 @@ ATTRIBUTION_RE = re.compile(
     re.IGNORECASE,
 )
 
+# A dateline: "SUWON, South Korea, Nov. 4 (Yonhap) --" or "LONDON (Reuters) -". CLAUDE.md: a dateline is not
+# the event place. It says where the report was filed. Measured on 2026-11-05: three Yonhap baseball stories
+# were placed on Suwon by their dateline alone, and the story under it named no place at all.
+DATELINE_RE = re.compile(
+    r"^\s*[A-Z][A-Z .'\-]{1,40}(?:,[^()\n]{0,60})?\s*\([A-Za-z][\w .&/\-]{0,40}\)\s*(?:--|-|\u2013|\u2014)\s*"
+)
+
 # The place immediately after the attribution, which is what makes the quote about the interview
 # rather than about the event.
 ATTRIBUTION_PLACE_RE = r"\s*,?\s*(in|at|from|near|outside)\s+"
@@ -230,6 +237,10 @@ def check_evidence(payload: dict[str, Any]) -> str | None:
 
     if PLANNED_RE.search(quote):
         return "the quote describes an event that is planned rather than one that happened"
+
+    dateline = DATELINE_RE.match(quote)
+    if dateline and name.casefold() not in quote[dateline.end():].casefold():
+        return "the quote is a dateline: it says where the report was filed, not where the event happened"
     return None
 
 
@@ -361,7 +372,20 @@ def load_story(store: Store, story_id: str) -> dict[str, Any] | None:
         (story_id,),
     )
     story["section"] = section["section"] if section else ""
+    if story.get("status") == STATUS_FEED and not (story.get("text") or "").strip():
+        story["text"] = feed_text(story)
     return story
+
+
+def feed_text(story: dict[str, Any]) -> str:
+    """A feed row's text: its headline and its RSS summary. A feed row has no article page.
+
+    The quote check reads this text, so a quote from a feed row is verbatim from the headline or the
+    summary, which are the outlet's own words.
+    """
+    headline = (story.get("headline") or "").strip()
+    summary = (story.get("description") or "").strip()
+    return f"{headline}. {summary}" if summary else headline
 
 
 def ask_model(client: Client, story: dict[str, Any], tags: list[str]) -> tuple[Completion, dict[str, Any], str | None, bool]:
@@ -453,9 +477,10 @@ def store_extraction(
                 now_utc(),
             ),
         )
+        # A feed row keeps its status: resolve, cluster and the rail read only scraped stories.
         connection.execute(
             "UPDATE stories SET status = ?, lease_owner = NULL, lease_until = NULL WHERE story_id = ?",
-            (STATUS_EXTRACTED, story["story_id"]),
+            (STATUS_FEED if story.get("status") == STATUS_FEED else STATUS_EXTRACTED, story["story_id"]),
         )
 
 
@@ -506,6 +531,13 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         help="Say what would be extracted, and what the store already holds, without calling the model.",
     )
     parser.add_argument(
+        "--feeds", action="store_true",
+        help="Extract feed rows (the 26 RSS feeds) first seen in the last --feed-hours that have no answer "
+             "under the current config hash. Their text is the headline and the RSS summary. For the "
+             "Headline sources placement (python -m newsfeed headline-places).",
+    )
+    parser.add_argument("--feed-hours", type=int, default=24, help="How far back --feeds looks.")
+    parser.add_argument(
         "--redo", action="store_true",
         help="Also extract stories already marked extracted that have no answer under the current "
              "config hash. This is what re-runs a backlog after a prompt change, and it costs the "
@@ -551,7 +583,18 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
     config_hash = extract_config_hash(args.model)
 
     with Store(settings.news_db) as store:
-        if args.redo:
+        feeds_since = (datetime.now(timezone.utc) - timedelta(hours=getattr(args, "feed_hours", 24))).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        if getattr(args, "feeds", False):
+            waiting = store.scalar(
+                """SELECT COUNT(*) FROM stories s
+                   WHERE s.status = ? AND s.first_seen_at >= ? AND s.headline IS NOT NULL
+                     AND NOT EXISTS (SELECT 1 FROM extractions e
+                                     WHERE e.story_id = s.story_id AND e.config_hash = ?)""",
+                (STATUS_FEED, feeds_since, config_hash),
+            )
+        elif args.redo:
             waiting = store.scalar(
                 """SELECT COUNT(*) FROM stories s
                    WHERE s.text_hash IS NOT NULL
@@ -579,7 +622,8 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
                 "python -m newsfeed extract --redo --limit 200 (docs/ARCHITECTURE.md section 10.5).",
                 file=sys.stderr,
             )
-            if not (args.dry_run or args.redo or args.story):
+            # Feed rows are not in the cluster window's count, so a stale backlog does not stop them.
+            if not (args.dry_run or args.redo or args.story or getattr(args, "feeds", False)):
                 return STALE_HASH_EXIT
         if args.dry_run:
             return 0
@@ -588,6 +632,8 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
         client = Client(key, model=args.model)
         if args.story:
             claimed = [args.story]
+        elif getattr(args, "feeds", False):
+            claimed = store.claim_feed_extractions(config_hash, args.limit, feeds_since)
         elif args.redo:
             claimed = store.claim_missing_extractions(config_hash, args.limit)
         else:

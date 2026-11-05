@@ -38,7 +38,7 @@ from scraper import DROPPED_OUTLETS
 from scraper.common import redact
 
 from . import taxonomy
-from .store import Store
+from .store import STATUS_FEED, Store
 
 if TYPE_CHECKING:  # pragma: no cover
     import argparse
@@ -138,7 +138,7 @@ def headers(secret: str, body: bytes, timestamp_ms: int | None = None) -> dict[s
 ITEM_SQL = """
 SELECT s.story_id, s.outlet, s.headline, s.description, s.url, s.published,
        s.first_seen_at, s.last_seen_at, s.word_count, s.thumbnail, s.text_hash,
-       s.format_flags, s.categories,
+       s.format_flags, s.categories, s.status,
        t.text,
        e.is_physical_event, e.category, e.event_date, e.place_name, e.place_within,
        e.place_country, e.place_kind, e.place_quote, e.other_places, e.key_entities
@@ -263,7 +263,9 @@ def build_item(row: dict[str, Any], *, send_text: bool = True) -> dict[str, Any]
     against author names in a published body is easier to keep by not sending them than by trusting
     the far end to keep dropping them.
     """
-    event = build_event(row)
+    # A feed row's extraction is for the Headline sources relay only (newsfeed/headline_places.py),
+    # where it crosses with a GeoNames place. It never crosses here with the model's place name.
+    event = None if row.get("status") == STATUS_FEED else build_event(row)
     item: dict[str, Any] = {
         "id": row["story_id"],
         "outlet": row["outlet"],

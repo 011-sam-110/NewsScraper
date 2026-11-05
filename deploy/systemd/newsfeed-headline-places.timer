@@ -1,0 +1,12 @@
+[Unit]
+Description=NewsScraper: Headline sources places, every 10 minutes
+
+[Timer]
+# The feeds are read every 5 minutes (newsfeed-rail). Every 10 minutes keeps a new headline's mark
+# at most one run behind, and keeps the model calls in batches.
+OnCalendar=*:0/10
+RandomizedDelaySec=30s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
