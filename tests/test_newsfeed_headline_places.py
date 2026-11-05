@@ -135,7 +135,9 @@ class FeedRowTests(unittest.TestCase):
                   extracted={"event": False, "name": None})
         self.seed("st_unresolved", STATUS_FEED, url="https://www.bbc.co.uk/news/d",
                   extracted={"name": "Nowhere", "quote": "in Nowhere"})
-        self.seed("st_http", STATUS_FEED, url="http://example.org/e",
+        self.seed("st_http", STATUS_FEED, url="http://www.africanews.com/2026/11/04/e",
+                  extracted={"name": "Bella Coola", "quote": "near Bella Coola"})
+        self.seed("st_not_web", STATUS_FEED, url="ftp://example.org/g",
                   extracted={"name": "Bella Coola", "quote": "near Bella Coola"})
         self.seed("st_dropped", STATUS_FEED, outlet="guardian", url="https://www.theguardian.com/f",
                   extracted={"name": "Bella Coola", "quote": "near Bella Coola"})
@@ -149,10 +151,21 @@ class FeedRowTests(unittest.TestCase):
             store.migrate()
             rows = headline_places.placed_rows(store, CURRENT, "2000-01-01T00:00:00Z")
         items = headline_places.build_items(rows, place_of)
-        self.assertEqual([item["url"] for item in items], ["https://www.bbc.co.uk/news/a"])
+        # Africanews publishes http links. The URL is a join key, so it is kept; a non-web one is not.
+        self.assertEqual(sorted(item["url"] for item in items),
+                         ["http://www.africanews.com/2026/11/04/e", "https://www.bbc.co.uk/news/a"])
         self.assertEqual(set(items[0]), {"url", "place", "quote", "extractedAt"})
         self.assertEqual(items[0]["place"]["name"], "Bella Coola, Canada")
         self.assertEqual(items[0]["quote"], "near Bella Coola")
+
+    def test_the_item_url_is_the_canonical_one(self) -> None:
+        """The rail sends the canonical URL, and Provenance reduces its raw link the same way."""
+        rows = [{"url": "https://www.aljazeera.com/video/a", "source_url": "https://www.aljazeera.com/video/a/?traffic_source=rss",
+                 "place_name": "X", "place_within": None, "place_country": "BR", "place_kind": "venue",
+                 "place_quote": "q", "created_at": "2026-11-05T09:00:00Z"}]
+        place = {"id": 1, "name": "X", "lat": 0.5, "lon": 0.5, "precision": "facility"}
+        items = headline_places.build_items(rows, lambda *_: place)
+        self.assertEqual([item["url"] for item in items], ["https://www.aljazeera.com/video/a"])
 
     def test_a_climbed_or_unpinnable_answer_is_no_place(self) -> None:
         from newsfeed.geonames import Place

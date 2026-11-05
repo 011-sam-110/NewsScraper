@@ -63,12 +63,17 @@ def placed_rows(store: Store, config_hash: str, since: str) -> list[dict[str, An
 
 def build_items(rows: list[dict[str, Any]], place_of) -> list[dict[str, Any]]:
     """One item per URL, newest first. `place_of(name, within, country, kind)` returns the item's
-    place, or None when it is no place to draw (not found, climbed, or not pinnable)."""
+    place, or None when it is no place to draw (not found, climbed, or not pinnable).
+
+    The URL is the story's canonical one (identity.canonical_url), the same address the news rail
+    sends. Provenance reduces its own copy of the link the same way before it joins the two, so the
+    outlet's tracking query ("?traffic_source=rss") does not stop a match. It is a join key only:
+    Provenance links the article from its own stream, so an http link (Africanews) is kept."""
     items: list[dict[str, Any]] = []
     seen: set[str] = set()
     for row in rows:
-        url = row.get("source_url") or row.get("url")
-        if not url or not url.startswith("https://") or url in seen:
+        url = row.get("url") or row.get("source_url")
+        if not url or not url.startswith(("https://", "http://")) or url in seen:
             continue
         place = place_of(row["place_name"], row["place_within"], row["place_country"], row["place_kind"])
         if place is None:
