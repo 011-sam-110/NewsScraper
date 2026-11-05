@@ -578,6 +578,21 @@ Sam on 2026-11-05: "we probably need a second verification layer (a fresh deepse
 
 **Cost and time, measured 2026-11-05 at the off-peak rate.** Call 2 $0.00103 and 9.8 s a pin, call 3 $0.00159 and 18.1 s a call, about $0.04 a day at 500 headlines and 25 pins a day.
 
+**Measured again on fresh headlines (M3, 2026-11-05).** The round 2 prompts were written after reading round 1's misses on the same 57 pins, so those numbers flatter them. M3 ran the stage code as built (`extract --feeds`, `verify`, `headline-places`) in a scratch store on the 1,910 feed rows first seen from 13:00 to 13:10 UTC, none of them among the 57. Most were the first read of the feeds added that day, published from October onwards. Names rule 2 came from an overlay of the Wikipedia titles on the live gazetteer, not a rebuild. Labels were written blind, from the headline and summary only, before verify ran.
+
+| Measure | Result |
+|---|---|
+| Placed feed rows; dropped by the category filter, no model call | 159; 7, all court stories |
+| Pins before verification, right | 74, 69 right (93.2%, Wilson 95% 85.1 to 97.1) |
+| Pins sent after verification, right | 71, 69 right (97.2%, Wilson 95% 90.3 to 99.2) |
+| Wrong pins stopped | 3 of 5: a village in a district the text names only as a district, Funakoshi in Hiroshima for Funakoshi in Yokosuka, a district of Zaporizhzhia city for Voznesensk district in Mykolaiv region |
+| Wrong pins passed | 2, both verified with no flag: a dateline (Srinagar) and a charge for an undated shooting (Malmstrom Air Force Base) |
+| Right pins lost | 0 |
+| Sent to the critic | 5 of 74 (6.8%): 3 overruled, all wrong; 2 kept, both right |
+| Venue fallback pins | 12, all verified, all right |
+| Bad answers | 0 in 79 calls |
+| Cost | extract $0.000254 a headline; verify and critic $0.0955 for 74 pins ($0.00129 a pin, $0.00005 a headline); call 2 16.8 s on average, one call 222 s over two tries |
+
 ### 7.10 Stage: publish (every minute)
 
 1. **Build.** Build the snapshot (section 8) from the clusters in the window.
