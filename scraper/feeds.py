@@ -1,4 +1,4 @@
-"""Helpers for feed-only sources: sources that read the outlet's public RSS feeds and nothing else.
+"""Helpers for feed-only sources: sources that read an outlet's public RSS feed and nothing else.
 
 A feed-only source defines no article_details, so common.scrape never requests an article page
 for it, and each row's text stays None. A feed has no pages: page 0 returns every item and
@@ -38,7 +38,7 @@ def fetch_items(outlet: str, url: str) -> list[dict[str, Any]]:
 def nested_media_text(document: bytes) -> list[tuple[str | None, str | None]]:
     """(media:credit, media:description) at any depth in each item. Some feeds put them inside media:content."""
     results = []
-    for item in ElementTree.fromstring(document).iter("item"):
+    for item in common.feed_items(ElementTree.fromstring(document)):
         values = []
         for tag in ("media:credit", "media:description"):
             node = item.find(f".//{tag}", common.RSS_NAMESPACES)

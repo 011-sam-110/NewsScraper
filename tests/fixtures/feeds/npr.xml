@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:npr="https://www.npr.org/rss/" xmlns:nprml="https://api.npr.org/nprml" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/" version="2.0">
+  <channel>
+    <title>NPR Topics: World</title>
+    <link>https://www.npr.org/templates/story/story.php?storyId=1004</link>
+    <description>International news, global reporting and analysis from NPR. Plus dispatches from NPR’s State of the World podcast.</description>
+    <language>en</language>
+    <copyright>Copyright 2024 NPR - For Personal Use Only</copyright>
+    <generator>Story API Shim 1.2.24</generator>
+    <lastBuildDate>Thu, 05 Nov 2026 02:28:04 -0500</lastBuildDate>
+    <image>
+      <url>https://media.npr.org/images/podcasts/primary/npr_generic_image_300.jpg?s=200</url>
+      <title>NPR Topics: World</title>
+      <link>https://www.npr.org/sections/world/</link>
+    </image>
+    <item>
+      <title>Bob Dylan comes knockin&apos; on pope&apos;s door as Leo welcomes legend to Vatican</title>
+      <description>The American singer-songwriter and poet visited with the American pope at the Vatican during a break between concert dates in Italy. The Vatican said the encounter was brief.</description>
+      <pubDate>Thu, 05 Nov 2026 02:02:12 -0500</pubDate>
+      <link>https://www.npr.org/2026/11/05/g-s1-152035/vatican-pope-bob-dylan</link>
+      <guid>https://www.npr.org/2026/11/05/g-s1-152035/vatican-pope-bob-dylan</guid>
+      <dc:creator>The Associated Press</dc:creator>
+    </item>
+    <item>
+      <title>Hong Kong activist Joshua Wong sentenced to 10 years in prison</title>
+      <description>Wong was sentenced for his second conviction under a Beijing-imposed national security law, in a case that critics say reflects the crackdown on the city&apos;s once-thriving pro-democracy movement.</description>
+      <pubDate>Thu, 05 Nov 2026 00:29:56 -0500</pubDate>
+      <link>https://www.npr.org/2026/11/05/g-s1-152032/hong-kong-activist-wong-sentenced</link>
+      <guid>https://www.npr.org/2026/11/05/g-s1-152032/hong-kong-activist-wong-sentenced</guid>
+      <dc:creator>The Associated Press</dc:creator>
+    </item>
+    <item>
+      <title>Abdul El-Sayed welcomes Trump&apos;s plan to cut Israel aid, calls for end to arms sales</title>
+      <description>Michigan&apos;s first Muslim senator-elect, Abdul El-Sayed, discusses his historic victory, an unlikely agreement with Trump on Israel military aid and the political divisions that remain.</description>
+      <pubDate>Wed, 04 Nov 2026 08:38:09 -0500</pubDate>
+      <link>https://www.npr.org/2026/11/04/nx-s1-6028702/abdul-el-sayed-michigan-senate-israel-aid</link>
+      <guid>https://www.npr.org/2026/11/04/nx-s1-6028702/abdul-el-sayed-michigan-senate-israel-aid</guid>
+      <dc:creator>Steve Inskeep</dc:creator>
+    </item>
+  </channel>
+</rss>

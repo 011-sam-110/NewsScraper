@@ -23,13 +23,13 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-from scraper import SOURCES
+from scraper import FEED_GROUP, FEED_OUTLETS, SOURCES
 from scraper.common import scrape
 
 from . import identity
 from .identity import now_utc
 from .settings import Settings, SettingsError, load
-from .store import STATUS_SCRAPED, Store
+from .store import STATUS_FEED, STATUS_SCRAPED, Store
 
 # Fields copied straight from a row onto the story, once mapped through identity.
 EMPTY_VALUES: tuple[Any, ...] = (None, "", [], {})
@@ -135,7 +135,7 @@ class StoreSink:
                         now if attempted else None,
                         now,
                         now,
-                        STATUS_SCRAPED,
+                        STATUS_FEED if outlet in FEED_OUTLETS else STATUS_SCRAPED,
                     ),
                 )
             else:
@@ -281,17 +281,24 @@ def build_jobs(sources: list[str], sections: list[str] | None) -> list[tuple[Mod
             name, section = section_id.split(":", 1)
             jobs.append((SOURCES[name], section))
         return jobs
-    return [(SOURCES[name], section) for name in dict.fromkeys(sources) for section in SOURCES[name].SECTIONS]
+    names = []
+    for name in sources:
+        # `feeds` is every one of Provenance's RSS feeds: one outlet each, in the order they are listed.
+        names.extend(sorted(FEED_OUTLETS, key=list(SOURCES).index) if name == FEED_GROUP else [name])
+    return [(SOURCES[name], section) for name in dict.fromkeys(names) for section in SOURCES[name].SECTIONS]
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--sources",
         nargs="+",
-        choices=list(SOURCES),
+        choices=[*SOURCES, FEED_GROUP],
         default=list(SOURCES),
         metavar="SOURCE",
-        help=f"Outlets to scrape, all at the same time. Default: all. Choices: {', '.join(SOURCES)}.",
+        help=(
+            f"Outlets to scrape, all at the same time. Default: all. `{FEED_GROUP}` means every RSS "
+            f"feed. Choices: {', '.join([*SOURCES, FEED_GROUP])}."
+        ),
     )
     parser.add_argument(
         "--sections",

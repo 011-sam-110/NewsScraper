@@ -40,6 +40,8 @@ STATUS_EXTRACTED = "extracted"
 STATUS_RESOLVED = "resolved"
 STATUS_NO_PLACE = "no_place"
 STATUS_CLUSTERED = "clustered"
+# Provenance's RSS feeds. Off that path on purpose: no paid model stage claims a feed row.
+STATUS_FEED = "feed"
 
 # Migration 1 is the M1 store: what the scrape stage writes and the health stage reads. The AI
 # layer's tables (extractions, places, clusters, llm_calls, publishes, alerts) arrive as their own

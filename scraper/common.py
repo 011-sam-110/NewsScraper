@@ -25,12 +25,15 @@ no new story for it (docs/ARCHITECTURE.md section 7.5). A sink has three methods
 
 from __future__ import annotations
 
+import gzip
 import html
 import json
 import os
 import re
+import socket
 import sys
 import threading
+import time
 import xml.etree.ElementTree as ElementTree
 from concurrent.futures import ThreadPoolExecutor, wait
 from contextlib import contextmanager
@@ -39,22 +42,70 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, TextIO
 from urllib.error import HTTPError, URLError
+from urllib.parse import unquote, urlsplit
 from urllib.request import ProxyHandler, Request, build_opener, urlopen
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0 Safari/537.36"
 )
-PROXY_URL = os.environ.get("NEWS_SCRAPER_PROXY")
+
+# THE PROXY: RETRY THROUGH IT, DO NOT LIVE IN IT.
+#
+# NEWS_PROXY_URL is Sam's rotating residential gateway: one host that hands out a new exit IP for
+# every connection. A plain request goes DIRECT first and goes through the proxy only when the
+# direct answer is a block: one of RETRY_STATUSES, a timeout, or a refused or reset connection.
+# Measured 2026-11-05 at 05:54 UTC: all 29 feeds Provenance reads answered 200 to the box directly,
+# so a proxy on every request would buy nothing, cost money (the plan is billed by the gigabyte),
+# and make every request slower and less reliable than the home line. One retry is enough because
+# the gateway's next connection is already a different address.
+#
+# What the proxy is NOT for: a paywall, a login or a subscription wall. Those answer the same from
+# every address, and this code never tries to get past them. No CAPTCHA service is called either.
+#
+# The value holds a password, so every message that can carry it goes through redact() first, and
+# exceptions raised on the proxy path drop their cause (`from None`): urllib can put the proxy URL in
+# an error's text, and a chained cause prints in a traceback.
+PROXY_ENV = "NEWS_PROXY_URL"
+RETRY_STATUSES = frozenset({401, 403, 429, 451, 503})
+# A short pause before the retry, so a block is not answered with an instant second request.
+PROXY_RETRY_PAUSE_SECONDS = 2.0
 
 # Outlets put zero-width characters inside article text.
 INVISIBLE_CHARACTERS: dict[int, None] = dict.fromkeys((0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF))
 
+# user:password@ in any URL-like text. The proxy URL is the one this file worries about, but a
+# credential in any URL has no place in a log.
+_CREDENTIALS_IN_URL = re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^\s/@:]+:[^\s/@]*@")
+
+
+def proxy_url() -> str | None:
+    """The proxy gateway URL, read at call time so a test or a settings change takes effect."""
+    value = os.environ.get(PROXY_ENV, "").strip()
+    return value or None
+
+
+def redact(text: Any) -> str:
+    """The text with any URL credential, and the proxy's user name and password, replaced by ***."""
+    out = _CREDENTIALS_IN_URL.sub(r"\1***:***@", str(text))
+    url = proxy_url()
+    if url:
+        parts = urlsplit(url)
+        for secret in (parts.password, parts.username):
+            if not secret:
+                continue
+            for form in {secret, unquote(secret)}:
+                if len(form) >= 3:
+                    out = out.replace(form, "***")
+    return out
+
 
 class FetchError(RuntimeError):
-    def __init__(self, message: str, status: int | None = None) -> None:
-        super().__init__(message)
+    def __init__(self, message: str, status: int | None = None, retryable: bool | None = None) -> None:
+        super().__init__(redact(message))
         self.status = status
+        # Worth one more try from another address. Default: the block statuses and no-status errors.
+        self.retryable = (status in RETRY_STATUSES or status is None) if retryable is None else retryable
 
 
 def clean_text(value: str) -> str:
@@ -67,43 +118,73 @@ def paragraphs_text(paragraphs: list[str]) -> str | None:
     return "\n\n".join(cleaned) or None
 
 
-def open_url(request: Request) -> Any:
-    if PROXY_URL:
-        opener = build_opener(ProxyHandler({"http": PROXY_URL, "https": PROXY_URL}))
+def open_url(request: Request, via_proxy: bool = False) -> Any:
+    if via_proxy:
+        url = proxy_url()
+        opener = build_opener(ProxyHandler({"http": url, "https": url}))
         return opener.open(request, timeout=30)
     return urlopen(request, timeout=30)
 
 
-def fetch(url: str, accept: str = "*/*", referer: str | None = None) -> tuple[str, bytes]:
+def _fetch_once(url: str, headers: dict[str, str], via_proxy: bool) -> tuple[str, bytes]:
+    route = " through the proxy" if via_proxy else ""
+    try:
+        with open_url(Request(url, headers=headers), via_proxy=via_proxy) as response:
+            body = response.read()
+            # Some servers gzip the body unasked (The Independent, measured 2026-11-05), and urllib
+            # does not unpack it. The header or gzip's own magic bytes say so.
+            encoding = str((getattr(response, "headers", None) or {}).get("Content-Encoding") or "")
+            if "gzip" in encoding.lower() or body[:2] == b"\x1f\x8b":
+                body = gzip.decompress(body)
+            return response.geturl(), body
+    except HTTPError as error:
+        failure = FetchError(f"HTTP {error.code} from {url}{route}", error.code)
+    except URLError as error:
+        failure = FetchError(f"Could not reach {url}{route}: {error.reason}")
+    except (TimeoutError, socket.timeout, ConnectionError) as error:
+        failure = FetchError(f"Could not reach {url}{route}: {type(error).__name__}")
+    except (gzip.BadGzipFile, EOFError):
+        failure = FetchError(f"{url} sent a gzip body that did not unpack", retryable=False)
+    # Raised outside the except blocks, so the urllib error (which can hold the proxy URL) is not
+    # chained onto it and cannot reach a traceback.
+    raise failure
+
+
+def fetch(
+    url: str, accept: str = "*/*", referer: str | None = None, proxy_retry: bool = True
+) -> tuple[str, bytes]:
     """GET a URL and return (final URL after redirects, body).
 
     Some outlets redirect past their last listing page, so the final URL is the end signal.
+    Direct first; one retry through the proxy when the direct answer is a block (see PROXY_ENV).
+    proxy_retry=False skips that retry, for a refusal that another address cannot change.
     """
     headers = {"Accept": accept, "Accept-Language": "en-GB,en;q=0.9", "User-Agent": USER_AGENT}
     if referer:
         headers["Referer"] = referer
     try:
-        with open_url(Request(url, headers=headers)) as response:
-            return response.geturl(), response.read()
-    except HTTPError as error:
-        raise FetchError(f"HTTP {error.code} from {url}", error.code) from error
-    except URLError as error:
-        raise FetchError(f"Could not reach {url}: {error.reason}") from error
+        return _fetch_once(url, headers, via_proxy=False)
+    except FetchError as error:
+        if not proxy_retry or not proxy_url() or not error.retryable:
+            raise
+        log(f"{urlsplit(url).hostname}: {error}; trying once through the proxy.", sys.stderr)
+    time.sleep(PROXY_RETRY_PAUSE_SECONDS)
+    return _fetch_once(url, headers, via_proxy=True)
 
 
-def http_get(url: str, accept: str = "*/*", referer: str | None = None) -> bytes:
-    return fetch(url, accept, referer)[1]
+def http_get(url: str, accept: str = "*/*", referer: str | None = None, proxy_retry: bool = True) -> bytes:
+    return fetch(url, accept, referer, proxy_retry)[1]
 
 
-def get_json(url: str, referer: str | None = None) -> Any:
+def get_json(url: str, referer: str | None = None, proxy_retry: bool = True) -> Any:
     try:
-        return json.loads(http_get(url, "application/json", referer))
+        return json.loads(http_get(url, "application/json", referer, proxy_retry))
     except json.JSONDecodeError as error:
         raise FetchError(f"Non-JSON response from {url}") from error
 
 
-def get_html(url: str, referer: str | None = None) -> str:
-    return http_get(url, "text/html", referer).decode("utf-8", errors="replace")
+def get_html(url: str, referer: str | None = None, proxy_retry: bool = True) -> str:
+    return http_get(url, "text/html", referer, proxy_retry).decode("utf-8", errors="replace")
 
 
 RSS_NAMESPACES = {
@@ -123,12 +204,25 @@ def rss_date(value: str | None) -> str | None:
         return value.strip()
 
 
+# RSS 1.0 (RDF) puts its own elements in this namespace: DW and AllAfrica publish it.
+RSS1_NAMESPACE = "http://purl.org/rss/1.0/"
+
+
+def feed_items(root: ElementTree.Element) -> list[ElementTree.Element]:
+    """The items of an RSS 2.0 or an RSS 1.0 (RDF) document, in document order."""
+    return [node for node in root.iter() if node.tag in ("item", f"{{{RSS1_NAMESPACE}}}item")]
+
+
 def parse_rss(document: bytes) -> list[dict[str, Any]]:
-    """Every field an RSS 2.0 item carries, with outlet taxonomy kept as {domain, name}."""
+    """Every field an RSS 2.0 or RSS 1.0 item carries, with outlet taxonomy kept as {domain, name}."""
     items = []
-    for item in ElementTree.fromstring(document).iter("item"):
+    for item in feed_items(ElementTree.fromstring(document)):
+        rss1 = item.tag.startswith("{")
+
         def text(tag: str) -> str | None:
             node = item.find(tag, RSS_NAMESPACES)
+            if node is None and rss1 and ":" not in tag:
+                node = item.find(f"{{{RSS1_NAMESPACE}}}{tag}")
             return node.text.strip() if node is not None and node.text and node.text.strip() else None
 
         media = [
@@ -182,7 +276,7 @@ _print_lock = threading.Lock()
 
 def log(message: str, stream: TextIO | None = None) -> None:
     with _print_lock:
-        print(message, file=stream)
+        print(redact(message), file=stream)
 
 
 @contextmanager
@@ -239,9 +333,9 @@ def scrape(
         try:
             future.result()
         except RuntimeError as error:
-            errors[name] = str(error)
+            errors[name] = redact(error)
         except Exception as error:  # A bug in one outlet must not hide the other outlets' results.
-            errors[name] = f"{type(error).__name__}: {error}"
+            errors[name] = redact(f"{type(error).__name__}: {error}")
     return totals, errors
 
 

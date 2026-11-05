@@ -241,6 +241,41 @@ class DeploymentTests(unittest.TestCase):
                     reuters.fetch_page("/world/africa/", 0, 1, 8)
         self.assertIn("still 382", str(caught.exception))
 
+    def test_a_refused_direct_read_takes_the_id_from_the_chrome_tab(self) -> None:
+        # Measured 2026-11-05: DataDome answers the plain request for the world page with 401, so
+        # the id fell back to the hard-coded default (382) while Reuters ran deployment 393.
+        page = mock.MagicMock()
+        page.content.return_value = '<script src="/pf/x.js?d=393"></script>'
+
+        def open_session(*_args, **_kwargs):
+            reuters._browser_session.append((None, None, None, page))
+            return reuters._browser_session[0]
+
+        def refused(*_args, **_kwargs):
+            raise common.FetchError("HTTP 401", 401)
+
+        self.addCleanup(reuters._browser_session.clear)
+        with mock.patch.object(reuters.common, "get_html", refused), \
+                mock.patch.object(reuters, "get_browser_session", open_session):
+            self.assertEqual(reuters.deployment_id(), "393")
+
+    def test_an_in_page_rejection_reads_the_id_again_and_retries(self) -> None:
+        # With a stale id, Reuters' own wrapped fetch rejects with `undefined`, which Playwright
+        # reported as "Page.evaluate: undefined" on every section from 2026-10-13.
+        calls = []
+
+        def once(section_path, offset, request_id, size):
+            calls.append(reuters.deployment_id())
+            if len(calls) == 1:
+                raise common.FetchError("Reuters' page refused the request", None)
+            return {"content_elements": []}
+
+        pages = ['<script src="a?d=382">', '<script src="a?d=393">']
+        with mock.patch.object(reuters, "current_page_html", lambda: pages.pop(0)):
+            with mock.patch.object(reuters, "fetch_page_once", once):
+                reuters.fetch_page("/world/africa/", 0, 1, 8)
+        self.assertEqual(calls, ["382", "393"])
+
     def test_a_status_other_than_404_is_not_retried(self) -> None:
         calls = []
 
@@ -253,6 +288,27 @@ class DeploymentTests(unittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     reuters.fetch_page("/world/africa/", 0, 1, 8)
         self.assertEqual(len(calls), 1)
+
+
+class InPageFetchTests(unittest.TestCase):
+    """fetch_in_browser: what comes back from the Chrome tab."""
+
+    def setUp(self) -> None:
+        self.page = mock.MagicMock()
+        reuters._browser_session.append((None, None, None, self.page))
+        self.addCleanup(reuters._browser_session.clear)
+
+    def test_a_rejected_fetch_is_a_fetch_error_that_names_the_likely_cause(self) -> None:
+        self.page.evaluate.return_value = {"status": None, "error": "undefined"}
+        with mock.patch.dict("os.environ", {"NEWS_PROXY_URL": ""}):
+            with self.assertRaises(common.FetchError) as caught:
+                reuters.fetch_in_browser("https://www.reuters.com/pf/api/x", "application/json")
+        self.assertIsNone(caught.exception.status)
+        self.assertIn("deployment", str(caught.exception))
+
+    def test_a_200_returns_the_body(self) -> None:
+        self.page.evaluate.return_value = {"status": 200, "body": "{}"}
+        self.assertEqual(reuters.fetch_in_browser("https://www.reuters.com/x", "application/json"), "{}")
 
 
 if __name__ == "__main__":
