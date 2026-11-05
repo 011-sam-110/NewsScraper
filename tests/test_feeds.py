@@ -47,14 +47,18 @@ class FeedOutletsTest(unittest.TestCase):
             self.assertRegex(row["published"], r"^\d{4}-\d\d-\d\dT")
             self.assertIsNone(row["text"])
 
-    def test_rss1_rdf_feeds_are_read(self) -> None:
-        # DW and AllAfrica publish RSS 1.0, whose items live in the RSS 1.0 namespace.
-        for slug in ("dw", "allafrica"):
-            with self.subTest(slug=slug):
-                rows, _ = replay(slug)
-                self.assertEqual(len(rows), 3)
-                self.assertTrue(all(row["headline"] and row["url"] for row in rows))
-                self.assertTrue(all(row["published"] for row in rows), "dc:date is the date in RSS 1.0")
+    def test_an_rss1_rdf_feed_is_read(self) -> None:
+        # DW publishes RSS 1.0, whose items live in the RSS 1.0 namespace and date with dc:date.
+        rows, _ = replay("dw")
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(all(row["headline"] and row["url"] for row in rows))
+        self.assertTrue(all(row["published"] for row in rows), "dc:date is the date in RSS 1.0")
+
+    def test_allafrica_is_rss2_whatever_its_file_name_says(self) -> None:
+        # The address ends in .rdf, but the body is RSS 2.0 with a plain pubDate.
+        rows, _ = replay("allafrica")
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(all(row["headline"] and row["url"] and row["published"] for row in rows))
 
     def test_a_date_inside_cdata_is_read(self) -> None:
         # The Diplomat wraps pubDate in CDATA: <pubDate><![CDATA[Thu, 05 Nov 2026 ...]]></pubDate>.

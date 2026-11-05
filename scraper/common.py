@@ -204,7 +204,7 @@ def rss_date(value: str | None) -> str | None:
         return value.strip()
 
 
-# RSS 1.0 (RDF) puts its own elements in this namespace: DW and AllAfrica publish it.
+# RSS 1.0 (RDF) puts its own elements in this namespace: DW publishes it.
 RSS1_NAMESPACE = "http://purl.org/rss/1.0/"
 
 
