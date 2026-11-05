@@ -17,6 +17,7 @@ import gzip
 import json
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 from newsfeed import rail
@@ -304,6 +305,171 @@ class CursorTests(unittest.TestCase):
 
     def test_a_cursor_past_the_end_reads_nothing(self) -> None:
         self.assertEqual(self.read("2030-01-01T00:00:00Z"), [])
+
+
+class RefillAndDropTests(unittest.TestCase):
+    """After Provenance restarts (every deploy), its store is empty and the cursor comes back "".
+
+    Measured 2026-11-05: 18,183 stored rows were older than Provenance's 72-hour window, so a refill
+    from the very first row took about 10 hourly runs before anything recent arrived. The rail now
+    starts at its own window, and sends the whole window in the one run.
+    """
+
+    NOW = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.store = Store(Path(self.directory.name) / "news.sqlite3")
+        self.store.migrate()
+        self.addCleanup(self.store.close)
+        rows = [
+            ("st_old", "bbc", "2026-09-20T06:00:00Z"),       # weeks old
+            ("st_week", "bbc", "2026-10-30T06:00:00Z"),      # 6.25 days old: inside 7 days
+            ("st_new", "npr", "2026-11-05T11:00:00Z"),
+            ("st_gu", "guardian", "2026-11-05T11:10:00Z"),   # dropped outlet
+            ("st_ny", "nyt", "2026-11-05T11:20:00Z"),        # dropped outlet
+        ]
+        with self.store.write() as connection:
+            for story_id, outlet, seen in rows:
+                connection.execute(
+                    "INSERT INTO stories (story_id, outlet, primary_alias, url, headline,"
+                    " published, first_seen_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (story_id, outlet, story_id, f"https://example.com/{story_id}", story_id, seen, seen, seen),
+                )
+
+    def test_an_empty_cursor_starts_at_the_window_not_at_the_first_row(self) -> None:
+        self.assertEqual(rail.start_point("", self.NOW), "2026-10-29T12:00:00Z")
+
+    def test_a_cursor_inside_the_window_is_kept(self) -> None:
+        self.assertEqual(rail.start_point("2026-11-05T10:00:00Z", self.NOW), "2026-11-05T10:00:00Z")
+
+    def test_a_cursor_older_than_the_window_moves_up_to_it(self) -> None:
+        self.assertEqual(rail.start_point("2026-09-01T00:00:00Z", self.NOW), "2026-10-29T12:00:00Z")
+
+    def test_a_refill_sends_the_window_and_nothing_older(self) -> None:
+        ids = [row["story_id"] for row in rail.rows_to_send(self.store, "", self.NOW, extract_hash="x", limit=50)]
+        self.assertEqual(ids, ["st_week", "st_new"])
+
+    def test_the_dropped_outlets_are_never_sent(self) -> None:
+        ids = [row["story_id"] for row in rows_since(self.store, "", extract_hash="x", limit=50)]
+        self.assertNotIn("st_gu", ids)
+        self.assertNotIn("st_ny", ids)
+
+    def test_a_cold_start_is_not_capped_by_the_steady_state_limit(self) -> None:
+        self.assertGreaterEqual(rail.run_limit("", 2000), rail.COLD_START_LIMIT)
+        self.assertEqual(rail.run_limit("2026-11-05T10:00:00Z", 2000), 2000)
+
+
+class LateExtractionTests(unittest.TestCase):
+    """The rail runs every 5 minutes and extract runs once an hour, so a BBC or PBS story usually
+    crosses before extract has read it, with no event. Its last_seen_at does not move when extract
+    finishes, so a cursor on last_seen_at alone would never send it again and its event could never
+    reach the map. A row whose extraction is newer than the cursor is sent again."""
+
+    NOW = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+    CURSOR = "2026-11-05T11:30:00Z"
+
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.store = Store(Path(self.directory.name) / "news.sqlite3")
+        self.store.migrate()
+        self.addCleanup(self.store.close)
+        stories = [
+            ("st_late", "2026-11-05T11:00:00Z"),    # sent at 11:05, extracted at 11:40
+            ("st_early", "2026-11-05T10:00:00Z"),   # extracted at 11:20, before the far end's cursor
+            ("st_other", "2026-11-05T10:30:00Z"),   # extracted under another configuration
+            ("st_none", "2026-11-05T10:45:00Z"),    # never extracted
+            ("st_stale", "2026-10-20T10:00:00Z"),   # outside the window, extracted just now
+        ]
+        extractions = [
+            ("st_late", "x", "2026-11-05T11:40:00Z"),
+            ("st_early", "x", "2026-11-05T11:20:00Z"),
+            ("st_other", "y", "2026-11-05T11:50:00Z"),
+            ("st_stale", "x", "2026-11-05T11:55:00Z"),
+        ]
+        with self.store.write() as connection:
+            for story_id, seen in stories:
+                connection.execute(
+                    "INSERT INTO stories (story_id, outlet, primary_alias, url, headline,"
+                    " published, first_seen_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    (story_id, "bbc", story_id, f"https://example.com/{story_id}", story_id, seen, seen, seen),
+                )
+            for story_id, config_hash, created in extractions:
+                connection.execute(
+                    "INSERT INTO extractions (story_id, config_hash, is_physical_event, created_at)"
+                    " VALUES (?, ?, 0, ?)",
+                    (story_id, config_hash, created),
+                )
+
+    def sent(self, cursor: str) -> list[str]:
+        rows = rail.rows_to_send(self.store, cursor, self.NOW, extract_hash="x", limit=50)
+        return [row["story_id"] for row in rows]
+
+    def test_a_row_extracted_after_the_cursor_is_sent_again_with_its_event(self) -> None:
+        rows = rail.rows_to_send(self.store, self.CURSOR, self.NOW, extract_hash="x", limit=50)
+        self.assertEqual([row["story_id"] for row in rows], ["st_late"])
+        self.assertIsNotNone(rail.build_item(rows[0])["event"])
+
+    def test_an_extraction_the_far_end_already_had_is_not_sent_again(self) -> None:
+        self.assertNotIn("st_early", self.sent(self.CURSOR))
+
+    def test_only_the_current_configuration_counts(self) -> None:
+        self.assertNotIn("st_other", self.sent(self.CURSOR))
+
+    def test_a_row_outside_the_window_stays_out(self) -> None:
+        self.assertNotIn("st_stale", self.sent(self.CURSOR))
+        self.assertNotIn("st_stale", self.sent(""))
+
+
+class TextRuleTests(unittest.TestCase):
+    """Text crosses only for a row the far end has not seen, first seen in the last day.
+
+    Provenance keeps text on its newest 400 rows only, and uses it for clustering, never serves it.
+    Every scrape marks about 1,000 old rows as seen again; resending their bodies each time was
+    most of the bytes.
+    """
+
+    NOW = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+
+    def row(self, first_seen: str) -> dict:
+        return {"text": "body", "first_seen_at": first_seen}
+
+    def test_a_new_recent_row_carries_its_text(self) -> None:
+        self.assertTrue(rail.send_text_for(self.row("2026-11-05T11:00:00Z"), "2026-11-05T10:00:00Z", self.NOW))
+
+    def test_a_row_the_far_end_already_has_does_not(self) -> None:
+        self.assertFalse(rail.send_text_for(self.row("2026-11-05T09:00:00Z"), "2026-11-05T10:00:00Z", self.NOW))
+
+    def test_an_old_row_does_not_even_after_a_restart(self) -> None:
+        self.assertFalse(rail.send_text_for(self.row("2026-11-03T11:00:00Z"), "", self.NOW))
+
+    def test_a_recent_row_does_after_a_restart(self) -> None:
+        self.assertTrue(rail.send_text_for(self.row("2026-11-05T02:00:00Z"), "", self.NOW))
+
+    def test_no_text_means_none_sent(self) -> None:
+        self.assertFalse(rail.send_text_for({"text": None, "first_seen_at": "2026-11-05T11:00:00Z"}, "", self.NOW))
+
+
+class StateFileTests(unittest.TestCase):
+    """rail.json in the data folder: what the health stage reads to say whether pushes work."""
+
+    def test_the_state_is_written_whole_and_read_back(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "rail.json"
+            rail.record_state(path, last_ok_at="2026-11-05T12:00:00Z", sent=3, held=40)
+            rail.record_state(path, last_attempt_at="2026-11-05T12:05:00Z")
+            state = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(state["last_ok_at"], "2026-11-05T12:00:00Z")
+        self.assertEqual(state["last_attempt_at"], "2026-11-05T12:05:00Z")
+        self.assertEqual(state["held"], 40)
+
+    def test_an_error_is_redacted_before_it_is_written(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "rail.json"
+            rail.record_state(path, last_error="could not reach https://user:hunter2xyz@host.example/x")
+            self.assertNotIn("hunter2xyz", path.read_text(encoding="utf-8"))
 
 
 class RefusalTests(unittest.TestCase):

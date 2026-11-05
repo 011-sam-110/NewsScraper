@@ -226,25 +226,21 @@ class RealRowTests(unittest.TestCase):
                 self.assertIsNotNone(identity.utc_iso(row["published"]))
                 self.assertIsInstance(identity.format_flags("bbc", row), list)
 
-    def test_nyt_feed_rows(self) -> None:
-        from scraper import nyt
+    def test_feed_rows(self) -> None:
+        # The NYT feed this test read was dropped on 2026-11-05; Provenance's RSS feeds took its place.
+        from unittest import mock
 
-        document = (FIXTURES / "nyt" / "Americas.xml").read_bytes()
-        from scraper import common
+        from scraper import SOURCES, common
 
-        items = common.parse_rss(document)
-        rows = []
-        for item in items:
-            from scraper import feeds
-
-            row = feeds.base_row(item, nyt.SECTIONS["americas"])
-            row["categories"] = {**nyt.keyword_categories(item), **row["categories"]}
-            rows.append(row)
-        self.assertTrue(rows)
-        for row in rows:
-            with self.subTest(url=row["url"]):
-                self.assertTrue(identity.aliases("nyt", row))
-                self.assertIsNotNone(identity.utc_iso(row["published"]))
+        for slug in ("npr", "dw", "allafrica", "thediplomat"):
+            document = (FIXTURES / "feeds" / f"{slug}.xml").read_bytes()
+            with mock.patch.object(common, "http_get", return_value=document):
+                rows = SOURCES[slug].list_page("feed", 0, 8)
+            self.assertTrue(rows)
+            for row in rows:
+                with self.subTest(slug=slug, url=row["url"]):
+                    self.assertTrue(identity.aliases(slug, row))
+                    self.assertIsNotNone(identity.utc_iso(row["published"]))
 
 
 if __name__ == "__main__":

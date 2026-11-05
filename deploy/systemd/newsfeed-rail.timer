@@ -1,17 +1,18 @@
 [Unit]
-Description=NewsScraper: hourly push to Provenance's live news rail
+Description=NewsScraper: RSS feeds and the push to Provenance, every 5 minutes
 
 [Timer]
-# Quarter to, which is after the pipeline. The scrape starts on the hour, the pipeline
-# runs at :30 and takes a minute or two, so a push at :45 sends stories that have been
-# through extract, resolve and cluster rather than raw rows with no event on them. A row
-# with no event reaches the World news feed either way, but it cannot reach the map.
-OnCalendar=*:45
-RandomizedDelaySec=2min
-# Catch up after the machine was asleep or off. This matters more here than on the other
-# timers: a missed push is not a gap in the store, it is a layer reporting nothing.
+# Every 5 minutes. Until 2026-11-05 this was hourly at :45, which made the World Headlines
+# widget at least an hour behind the feeds it shows, and after each deploy (about six a day) the
+# site held no pushed story until the next run. Five minutes is the far end's own cache period
+# for the feeds it reads itself (lib/news/feed.ts), so the push is never staler than that.
+#
+# Stories that extract reads later are not lost to the map: a story whose extraction is newer
+# than the far end's cursor is sent again with its event (newsfeed/rail.py, rows_since).
+OnCalendar=*:0/5
+RandomizedDelaySec=20s
+AccuracySec=10s
 Persistent=true
-AccuracySec=1min
 
 [Install]
 WantedBy=timers.target

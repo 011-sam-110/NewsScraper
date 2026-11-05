@@ -12,7 +12,9 @@ import sys
 
 from . import extract as extract_stage
 from . import cluster as cluster_stage
+from . import drop as drop_stage
 from . import geonames as geonames_stage
+from . import health as health_stage
 from . import rail as rail_stage
 from . import resolve as resolve_stage
 from . import scrape as scrape_stage
@@ -22,7 +24,6 @@ from .settings import SettingsError
 # Stage -> the milestone in docs/ARCHITECTURE.md section 14 that builds it.
 PLANNED_STAGES = {
     "publish": "M10",
-    "health": "M10",
     "eval": "M4",
 }
 
@@ -62,6 +63,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     rail_stage.add_arguments(rail_parser)
 
+    health_parser = stages.add_parser(
+        "health", help="Is news still arriving and reaching the site? Posts changes to the agent hub."
+    )
+    health_stage.add_arguments(health_parser)
+
+    drop_parser = stages.add_parser(
+        "drop-outlets", help="Forget the stored rows of the outlets Sam dropped. A dry run without --yes."
+    )
+    drop_stage.add_arguments(drop_parser)
+
     for name, milestone in PLANNED_STAGES.items():
         stages.add_parser(name, help=f"Not built yet: milestone {milestone}.", add_help=False)
     return parser
@@ -92,6 +103,10 @@ def main(argv: list[str] | None = None) -> int:
             return cluster_stage.run(args)
         if args.stage == "rail":
             return rail_stage.run(args)
+        if args.stage == "health":
+            return health_stage.run(args)
+        if args.stage == "drop-outlets":
+            return drop_stage.run(args)
     except SettingsError as error:
         print(f"Settings: {error}", file=sys.stderr)
         return 2

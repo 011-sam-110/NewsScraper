@@ -25,10 +25,17 @@ import gzip
 import hashlib
 import hmac
 import json
+import os
+import tempfile
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterator, Sequence
+
+from scraper import DROPPED_OUTLETS
+from scraper.common import redact
 
 from . import taxonomy
 from .store import Store
@@ -54,6 +61,21 @@ SIGNATURE_HEADER = "x-provenance-signature"
 DIGEST_HEADER = "x-provenance-content-sha256"
 
 PATH = "/api/news/ingest"
+
+# THE REFILL. Provenance keeps pushed stories in process memory, so every deploy empties it and its
+# cursor comes back "". Until 2026-11-05 that meant "send everything since the first row", oldest
+# first, 2,000 a run: measured that day, 18,183 rows sat before Provenance's 72-hour window, about
+# 10 hourly runs before the first story it would show. Main deployed about six times a day, so
+# pushed stories would have been on the site about 37% of the time. The rail now starts at its own
+# window (Provenance holds 7 days), and sends that whole window in one run.
+RAIL_WINDOW_DAYS = 7
+# The most rows one cold start sends. Measured 2026-11-05: 3,527 rows seen in the last 7 days
+# before the feeds were added; the feeds add about 600 a day.
+COLD_START_LIMIT = 20_000
+# Article text crosses only for a row the far end has not seen, first seen in this many hours.
+# Provenance keeps text on its newest 400 rows, for clustering, and never serves it.
+TEXT_WINDOW_HOURS = 24
+TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 def body_digest_hex(body: bytes) -> str:
@@ -123,7 +145,9 @@ SELECT s.story_id, s.outlet, s.headline, s.description, s.url, s.published,
 FROM stories s
 LEFT JOIN story_texts t ON t.story_id = s.story_id
 LEFT JOIN extractions e ON e.story_id = s.story_id AND e.config_hash = ?
-WHERE s.last_seen_at > ?
+WHERE (s.last_seen_at > ? OR e.created_at > ?)
+  AND s.last_seen_at > ?
+  AND s.outlet NOT IN ({dropped})
 ORDER BY s.last_seen_at, s.story_id
 LIMIT ?
 """
@@ -352,13 +376,74 @@ def probe(url: str, secret: str, generated_at: str) -> str:
     return str(answer.get("cursor") or "")
 
 
-def rows_since(store: Store, cursor: str, *, extract_hash: str, limit: int) -> list[dict[str, Any]]:
+# Sam dropped the Guardian and the NYT on 2026-11-05. Their stored rows are never sent again.
+ITEM_SQL = ITEM_SQL.replace("{dropped}", ", ".join(f"'{outlet}'" for outlet in DROPPED_OUTLETS))
+
+
+def start_point(cursor: str, now: datetime, window_days: int = RAIL_WINDOW_DAYS) -> str:
+    """Where this run reads from: the far end's cursor, but never further back than the window."""
+    floor = (now - timedelta(days=window_days)).strftime(TIME_FORMAT)
+    return max(cursor or "", floor)
+
+
+def run_limit(cursor: str, limit: int) -> int:
+    """A cold start (empty cursor) sends the whole window in one run; a steady run keeps its limit."""
+    return limit if cursor else max(limit, COLD_START_LIMIT)
+
+
+def rows_to_send(store: Store, cursor: str, now: datetime, *, extract_hash: str, limit: int) -> list[dict[str, Any]]:
+    """rows_since from the start point: the cursor, moved up to the window when it is older."""
+    return rows_since(
+        store, start_point(cursor, now), extract_hash=extract_hash, limit=limit,
+        floor=start_point("", now),
+    )
+
+
+def send_text_for(row: dict[str, Any], cursor: str, now: datetime) -> bool:
+    """Send this row's article text? Only when it is new to the far end and was first seen today."""
+    if not row.get("text"):
+        return False
+    first_seen = row.get("first_seen_at") or ""
+    recent = first_seen >= (now - timedelta(hours=TEXT_WINDOW_HOURS)).strftime(TIME_FORMAT)
+    new_to_far_end = not cursor or first_seen > cursor
+    return recent and new_to_far_end
+
+
+def record_state(path: Path, **fields: Any) -> None:
+    """Merge fields into rail.json, written whole through a temporary file. The health stage reads it.
+
+    Every string is redacted first: an error can hold a URL, and this file is read by a stage that
+    posts to the hub.
+    """
+    try:
+        state = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        state = {}
+    state.update({key: redact(value) if isinstance(value, str) else value for key, value in fields.items()})
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=".rail-", suffix=".json")
+    with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as out:
+        json.dump(state, out, indent=2, sort_keys=True)
+    os.replace(temporary, path)
+
+
+def rows_since(
+    store: Store, cursor: str, *, extract_hash: str, limit: int, floor: str = ""
+) -> list[dict[str, Any]]:
     """Stories whose `last_seen_at` is after the cursor, oldest first, with their sections.
 
     Ordering by `last_seen_at` is what makes the cursor work: the far end returns the high-water
     mark of what it ACCEPTED, so resuming from it can never skip a row it refused to store.
+
+    A story whose extraction is newer than the cursor is read again too. The rail runs every 5
+    minutes and extract once an hour, so most scraped stories cross before extract reads them, with
+    no event, and extract does not move `last_seen_at`. Without this their events could never reach
+    the far end. Every row sent has a `last_seen_at` no later than this read, so an extraction
+    written after the read is newer than the cursor the far end returns. The one gap: times are
+    whole seconds, so an extraction stamped in the same second as the newest row sent is missed
+    until the next refill. `floor` keeps both kinds inside the rail's window.
     """
-    rows = [dict(row) for row in store.query(ITEM_SQL, (extract_hash, cursor, limit))]
+    rows = [dict(row) for row in store.query(ITEM_SQL, (extract_hash, cursor, cursor, floor, limit))]
     if not rows:
         return []
 
@@ -421,23 +506,36 @@ def run(args: "argparse.Namespace", settings: "Settings | None" = None) -> int:
         url = url + PATH
     generated_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     extract_hash = extract_config_hash()
+    state_path = settings.data_dir / "rail.json"
+    now = datetime.now(timezone.utc)
+    if not args.dry_run:
+        record_state(state_path, last_attempt_at=now.strftime(TIME_FORMAT))
 
     try:
         cursor = "" if args.from_scratch else probe(url, settings.ingest_secret, generated_at)
     except RailRefused as refused:
         print(f"rail: the box refused the cursor probe, {refused}")
+        if not args.dry_run:
+            record_state(state_path, last_error=f"cursor probe refused: {refused}")
         return 1
     except OSError as error:
-        print(f"rail: could not reach the box, {error}")
+        print(redact(f"rail: could not reach the box, {error}"))
+        if not args.dry_run:
+            record_state(state_path, last_error=f"could not reach the box: {error}")
         return 1
 
-    print(f"rail: box cursor {cursor or '(empty, it holds nothing)'}")
+    empty = f"(empty, it holds nothing: sending the last {RAIL_WINDOW_DAYS} days)"
+    print(f"rail: box cursor {cursor or empty}")
 
     with Store(settings.news_db) as store:
-        rows = rows_since(store, cursor, extract_hash=extract_hash, limit=args.limit)
-    items = [build_item(row, send_text=not args.no_text) for row in rows]
+        rows = rows_to_send(store, cursor, now, extract_hash=extract_hash, limit=run_limit(cursor, args.limit))
+    items = [
+        build_item(row, send_text=not args.no_text and send_text_for(row, cursor, now)) for row in rows
+    ]
     if not items:
         print("rail: nothing new to send")
+        if not args.dry_run:
+            record_state(state_path, last_ok_at=now.strftime(TIME_FORMAT), box_cursor=cursor, sent=0, last_error="")
         return 0
 
     planned = list(batches(items))
@@ -448,7 +546,7 @@ def run(args: "argparse.Namespace", settings: "Settings | None" = None) -> int:
             print(f"  batch {index}: {len(batch)} items, {size / 1024:.0f} KiB uncompressed")
         return 0
 
-    sent = stored = dropped = 0
+    sent = stored = dropped = held = 0
     for index, batch in enumerate(planned, 1):
         try:
             answer = post(url, settings.ingest_secret, encode(batch, generated_at))
@@ -456,13 +554,16 @@ def run(args: "argparse.Namespace", settings: "Settings | None" = None) -> int:
             # The cursor is the box's, never ours, so stopping here loses nothing: the next run
             # asks again and resumes from what it actually accepted.
             print(f"  batch {index}: refused, {refused}")
+            record_state(state_path, last_error=f"batch {index} refused: {refused}")
             return 1
         except OSError as error:
-            print(f"  batch {index}: could not reach the box, {error}")
+            print(redact(f"  batch {index}: could not reach the box, {error}"))
+            record_state(state_path, last_error=f"batch {index}: could not reach the box: {error}")
             return 1
         sent += answer.get("received", 0)
         stored += answer.get("stored", 0)
         dropped += answer.get("dropped", 0)
+        held = answer.get("held", held)
         refused_ids = answer.get("droppedIds") or []
         print(
             f"  batch {index}: received {answer.get('received')}, stored {answer.get('stored')}"
@@ -475,4 +576,9 @@ def run(args: "argparse.Namespace", settings: "Settings | None" = None) -> int:
             print(f"            refused permanently: {', '.join(refused_ids[:10])}")
 
     print(f"rail: sent {sent}, stored {stored}, dropped {dropped}")
+    record_state(
+        state_path,
+        last_ok_at=now.strftime(TIME_FORMAT), box_cursor=cursor, sent=sent, stored=stored,
+        dropped=dropped, held=held, last_error="" if not dropped else f"{dropped} rows refused",
+    )
     return 1 if dropped else 0

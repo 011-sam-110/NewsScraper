@@ -9,8 +9,11 @@ check and repair the scheduled pipeline. The design is `ARCHITECTURE.md`; the pr
 | Stage | State |
 |---|---|
 | `scrape` | Built (milestone M1). Stores rows in SQLite, hourly, on systemd timers. |
-| `status` | Built. Not a pipeline stage: it is how an operator checks the schedule before the health stage exists. |
-| `extract`, `resolve`, `cluster`, `publish`, `health`, `geonames-build`, `eval` | Not built. Each exits 2 and names its milestone. |
+| `status` | Built. Not a pipeline stage: what the store holds, per outlet. |
+| `extract`, `resolve`, `cluster`, `geonames-build` | Built (M5 to M7). |
+| `rail` | Built. Pushes the store to Provenance's live news rail every 5 minutes. |
+| `health` | Built (2026-11-05). Every 15 minutes; posts to the agent hub when a check fails or recovers. |
+| `publish`, `eval` | Not built. Each exits 2 and names its milestone. |
 
 `main.py` is untouched and still writes JSON Lines exactly as it always did.
 
@@ -141,7 +144,8 @@ pkexec /usr/bin/dnf install -y <packages>
 Seed the store with a bounded run, because an empty store has nothing to stop a section early:
 
 ```
-.venv/bin/python -m newsfeed scrape --sources bbc guardian pbs nyt --max-pages 2
+.venv/bin/python -m newsfeed scrape --sources bbc pbs --max-pages 2
+.venv/bin/python -m newsfeed scrape --sources feeds
 deploy/reuters-display.sh .venv/bin/python -m newsfeed scrape --sources reuters --max-pages 2
 .venv/bin/python -m newsfeed status
 ```
@@ -166,15 +170,19 @@ loginctl enable-linger              # so the timers survive a logout. No sudo, n
 
 | Timer | When | What |
 |---|---|---|
-| `newsfeed-scrape.timer` | hourly, on the hour | BBC, the Guardian, PBS, NYT |
+| `newsfeed-scrape.timer` | hourly, on the hour | BBC, PBS |
 | `newsfeed-scrape-reuters.timer` | every three hours, at 20 past | Reuters, on the seat's real display |
 | `newsfeed-pipeline.timer` | hourly, at half past | extract, resolve, cluster |
-| `newsfeed-rail.timer` | hourly, at quarter to | push the stories to Provenance |
+| `newsfeed-rail.timer` | every 5 minutes | the 26 RSS feeds, then push the last 7 days' changes to Provenance |
+| `newsfeed-health.timer` | every 15 minutes | the health checks (`newsfeed/health.py`) |
 
-The order inside the hour is the point: scrape, then read what was scraped, then push what was
-read. A story pushed before the pipeline has seen it still reaches the World news feed, because
-that feed needs a headline and a link and nothing else, but it carries no event and so cannot
-reach the map until a later push.
+A story pushed before the pipeline has seen it reaches the World news feed at once, because that
+feed needs a headline and a link and nothing else. When extract reads it later, the next push
+sends it again with its event, because the rail also sends every story whose extraction is newer
+than the far end's cursor.
+
+The Guardian and NYT were dropped on 2026-11-05 and are not scraped. Their stored rows are never
+pushed (`DROPPED_OUTLETS` in `scraper/__init__.py`).
 
 Reuters is the exception to hourly, and not because of this order. DataDome rate-limits a session,
 and a 15-section run an hour after another 15-section run was refused on every section from the
@@ -213,7 +221,9 @@ systemctl --user start newsfeed-scrape.service # run one now, off the schedule
 ```
 
 `status` prints each outlet's last new story, its consecutive failure count and its last error.
-Until the health stage is built (M10), nothing alerts: this command is the check.
+`python -m newsfeed health --dry-run` runs every health check and prints the result without
+posting. The last result is in `~/.local/share/newsscraper/health.json`, and the last push in
+`rail.json` beside it.
 
 A scheduled run logs one line per listing page and a summary per outlet, not one line per stored
 row. A run stores over a thousand rows an hour, and logging each one would bury the useful lines.
@@ -233,7 +243,9 @@ listing. Two things follow:
 
 | Symptom | What to do |
 |---|---|
-| Reuters fails with 401 or 403 | DataDome refused this machine or network. Check Chrome is installed and that no VPN or proxy is on. If it persists, tell Sam and run the other four with `--sources bbc guardian pbs nyt`. |
+| Reuters fails with 401 or 403 | DataDome refused this machine or network. Check Chrome is installed and that no VPN is on. With `NEWS_PROXY_URL` set, a blocked Chrome session is retried once through the proxy (`NEWS_SCRAPER_REUTERS_PROXY`). If it persists, tell Sam. The other outlets are unaffected. |
+| Reuters fails with `Page.evaluate: undefined` or "refused the request inside the Chrome tab" | The Arc deployment id is stale (measured 2026-11-05: the fallback `382` was refused, the live `393` answered). The scraper now reads the id from the open tab; if that fails too, update `DEFAULT_DEPLOYMENT` in `scraper/reuters.py`. |
+| An outlet keeps answering 403 or 429 | Set the proxy once: `ssh -t provenance-1 ~/NewsScraper/deploy/set-news-key.sh`. Every outlet then retries a block once through it. |
 | Every Reuters section fails with HTTP 404 at once | Reuters has redeployed and the Arc deployment id in the API URL has gone stale. The scraper reads the current id from the live page and retries once, so this should heal itself. If it does not, check the page still carries a `?d=<digits>` asset URL and update `DEFAULT_DEPLOYMENT` in `scraper/reuters.py`. |
 | An outlet reports `<section>: HTTP 503` and the run exits 1 | A transient outlet error. The other sections of that outlet still ran, and the next hourly run picks up what this one missed. Only worry if the same section fails for several hours. |
 | One outlet goes quiet, the rest are fine | That outlet's parser broke. Save the new response into `tests/fixtures/<outlet>/`, write a test against it, then fix the parser. |
@@ -243,8 +255,7 @@ listing. Two things follow:
 
 ## What M1 left for later milestones
 
-- No health check, so an outlet can go quiet and nothing alerts (M10). `status` is the manual check.
 - A section's transient error is not retried inside the run. It is isolated, so the outlet's other sections still run, and the next hourly run collects what it missed.
 - There is no history backfill. The pipeline watches for new stories, and `--max-pages 10` deliberately stops a run walking an archive. If Sam ever wants history, it is a separate one-off job, run slowly and not on the schedule.
-- Text is stored for BBC, the Guardian, PBS and Reuters. NYT sends no text, by design.
+- Text is stored for BBC, PBS and Reuters. The RSS feeds send no text, by design.
 - Nothing reads the store yet. `extract` (M5) is the next stage that does.

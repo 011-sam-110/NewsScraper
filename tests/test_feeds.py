@@ -1,10 +1,10 @@
-"""Feed-only sources (NYT) replayed from recorded RSS feeds. No network."""
+"""Provenance's RSS feeds as outlets, replayed from saved real feeds. No network.
 
-import contextlib
-import io
-import json
+Fixtures in tests/fixtures/feeds/ are real responses from 2026-11-05, cut to three items, with
+full-text elements (content:encoded) removed: this repo is public and holds no article text.
+"""
+
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
@@ -12,16 +12,13 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scraper import common, feeds, nyt  # noqa: E402
+from scraper import DROPPED_OUTLETS, FEED_GROUP, FEED_OUTLETS, SOURCES, common, feeds, rss_outlets  # noqa: E402
 
-FIXTURES = Path(__file__).parent / "fixtures"
-FEED_FIXTURES = {
-    nyt: ("americas", FIXTURES / "nyt" / "Americas.xml"),
-}
+FIXTURES = Path(__file__).parent / "fixtures" / "feeds"
 
 
 class RecordedFeed:
-    """Stands in for common.http_get: serves one recorded document and records every URL asked for."""
+    """Stands in for common.http_get: serves one saved document and records every URL asked for."""
 
     def __init__(self, document: bytes) -> None:
         self.document = document
@@ -32,132 +29,93 @@ class RecordedFeed:
         return self.document
 
 
-def replay(source: Any, section: str | None = None, page: int = 0) -> tuple[list[dict[str, Any]], RecordedFeed]:
-    default_section, path = FEED_FIXTURES[source]
-    recorded = RecordedFeed(path.read_bytes())
+def replay(slug: str, page: int = 0) -> tuple[list[dict[str, Any]], RecordedFeed]:
+    recorded = RecordedFeed((FIXTURES / f"{slug}.xml").read_bytes())
     with mock.patch.object(common, "http_get", recorded):
-        rows = source.list_page(section or default_section, page, 8)
+        rows = SOURCES[slug].list_page("feed", page, 8)
     return rows, recorded
 
 
-class SharedFeedSourceTests(unittest.TestCase):
-    def test_every_row_has_the_shared_fields_and_no_text(self) -> None:
-        for source in FEED_FIXTURES:
-            with self.subTest(source=source.NAME):
-                rows, recorded = replay(source)
-                self.assertEqual(len(rows), 5)
-                self.assertEqual(recorded.urls, [source.SECTIONS[FEED_FIXTURES[source][0]]])
-                for row in rows:
-                    self.assertLessEqual(set(common.empty_row()), set(row))
-                    self.assertIsNone(row["text"])
-                    self.assertTrue(row["id"] and row["url"] and row["headline"] and row["published"])
+class FeedOutletsTest(unittest.TestCase):
+    def test_rss2_feed_gives_rows_with_headline_url_and_time(self) -> None:
+        rows, recorded = replay("npr")
+        self.assertEqual(len(rows), 3)
+        self.assertEqual(recorded.urls, ["https://feeds.npr.org/1004/rss.xml"])
+        for row in rows:
+            self.assertTrue(row["headline"])
+            self.assertTrue(row["url"].startswith("https://"))
+            self.assertRegex(row["published"], r"^\d{4}-\d\d-\d\dT")
+            self.assertIsNone(row["text"])
 
-    def test_page_one_returns_nothing_and_requests_nothing(self) -> None:
-        for source in FEED_FIXTURES:
-            with self.subTest(source=source.NAME):
-                rows, recorded = replay(source, page=1)
-                self.assertEqual(rows, [])
-                self.assertEqual(recorded.urls, [])
+    def test_an_rss1_rdf_feed_is_read(self) -> None:
+        # DW publishes RSS 1.0, whose items live in the RSS 1.0 namespace and date with dc:date.
+        rows, _ = replay("dw")
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(all(row["headline"] and row["url"] for row in rows))
+        self.assertTrue(all(row["published"] for row in rows), "dc:date is the date in RSS 1.0")
 
-    def test_modules_do_not_fetch_article_pages(self) -> None:
-        for source in FEED_FIXTURES:
-            with self.subTest(source=source.NAME):
-                self.assertFalse(hasattr(source, "article_details"))
+    def test_allafrica_is_rss2_whatever_its_file_name_says(self) -> None:
+        # The address ends in .rdf, but the body is RSS 2.0 with a plain pubDate.
+        rows, _ = replay("allafrica")
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(all(row["headline"] and row["url"] and row["published"] for row in rows))
 
-    def test_scrape_with_text_requests_only_the_feed(self) -> None:
-        for source, (section, path) in FEED_FIXTURES.items():
-            with self.subTest(source=source.NAME):
-                recorded = RecordedFeed(path.read_bytes())
-                with tempfile.TemporaryDirectory() as directory, mock.patch.object(common, "http_get", recorded):
-                    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                        totals, errors = common.scrape(
-                            Path(directory), [(source, section)], size=8, delay=0, max_pages=0, include_text=True
-                        )
-                    output = Path(directory) / source.NAME / f"{section}.jsonl"
-                    rows = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
-                self.assertEqual((totals, errors), ({source.NAME: 5}, {}))
-                self.assertEqual(recorded.urls, [source.SECTIONS[section]])
-                self.assertEqual({(row["outlet"], row["section"]) for row in rows}, {(source.NAME, section)})
+    def test_a_date_inside_cdata_is_read(self) -> None:
+        # The Diplomat wraps pubDate in CDATA: <pubDate><![CDATA[Thu, 05 Nov 2026 ...]]></pubDate>.
+        rows, _ = replay("thediplomat")
+        self.assertEqual(len(rows), 3)
+        self.assertTrue(all(row["published"] and row["published"].startswith("2026-") for row in rows))
 
-    def test_feed_errors_name_the_outlet(self) -> None:
-        def failing_get(url: str, *args: Any, **kwargs: Any) -> bytes:
-            raise common.FetchError(f"HTTP 503 from {url}", 503)
+    def test_a_feed_has_one_page(self) -> None:
+        rows, recorded = replay("npr", page=1)
+        self.assertEqual(rows, [])
+        self.assertEqual(recorded.urls, [], "a later page must not make a request")
 
-        for source, (section, _) in FEED_FIXTURES.items():
-            with self.subTest(source=source.NAME), mock.patch.object(common, "http_get", failing_get):
-                with self.assertRaisesRegex(RuntimeError, "HTTP 503"):
-                    source.list_page(section, 0, 8)
+    def test_a_feed_fetches_no_article_page(self) -> None:
+        self.assertFalse(hasattr(SOURCES["npr"], "article_details"))
 
+    def test_slugs_are_unique_and_registered(self) -> None:
+        slugs = [slug for slug, _, _ in rss_outlets.FEEDS]
+        self.assertEqual(len(slugs), len(set(slugs)))
+        self.assertEqual(FEED_OUTLETS, frozenset(slugs))
+        for slug in slugs:
+            self.assertIn(slug, SOURCES)
+        self.assertNotIn(FEED_GROUP, SOURCES)
 
-class HelperTests(unittest.TestCase):
-    def test_url_section_is_the_path_before_the_date_or_slug(self) -> None:
-        cases = {
-            "https://www.nytimes.com/2026/09/10/arts/design/bayeux-tapestry-replicas.html": ["arts", "design"],
-            "https://www.nytimes.com/video/world/asia/100000011129754/tracing-the-path.html": ["video", "world", "asia"],
-            "https://example.com/world/middle-east/oil-supplies-0cd316ad?mod=rss": ["world", "middle-east"],
-            "https://example.com/opinion/aluminum-tariffs-8f646d1e": ["opinion"],
-            "https://example.com/middle-east-and-africa/2026/09/13/slug": ["middle-east-and-africa"],
-            "https://example.com/interactive/2026-election-tracker": ["interactive"],
-            "https://example.com/interactive/2026-war-tracker/": ["interactive"],
-        }
-        for url, expected in cases.items():
-            with self.subTest(url=url):
-                self.assertEqual(feeds.url_section(url), expected)
+    def test_the_dropped_outlets_cannot_come_back(self) -> None:
+        for dropped in DROPPED_OUTLETS:
+            self.assertNotIn(dropped, SOURCES)
+        for slug, name, url in rss_outlets.FEEDS:
+            for host in ("theguardian.com", "nytimes.com"):
+                self.assertNotIn(host, url, f"{slug} reads {host}, which Sam dropped")
 
-    def test_split_authors(self) -> None:
-        self.assertEqual(feeds.split_authors(["Zane Irwin and Prior Beharry"]), ["Zane Irwin", "Prior Beharry"])
-        self.assertEqual(
-            feeds.split_authors(["Edward Wong, Genevieve Glatsky and Annie Correal"]),
-            ["Edward Wong", "Genevieve Glatsky", "Annie Correal"],
-        )
-        self.assertEqual(feeds.split_authors(["Robert Siegel, E.J. Dionne Jr., Carlos Lozada and Vishakha Darbha"]),
-                         ["Robert Siegel", "E.J. Dionne Jr.", "Carlos Lozada", "Vishakha Darbha"])
-        self.assertEqual(feeds.split_authors(["Hannah Alberstadt", "and", "Miranda Marquit"]), ["Hannah Alberstadt", "Miranda Marquit"])
-        self.assertEqual(feeds.split_authors([]), [])
+    def test_sources_the_paid_site_does_not_serve_are_not_fetched(self) -> None:
+        urls = " ".join(url for _, _, url in rss_outlets.FEEDS)
+        for host in ("aljazeera.com", "news.un.org", "t.me"):
+            self.assertNotIn(host, urls)
 
+    def test_a_real_feed_outlet_runs_through_the_scrape_loop_into_the_store(self) -> None:
+        # The loop keys its work by source, so a source must be hashable. A fake source in the scrape
+        # tests is; the first live run found that a SimpleNamespace was not.
+        import contextlib
+        import io
+        import tempfile
 
-class NytTests(unittest.TestCase):
-    def test_field_mapping(self) -> None:
-        rows, _ = replay(nyt)
-        first = rows[0]
-        url = "https://www.nytimes.com/2026/09/14/world/americas/trinidad-assassination-plot-arrests.html"
-        self.assertEqual((first["id"], first["url"], first["guid"]), (url, url, url))
-        self.assertEqual(first["headline"], "She Bashed the Government on a Private Call. Then She Was Detained for Months")
-        self.assertTrue(first["description"])
-        self.assertEqual(first["published"][:10], "2026-09-14")
-        self.assertTrue(first["thumbnail"].startswith("https://static01.nyt.com/"))
-        self.assertEqual(first["media"][0]["url"], first["thumbnail"])
-        self.assertEqual(first["media_credit"], "Prior Beharry for The New York Times")
-        self.assertEqual(first["url_section"], "world/americas")
-        self.assertEqual(first["feed_url"], nyt.SECTIONS["americas"])
+        from newsfeed.scrape import StoreSink
+        from newsfeed.store import Store
 
-    def test_authors_are_split_from_the_one_creator_string(self) -> None:
-        rows, _ = replay(nyt)
-        self.assertEqual(rows[0]["authors"], ["Zane Irwin", "Prior Beharry"])
-        self.assertEqual(rows[0]["author"], "Zane Irwin")
-        self.assertEqual(rows[3]["authors"], ["Edward Wong", "Genevieve Glatsky", "Annie Correal"])
-        self.assertEqual(rows[1]["authors"], ["Alan Yuhas"])
+        recorded = RecordedFeed((FIXTURES / "dw.xml").read_bytes())
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(common, "http_get", recorded):
+            with Store(Path(folder) / "news.sqlite3") as store:
+                sink = StoreSink(store)
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    _, errors = common.scrape(Path(folder), [(SOURCES["dw"], "feed")], 8, 0.0, 0, True, sink=sink)
+                self.assertEqual(errors, {})
+                self.assertEqual(store.scalar("SELECT COUNT(*) FROM stories WHERE outlet = 'dw' AND status = 'feed'"), 3)
 
-    def test_categories_are_grouped_by_nyt_keyword_domain(self) -> None:
-        rows, _ = replay(nyt)
-        chimu = rows[1]["categories"]
-        self.assertEqual(chimu["subjects"], ["Archaeology and Anthropology", "Incas", "Tombs and Tombstones", "Arts and Antiquities Looting"])
-        self.assertEqual(chimu["places"], ["Chan Chan (Peru)", "Peru"])
-        self.assertEqual(chimu["other"], ["Chimu (culture)"])
-        self.assertEqual(chimu["url_section"], ["world", "americas"])
-        self.assertEqual(rows[2]["categories"]["organizations"], ["British Museum", "University of North Georgia"])
-        self.assertEqual(rows[3]["categories"]["people"], ["Noboa, Daniel", "Rubio, Marco"])
-        self.assertIn("The Tempest (Play)", rows[4]["categories"]["titles"])
-        self.assertEqual(rows[4]["url_section"], "theater")
-
-    def test_item_without_media_has_no_thumbnail(self) -> None:
-        rows, _ = replay(nyt)
-        self.assertIsNone(rows[2]["thumbnail"])
-        self.assertEqual(rows[2]["media"], [])
-
-    def test_sports_feed_is_not_pinned(self) -> None:
-        self.assertNotIn("sports", nyt.SECTIONS)
-        self.assertTrue(all(url.startswith("https://rss.nytimes.com/services/xml/rss/nyt/") for url in nyt.SECTIONS.values()))
+    def test_media_credit_nested_in_media_content_is_kept(self) -> None:
+        document = (FIXTURES / "npr.xml").read_bytes()
+        self.assertEqual(len(feeds.nested_media_text(document)), 3)
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ import time
 from functools import cached_property
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import urlencode, urljoin, urlsplit
+from urllib.parse import unquote, urlencode, urljoin, urlsplit
 
 from . import common
 from .common import FetchError, clean_text
@@ -43,10 +43,19 @@ SECTIONS = {
 REFERER = urljoin(SITE_ROOT, "/world/")
 # DataDome answers a blocked request with one of these statuses.
 BLOCKED_STATUSES = (401, 403, 429)
-# The section API carries Reuters' Arc deployment id as "d". A stale one answers 404 for every
-# section at once, which is what happened on 2026-09-15 when Reuters moved from 381 to 382. So the
-# id is read from the live page and this value is only the fallback for when that cannot be done.
-DEFAULT_DEPLOYMENT = "382"
+# Reuters' plain requests (urllib) never retry through the proxy: DataDome refuses them by the
+# client's fingerprint, not by its address (measured 2026-11-05: Playwright's own request client
+# got a captcha from the same box). Only the real Chrome session can get through, and its proxy
+# use is reuters_proxy_policy().
+# The section API carries Reuters' Arc deployment id as "d". A stale one fails every section at
+# once. On 2026-09-15 (381 to 382) it answered 404. From 2026-10-13 it failed differently: Reuters'
+# page wraps window.fetch, and the wrapper rejects a stale-id request with `undefined`, which
+# Playwright reported as "Page.evaluate: undefined" on all 15 sections for 156 runs. The id came
+# from a plain request for the world page, which DataDome answers with 401, so the scraper fell
+# back to this hard-coded value while Reuters ran 393 (measured on provenance-1, 2026-11-05: d=382
+# rejected, d=393 answered 200 with the section JSON, same tab). The id is now read from the Chrome
+# tab when the plain request is refused, and this value is only the last resort.
+DEFAULT_DEPLOYMENT = "393"
 # The deployment id appears in the page's own asset URLs as ?d=<digits> or &d=<digits>.
 DEPLOYMENT_PATTERN = re.compile(r"[?&]d=(\d{1,6})\b")
 _browser_session: list[Any] = []
@@ -65,16 +74,45 @@ def extra_chrome_args() -> list[str]:
     return shlex.split(os.environ.get("NEWS_SCRAPER_CHROME_ARGS", ""))
 
 
+def chrome_profile() -> str | None:
+    """NEWS_SCRAPER_CHROME_PROFILE: a Chrome user-data folder that holds Sam's Reuters login.
+
+    Unset, every run starts a fresh profile, as it always has. Set, the run opens that folder, so
+    a login made there by hand survives between runs. Its cookies and passwords are never read by
+    this code; Chrome uses them as it would for a person. Never commit the folder.
+    """
+    value = os.environ.get("NEWS_SCRAPER_CHROME_PROFILE", "").strip()
+    return value or None
+
+
+def reuters_proxy_policy() -> str:
+    """When the Chrome session goes through NEWS_PROXY_URL: off, retry (after a block) or always.
+
+    NEWS_SCRAPER_REUTERS_PROXY sets it. The default is `retry` for a fresh profile and `off` for the
+    logged-in profile: the gateway gives a new exit IP for every connection, and one account seen
+    from many addresses looks like a shared or stolen login.
+    """
+    explicit = os.environ.get("NEWS_SCRAPER_REUTERS_PROXY", "").strip().lower()
+    if explicit in ("off", "retry", "always"):
+        return explicit
+    return "off" if chrome_profile() else "retry"
+
+
 def browser_proxy() -> Any:
-    if not common.PROXY_URL:
+    url = common.proxy_url()
+    if not url:
         return None
-    parsed = urlsplit(common.PROXY_URL)
+    parsed = urlsplit(url)
     proxy: dict[str, str] = {"server": f"{parsed.scheme}://{parsed.hostname}:{parsed.port}"}
     if parsed.username:
-        proxy["username"] = parsed.username
+        proxy["username"] = unquote(parsed.username)
     if parsed.password:
-        proxy["password"] = parsed.password
+        proxy["password"] = unquote(parsed.password)
     return proxy
+
+
+# Whether the open Chrome session goes through the proxy. One entry while a session is open.
+_session_proxied: list[bool] = []
 
 
 def read_deployment(page_html: str) -> str | None:
@@ -90,15 +128,20 @@ def read_deployment(page_html: str) -> str | None:
 
 
 def current_page_html() -> str | None:
-    """The Reuters world page, from the Chrome tab when there is one, else a plain request."""
-    if _browser_session:
+    """The Reuters world page: from the Chrome tab when there is one, else a plain request, and
+    when DataDome refuses the plain request (it answers 401), from a Chrome tab opened for it."""
+    if not _browser_session:
         try:
-            return _browser_session[0][3].content()
-        except Exception:  # noqa: BLE001 - a dead tab must not stop the scrape
+            return common.get_html(REFERER, proxy_retry=False)
+        except FetchError:
+            pass
+        try:
+            get_browser_session()
+        except RuntimeError:
             return None
     try:
-        return common.get_html(REFERER)
-    except FetchError:
+        return _browser_session[0][3].content()
+    except Exception:  # noqa: BLE001 - a dead tab must not stop the scrape
         return None
 
 
@@ -142,13 +185,15 @@ def fetch_page(section_path: str, offset: int, request_id: int, size: int) -> An
     try:
         return fetch_page_once(section_path, offset, request_id, size)
     except FetchError as error:
-        if error.status != 404:
+        # 404 is how a stale id answered in September; no status is how it answers now (the
+        # page's wrapped fetch rejects). Anything else is a real refusal and is reported.
+        if error.status not in (404, None):
             raise RuntimeError(f"Reuters: {error}") from error
     stale = deployment_id()
     fresh = deployment_id(refresh=True)
     if fresh == stale:
         raise RuntimeError(
-            f"Reuters: HTTP 404 for {section_path} and the deployment id is still {fresh}. "
+            f"Reuters: {section_path} failed and the deployment id is still {fresh}. "
             "The section API may have moved."
         )
     print(f"Reuters moved from deployment {stale} to {fresh}; retrying.", file=sys.stderr)
@@ -163,16 +208,28 @@ def fetch_page_once(section_path: str, offset: int, request_id: int, size: int) 
     if _browser_session:
         return fetch_page_in_browser(url)
     try:
-        return common.get_json(url, referer=urljoin(SITE_ROOT, section_path))
+        return common.get_json(url, referer=urljoin(SITE_ROOT, section_path), proxy_retry=False)
     except FetchError as error:
         if error.status in BLOCKED_STATUSES:
             return fetch_page_in_browser(url)
         raise
 
 
-def get_browser_session() -> Any:
+def can_retry_through_proxy() -> bool:
+    """A block may be retried once through the proxy: the policy is `retry`, a proxy is set, and
+    the open session is not already proxied."""
+    return (
+        reuters_proxy_policy() == "retry"
+        and common.proxy_url() is not None
+        and not (_session_proxied and _session_proxied[0])
+    )
+
+
+def get_browser_session(via_proxy: bool | None = None) -> Any:
     if _browser_session:
         return _browser_session[0]
+    if via_proxy is None:
+        via_proxy = reuters_proxy_policy() == "always" and common.proxy_url() is not None
     try:
         from playwright.sync_api import Error as PlaywrightError, sync_playwright
     except ImportError as error:
@@ -180,20 +237,33 @@ def get_browser_session() -> Any:
 
     playwright = sync_playwright().start()
     browser = None
+    context = None
+    profile = chrome_profile()
     try:
         # DataDome blocks Playwright's bundled Chromium and any browser that reports
         # navigator.webdriver, so drive the installed Google Chrome with its own user agent.
-        browser = playwright.chromium.launch(
-            channel="chrome",
-            headless=False,
-            proxy=browser_proxy(),
-            args=["--disable-blink-features=AutomationControlled", *extra_chrome_args()],
-            ignore_default_args=["--enable-automation"],
-        )
-        context = browser.new_context()
-        page = context.new_page()
+        options = {
+            "channel": "chrome",
+            "headless": False,
+            "proxy": browser_proxy() if via_proxy else None,
+            "args": ["--disable-blink-features=AutomationControlled", *extra_chrome_args()],
+            "ignore_default_args": ["--enable-automation"],
+        }
+        if profile:
+            # The logged-in profile: the same folder every run, so the login survives.
+            context = playwright.chromium.launch_persistent_context(profile, **options)
+            page = context.pages[0] if context.pages else context.new_page()
+        else:
+            browser = playwright.chromium.launch(**options)
+            context = browser.new_context()
+            page = context.new_page()
         page.goto(REFERER, wait_until="domcontentloaded", timeout=30000)
         if not wait_for_reuters_page(page, 30):
+            if not via_proxy and can_retry_through_proxy():
+                # A check that does not clear from this address: one more try from another.
+                print("Reuters is showing a browser check; trying again through the proxy.", file=sys.stderr)
+                _close_parts(playwright, browser, context)
+                return get_browser_session(via_proxy=True)
             print(
                 "Reuters is showing a browser check. Complete it in the Chrome window; "
                 "scraping continues when the Reuters page loads.",
@@ -202,15 +272,25 @@ def get_browser_session() -> Any:
             if not wait_for_reuters_page(page, 300):
                 raise RuntimeError("The Reuters browser check did not clear within 5 minutes.")
     except (PlaywrightError, RuntimeError) as error:
-        if browser is not None:
-            browser.close()
-        playwright.stop()
+        _close_parts(playwright, browser, context)
         if isinstance(error, PlaywrightError):
-            reason = str(error).splitlines()[0]
-            raise RuntimeError(f"Could not open Reuters in Google Chrome: {reason}") from error
+            reason = common.redact(str(error).splitlines()[0])
+            raise RuntimeError(f"Could not open Reuters in Google Chrome: {reason}") from None
         raise
     _browser_session.append((playwright, browser, context, page))
+    _session_proxied[:] = [bool(via_proxy)]
     return _browser_session[0]
+
+
+def _close_parts(playwright: Any, browser: Any, context: Any) -> None:
+    """Close what is open: the browser for a fresh profile, the context for a persistent one."""
+    try:
+        if browser is not None:
+            browser.close()
+        elif context is not None:
+            context.close()
+    finally:
+        playwright.stop()
 
 
 def wait_for_reuters_page(page: Any, timeout_seconds: float) -> bool:
@@ -228,21 +308,41 @@ def wait_for_reuters_page(page: Any, timeout_seconds: float) -> bool:
     return False
 
 
+IN_PAGE_FETCH = """
+async ([requestUrl, accept]) => {
+    try {
+        const response = await fetch(requestUrl, {credentials: 'include', headers: {Accept: accept}});
+        return {status: response.status, body: response.ok ? await response.text() : ''};
+    } catch (error) {
+        // Reuters' page wraps fetch, and the wrapper rejects some requests with `undefined`.
+        // Returned instead of thrown, so the caller sees a reason and not "Page.evaluate: undefined".
+        return {status: null, error: String(error)};
+    }
+}
+"""
+
+
 def fetch_in_browser(url: str, accept: str) -> str:
-    """GET a Reuters URL from inside the Chrome tab, so the request carries its DataDome cookie."""
-    page = get_browser_session()[3]
-    result = page.evaluate(
-        """
-        async ([requestUrl, accept]) => {
-            const response = await fetch(requestUrl, {credentials: 'include', headers: {Accept: accept}});
-            return {status: response.status, body: response.ok ? await response.text() : ''};
-        }
-        """,
-        [url, accept],
-    )
-    status = result["status"]
+    """GET a Reuters URL from inside the Chrome tab, so the request carries its DataDome cookie.
+
+    A block (401, 403, 429) is retried once through the proxy when the policy allows it.
+    """
+    result = get_browser_session()[3].evaluate(IN_PAGE_FETCH, [url, accept])
+    status = result.get("status")
+    if status in BLOCKED_STATUSES and can_retry_through_proxy():
+        print(f"Reuters answered HTTP {status} to the Chrome session; trying again through the proxy.",
+              file=sys.stderr)
+        close()
+        result = get_browser_session(via_proxy=True)[3].evaluate(IN_PAGE_FETCH, [url, accept])
+        status = result.get("status")
     if status == 200:
         return result["body"]
+    if status is None:
+        raise FetchError(
+            "Reuters' page refused the request inside the Chrome tab "
+            f"({result.get('error') or 'no reason given'}). A stale deployment id causes this.",
+            None,
+        )
     message = f"Reuters returned HTTP {status} to the Chrome session."
     if status in BLOCKED_STATUSES:
         message += (
@@ -263,9 +363,9 @@ def fetch_page_in_browser(url: str) -> Any:
 
 def close() -> None:
     if _browser_session:
-        playwright, browser, _, _ = _browser_session.pop()
-        browser.close()
-        playwright.stop()
+        playwright, browser, context, _ = _browser_session.pop()
+        _session_proxied.clear()
+        _close_parts(playwright, browser, context)
 
 
 def find_articles(value: Any) -> list[dict[str, Any]]:
@@ -486,7 +586,7 @@ def fetch_article_page(url: str) -> ArticlePageParser | None:
     if _browser_session:
         return fetch_article_page_in_browser(url)
     try:
-        page_html = common.get_html(urljoin(SITE_ROOT, url), referer=REFERER)
+        page_html = common.get_html(urljoin(SITE_ROOT, url), referer=REFERER, proxy_retry=False)
     except FetchError as error:
         if error.status in BLOCKED_STATUSES:
             return fetch_article_page_in_browser(url)

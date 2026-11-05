@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://purl.org/rss/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:sy="http://purl.org/rss/modules/syndication/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dwsyn="http://rss.dw.com/syndication/dwsyn/">
+ <channel rdf:about="https://rss.dw.com/syndication/feeds/rss-en-world.4025.rdf">
+  <description>World | Deutsche Welle</description>
+  <link>https://www.dw.com/english/?maca=en-rss-en-world-4025-rdf</link>
+  <title>World | Deutsche Welle</title>
+  <sy:updatePeriod>hourly</sy:updatePeriod>
+  <sy:updateFequency>4</sy:updateFequency>
+  <sy:updateBase>2002-05-01T00:00:00Z</sy:updateBase>
+  <dc:date>2026-11-05T07:31:16Z</dc:date>
+  <image rdf:resource="https://rss.dw.com/images/DW-L-RGB_whitebg.png"/>
+  <items>
+   <rdf:Seq>
+    <rdf:li rdf:resource="https://www.dw.com/en/what-the-democrats-midterms-win-means-for-the-us-economy-and-trump/a-79853716?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/winners-losers-the-eu-five-takeaways-from-the-us-midterms/a-79858901?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/36-years-later-hungary-opens-communist-era-secret-service-files/a-79858016?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/kosovo-outrage-as-authorities-accused-of-not-helping-femicide-victim/a-79856726?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/africa-s-shifting-role-in-the-global-drug-trade/a-79847720?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/indonesia-deploys-troops-to-jakarta-after-wiretapping-allegations/a-79853779?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/wawira-njiru-kenya-s-school-feeder-and-german-africa-prize-recipient/a-79646537?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/what-us-midterm-elections-mean-for-ukraine-iran-and-elsewhere/a-79836423?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/why-south-africa-s-local-elections-matter/a-79842695?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/china-and-india-achieved-diplomatic-thaw-now-the-border-is-flaring-up/a-79843273?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/cyprus-from-ties-with-russia-to-a-strategic-alignment-with-the-us/a-79841251?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/yemen-houthi-clashes-near-taiz-leave-residents-in-a-state-of-panic/a-79836913?maca=en-rss-en-world-4025-rdf"/>
+    <rdf:li rdf:resource="https://www.dw.com/en/multiple-flights-to-european-airports-targeted-by-bomb-threats/a-79842434?maca=en-rss-en-world-4025-rdf"/>
+   </rdf:Seq>
+  </items>
+ </channel>
+ <image rdf:about="https://rss.dw.com/images/DW-L-RGB_whitebg.png">
+  <url>https://rss.dw.com/images/DW-L-RGB_whitebg.png</url>
+  <link>https://www.dw.com/english/?maca=en-rss-en-world-4025-rdf</link>
+  <title>DW</title>
+  <description>News, Analysis and Service from Germany and Europe - in 30 Languages</description>
+ </image>
+ <item rdf:about="https://www.dw.com/en/what-the-democrats-midterms-win-means-for-the-us-economy-and-trump/a-79853716?maca=en-rss-en-world-4025-rdf">
+  <title>What the Democrats&apos; midterms win means for the US economy and Trump</title>
+  <link>https://www.dw.com/en/what-the-democrats-midterms-win-means-for-the-us-economy-and-trump/a-79853716?maca=en-rss-en-world-4025-rdf</link>
+  <description>From high oil prices and data centers to tariffs and mounting debt, economic concerns played a key role in the crushing defeat of President Donald Trump&apos;s Republicans. So can the Democrats now make a difference?</description>
+  <dc:date>2026-11-05T07:03:00Z</dc:date>
+  <dc:subject>Business</dc:subject>
+  <dc:language>en</dc:language>
+  <dwsyn:contentID>79853716</dwsyn:contentID>
+ </item>
+ <item rdf:about="https://www.dw.com/en/winners-losers-the-eu-five-takeaways-from-the-us-midterms/a-79858901?maca=en-rss-en-world-4025-rdf">
+  <title>Winners, losers, the EU: Five takeaways from the US midterms</title>
+  <link>https://www.dw.com/en/winners-losers-the-eu-five-takeaways-from-the-us-midterms/a-79858901?maca=en-rss-en-world-4025-rdf</link>
+  <description>Donald Trump&apos;s Republicans suffered a crushing defeat in Tuesday&apos;s midterm elections, with the Democrats wresting control of Congress. What does this mean for US politics and the world?</description>
+  <dc:date>2026-11-04T20:27:00Z</dc:date>
+  <dc:subject>World</dc:subject>
+  <dc:language>en</dc:language>
+  <dwsyn:contentID>79858901</dwsyn:contentID>
+ </item>
+ <item rdf:about="https://www.dw.com/en/36-years-later-hungary-opens-communist-era-secret-service-files/a-79858016?maca=en-rss-en-world-4025-rdf">
+  <title>36 years later: Hungary opens Communist-era secret service files</title>
+  <link>https://www.dw.com/en/36-years-later-hungary-opens-communist-era-secret-service-files/a-79858016?maca=en-rss-en-world-4025-rdf</link>
+  <description>Decades after the end of Soviet rule, Hungary is releasing all its secret service files. The disclosure is sparking fresh debate about informants, guilt and responsibility.</description>
+  <dc:date>2026-11-04T19:30:00Z</dc:date>
+  <dc:subject>World</dc:subject>
+  <dc:language>en</dc:language>
+  <dwsyn:contentID>79858016</dwsyn:contentID>
+ </item>
+</rdf:RDF>

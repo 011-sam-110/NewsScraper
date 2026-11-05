@@ -16,9 +16,10 @@ env_file="${XDG_CONFIG_HOME:-$HOME/.config}/newsfeed/newsfeed.env"
 units=(newsfeed-scrape.service newsfeed-scrape.timer
        newsfeed-scrape-reuters.service newsfeed-scrape-reuters.timer
        newsfeed-pipeline.service newsfeed-pipeline.timer
-       newsfeed-rail.service newsfeed-rail.timer)
+       newsfeed-rail.service newsfeed-rail.timer
+       newsfeed-health.service newsfeed-health.timer)
 timers=(newsfeed-scrape.timer newsfeed-scrape-reuters.timer newsfeed-pipeline.timer
-        newsfeed-rail.timer)
+        newsfeed-rail.timer newsfeed-health.timer)
 
 case "${1:-install}" in
   --status)
@@ -78,6 +79,16 @@ fi
 if ! grep -qs '^DEEPSEEK_API_KEY=.' "$env_file"; then
   echo "Warning: no DEEPSEEK_API_KEY in $env_file, so the pipeline timer will fail." >&2
   echo "  The scrape timers are unaffected." >&2
+fi
+
+# The proxy is optional: without it every outlet is read directly and a block stays a failure.
+if ! grep -qs '^NEWS_PROXY_URL=.' "$env_file"; then
+  echo "Note: no NEWS_PROXY_URL in $env_file, so a blocked outlet is not retried through a proxy." >&2
+  echo "  To set it without the value ever showing: ssh -t <this box> $repo/deploy/set-news-key.sh" >&2
+fi
+# The health stage posts through the agent hub CLI.
+if [ ! -x "$HOME/.local/bin/hub" ] && ! command -v hub >/dev/null 2>&1; then
+  echo "Note: no hub CLI, so the health timer runs its checks but cannot post them." >&2
 fi
 
 if ! command -v google-chrome-stable >/dev/null 2>&1 && ! command -v google-chrome >/dev/null 2>&1; then
