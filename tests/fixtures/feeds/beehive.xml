@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0" xml:base="https://www.beehive.govt.nz/">
+  <channel>
+    <title>Beehive.govt.nz - The official website of the New Zealand Government</title>
+    <link>https://www.beehive.govt.nz/</link>
+    <description/>
+    <language>en</language>
+    <item>
+  <title>Funding for research into hydrogen resources </title>
+  <link>https://www.beehive.govt.nz/release/funding-research-hydrogen-resources</link>
+  <description></description>
+  <pubDate>Thu, 05 Nov 2026 11:00:00 +1300</pubDate>
+    <dc:creator>beehive.govt.nz</dc:creator>
+    <guid isPermaLink="true">https://www.beehive.govt.nz/128503</guid>
+    </item>
+<item>
+  <title>Funding for better connections in Kaikōura</title>
+  <link>https://www.beehive.govt.nz/release/funding-better-connections-kaikoura</link>
+  <description></description>
+  <pubDate>Wed, 04 Nov 2026 14:53:43 +1300</pubDate>
+    <dc:creator>beehive.govt.nz</dc:creator>
+    <guid isPermaLink="true">https://www.beehive.govt.nz/128502</guid>
+    </item>
+<item>
+  <title>Milford Tourism concession in place for summer</title>
+  <link>https://www.beehive.govt.nz/release/milford-tourism-concession-place-summer</link>
+  <description></description>
+  <pubDate>Wed, 04 Nov 2026 14:15:11 +1300</pubDate>
+    <dc:creator>beehive.govt.nz</dc:creator>
+    <guid isPermaLink="true">https://www.beehive.govt.nz/128501</guid>
+    </item>
+  </channel>
+</rss>

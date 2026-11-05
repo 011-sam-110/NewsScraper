@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from newsfeed import identity  # noqa: E402
 from scraper import DROPPED_OUTLETS, FEED_GROUP, FEED_OUTLETS, SOURCES, common, feeds, rss_outlets  # noqa: E402
 
 FIXTURES = Path(__file__).parent / "fixtures" / "feeds"
@@ -199,6 +200,87 @@ class FeedOutletsTest(unittest.TestCase):
         self.assertTrue(rss_outlets.third_party("cheknews", {"creators": ["Brenna Owen, The Canadian Press"]}))
         self.assertFalse(rss_outlets.third_party("cheknews", {"creators": ["Mary Griffin"]}))
 
+    HUNT = (
+        "dvids", "nasa", "statedept", "dodnews", "dodreleases", "justice", "noaa", "voa", "stripes", "statcan",
+        "bankofcanada", "agenciacamara", "agenciasenado", "jis", "mexiconewsdaily", "dominicantoday", "ticotimes",
+        "dpiguyana", "gleaner", "latamreports", "lrt", "moscowtimes", "europarl", "ecb", "globes",
+        "dohanews", "sanews", "namibian", "vanguard", "mailguardian", "dailytrust", "channelstv", "taiwantoday",
+        "koreanet", "app", "risingnepal", "bbsbhutan", "tatoli", "uza", "qldpolice", "islandsbusiness", "beehive",
+        "pmaustralia", "rba",
+    )
+
+    def test_the_wide_hunt_feeds_read_from_their_saved_feeds(self) -> None:
+        # Sam said "yes to all" on 2026-11-05. Each fixture is the real feed of that day cut to three
+        # items (the Reserve Bank of Australia's held one), every description emptied. The middle item of
+        # four of them is not the outlet's own work and is dropped, which the next test checks.
+        self.assertEqual(len(self.HUNT), 44)
+        dropped_one = {"ticotimes", "islandsbusiness", "dailytrust", "mailguardian"}
+        feeds_by_slug = {slug: url for slug, _, url in rss_outlets.FEEDS}
+        for slug in self.HUNT:
+            with self.subTest(slug=slug):
+                self.assertIn(slug, FEED_OUTLETS)
+                rows, recorded = replay(slug)
+                self.assertEqual(recorded.urls, [feeds_by_slug[slug]])
+                want = 1 if slug == "rba" else 2 if slug in dropped_one else 3
+                if slug == "taiwantoday":
+                    # The fixture's descriptions are emptied, so no item carries Taiwan Today's own line.
+                    want = 0
+                self.assertEqual(len(rows), want)
+                for row in rows:
+                    self.assertTrue(row["headline"])
+                    # The Gleaner links its stories over plain http.
+                    self.assertRegex(row["url"], r"^https?://")
+                    self.assertRegex(identity.utc_iso(row["published"]) or "", r"^2026-1[01]-\d\dT")
+                    self.assertIsNone(row["text"])
+        for slug in ("trinidadexpress", "humangle", "dialogo"):
+            self.assertNotIn(slug, FEED_OUTLETS)
+
+    def test_agencia_senado_items_take_their_address_from_the_permalink_guid(self) -> None:
+        rows, _ = replay("agenciasenado")
+        self.assertEqual(len(rows), 3)
+        for row in rows:
+            self.assertTrue(row["url"].startswith("https://www12.senado.leg.br/noticias/"), row["url"])
+        not_permalink = (
+            b'<rss><channel><item><title>A headline</title><guid isPermaLink="false">https://example.com/?p=1</guid>'
+            b"</item></channel></rss>"
+        )
+        self.assertIsNone(common.parse_rss(not_permalink)[0]["link"])
+
+    def test_statistics_canada_xhtml_titles_and_dates_with_no_time(self) -> None:
+        rows, _ = replay("statcan")
+        self.assertTrue(rows[0]["headline"].startswith("Canadian international merchandise trade"), rows[0]["headline"])
+        self.assertEqual(identity.utc_iso("2026/11/05"), "2026-11-05T00:00:00Z")
+        self.assertEqual(identity.utc_iso("Tuesday 3 November 2026"), "2026-11-03T00:00:00Z")
+        self.assertEqual(identity.utc_iso("3 November 2026"), "2026-11-03T00:00:00Z")
+        self.assertIsNone(identity.utc_iso("Someday 3 Novembre 2026"))
+        self.assertEqual(identity.utc_iso("2026-11-05 00:00:00.0"), "2026-11-05T00:00:00Z")
+        self.assertEqual(identity.utc_iso("2026-11-03T14:30+11:00"), "2026-11-03T03:30:00Z")
+
+    def test_the_wide_hunt_feeds_drop_wire_partner_and_paid_items(self) -> None:
+        self.assertNotIn("/pacnews/", " ".join(row["url"] for row in replay("islandsbusiness")[0]))
+        self.assertNotIn("/partner-content/", " ".join(row["url"] for row in replay("mailguardian")[0]))
+        for credit in ("AFP", "Sponsored Post", "EFE"):
+            self.assertTrue(rss_outlets.third_party("ticotimes", {"creators": [credit]}), credit)
+        self.assertFalse(rss_outlets.third_party("ticotimes", {"creators": ["The Tico Times"]}))
+        self.assertTrue(rss_outlets.third_party("dailytrust", {"categories": [{"name": "Sponsored Post"}]}))
+        # A wire's mark in the full text only: Channels TV and Vanguard name AFP there.
+        afp = {"description": "Unions marched in Paris.", "content": "Police fired tear gas, an AFP reporter said."}
+        own = {"description": "The governor signed the bill.", "content": "The governor signed it in Benin City."}
+        for slug in ("channelstv", "vanguard"):
+            self.assertTrue(rss_outlets.third_party(slug, afp), slug)
+            self.assertFalse(rss_outlets.third_party(slug, own), slug)
+        self.assertTrue(rss_outlets.third_party("dailytrust", {"content": "Three officers were dismissed. (NAN)"}))
+        self.assertTrue(rss_outlets.third_party("dominicantoday", {"description": "El Salvador, (EFE).- Bukele pledged support."}))
+        self.assertTrue(rss_outlets.third_party("koreanet", {"description": "Photo = Yonhap News"}))
+        self.assertTrue(rss_outlets.third_party("latamreports", {"content": "This article was originally published on EU Reports."}))
+        self.assertTrue(rss_outlets.third_party("voa", {"description": "Some information came from Reuters."}))
+        self.assertTrue(rss_outlets.third_party("voa", {"creators": ["webdesk@voanews.com (AP)"]}))
+        self.assertFalse(rss_outlets.third_party("voa", {"creators": ["webdesk@voanews.com (VOA Persian)"], "description": "The UN warned."}))
+        # Taiwan Today: only its own stories, which end with its "Write to Taiwan Today" line.
+        self.assertFalse(rss_outlets.third_party("taiwantoday", {"description": "The minister met them. (SFC-E) Write to Taiwan Today at ttonline@mofa.gov.tw"}))
+        self.assertTrue(rss_outlets.third_party("taiwantoday", {"description": "The minister met them, CNA reported."}))
+        self.assertTrue(rss_outlets.third_party("taiwantoday", {}))
+
     def test_a_feed_has_one_page(self) -> None:
         rows, recorded = replay("globalvoices", page=1)
         self.assertEqual(rows, [])
@@ -250,7 +332,7 @@ class FeedOutletsTest(unittest.TestCase):
         for slug in ("bbc", "pbs"):
             self.assertNotIn(slug, DROPPED_OUTLETS)
             self.assertIn(slug, SOURCES)
-        self.assertEqual(len(rss_outlets.FEEDS), 26)
+        self.assertEqual(len(rss_outlets.FEEDS), 70)
 
     def test_sources_the_paid_site_does_not_serve_are_not_fetched(self) -> None:
         urls = " ".join(url for _, _, url in rss_outlets.FEEDS)

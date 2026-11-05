@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+	<channel>
+		<title>The Moscow Times - Independent News From Russia</title>
+		<link>https://www.themoscowtimes.com/news</link>
+		<description>The Moscow Times offers everything you need to know about Russia: Breaking news, top stories, business,
+			analysis, opinion, multimedia</description>
+		<atom:link rel="self" href="https://www.themoscowtimes.com/rss/news"></atom:link>
+		<language>en-us</language>
+		<lastBuildDate>Thu, 05 Nov 2026 15:12:29 +0300</lastBuildDate>
+		<ttl>600</ttl>
+				<item>
+			<title>Moldova Hits Kremlin-Backed Transnistria Leader With 5-Year Travel Ban After Putin Award</title>
+			<link>https://www.themoscowtimes.com/2026/11/05/moldova-hits-kremlin-backed-transnistria-leader-with-5-year-travel-ban-after-putin-award-a94183</link>
+			<description></description>
+			<pubDate>Thu, 05 Nov 2026 14:43:29 +0300</pubDate>
+			<guid>https://www.themoscowtimes.com/2026/11/05/moldova-hits-kremlin-backed-transnistria-leader-with-5-year-travel-ban-after-putin-award-a94183</guid>
+		</item>
+<item>
+			<title>Regions Calling: Budget Cuts Are Hitting Ordinary Russians Hard. Will They Protest?</title>
+			<link>https://www.themoscowtimes.com/2026/11/05/regions-calling-budget-cuts-are-hitting-ordinary-russians-hard-will-they-protest-a94111</link>
+			<description></description>
+			<pubDate>Thu, 05 Nov 2026 14:11:00 +0300</pubDate>
+			<guid>https://www.themoscowtimes.com/2026/11/05/regions-calling-budget-cuts-are-hitting-ordinary-russians-hard-will-they-protest-a94111</guid>
+		</item>
+<item>
+			<title>Russian Diesel Tankers Bound for U.S. Change Course, Casting Doubt on Trump Deal</title>
+			<link>https://www.themoscowtimes.com/2026/11/05/russian-diesel-tankers-bound-for-us-change-course-casting-doubt-on-trump-deal-a94182</link>
+			<description></description>
+			<pubDate>Thu, 05 Nov 2026 13:00:00 +0300</pubDate>
+			<guid>https://www.themoscowtimes.com/2026/11/05/russian-diesel-tankers-bound-for-us-change-course-casting-doubt-on-trump-deal-a94182</guid>
+		</item>
+			</channel>
+</rss>

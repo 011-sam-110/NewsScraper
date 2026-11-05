@@ -1,0 +1,37 @@
+<rss version="2.0">
+  <channel>
+    <title>KOREA.NET</title>
+    <link>https://www.korea.net</link>
+    <language>en</language>
+    <copyright>Copyright © by KOCIS. All rights reserved.</copyright>
+    <description>KOREA.NET RSS Service</description>
+    <lastBuildDate>Thu Nov 05 20:56:59 KST 2026</lastBuildDate>
+    <item>
+      <title><![CDATA[[100 top sites] ⑥ 3 travel destinations with awe-inspiring views]]></title>
+      <link><![CDATA[https://www.korea.net/NewsFocus/FoodTravel/view?articleId=302270]]></link>
+      <imageURL><![CDATA[https://www.korea.net/upload/content/image/4baf22fe7313472b8363ac779e32a790_20261012090549.jpg]]></imageURL>
+      <description></description>
+      <author />
+      <pubDate>2026-11-05 00:00:00.0</pubDate>
+      <category>Food/Travel</category>
+    </item>
+<item>
+      <title><![CDATA['With' pleasure: Disney to use RESCENE track as end credits song]]></title>
+      <link><![CDATA[https://www.korea.net/NewsFocus/Culture/view?articleId=302297]]></link>
+      <imageURL><![CDATA[https://www.korea.net/upload/content/image/603746fdaafc41a09bb4a1de4d082468_20261105120739.jpg]]></imageURL>
+      <description></description>
+      <author />
+      <pubDate>2026-11-05 00:00:00.0</pubDate>
+      <category>Culture</category>
+    </item>
+<item>
+      <title><![CDATA[Traditional paper Hanji expected to gain UNESCO heritage status]]></title>
+      <link><![CDATA[https://www.korea.net/NewsFocus/Culture/view?articleId=302320]]></link>
+      <imageURL><![CDATA[https://www.korea.net/upload/content/image/8e5ce2a8e0e24b4781f92c6d4d6c7c3d_20261105104708.jpg]]></imageURL>
+      <description></description>
+      <author />
+      <pubDate>2026-11-05 00:00:00.0</pubDate>
+      <category>Culture</category>
+    </item>
+  </channel>
+</rss>

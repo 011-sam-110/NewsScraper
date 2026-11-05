@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>The Mail &amp; Guardian | Africa's Better Future</title>
+        <link>https://mg.co.za</link>
+        <description>The Mail &amp; Guardian is a quality investigative and comment news publication, based on a culture of editorial independence and excellence.</description>
+        <lastBuildDate>Thu, 05 Nov 2026 10:47:45 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>NewsTeam</generator>
+        <language>en-ZA</language>
+        <ttl>5</ttl>
+        <image>
+            <title>The Mail &amp; Guardian | Africa's Better Future</title>
+            <url>https://images.newsteam.io/image/400/GbSdY1y2zcjie5FNsQxhMwy6Lq2W6UsUjzE9QsKo31oxiSRoMs7doqGoJMoijVAiW5JCwCxPjMx8ECKiwZAKRWoPzQbhUUGB3isd1gZiGLSMQpRwReUC8KiZvvuye82jSCT6kBsxTtvivQNXdZZUU</url>
+            <link>https://mg.co.za</link>
+        </image>
+        <atom:link href="https://mg.co.za/rss/" rel="self" type="application/rss+xml"/>
+        <item>
+            <title><![CDATA[Zuma makes plethora of promises as MK party takes early lead in KZN]]></title>
+            <link>https://mg.co.za/news/south-africa/2026-11-05-zuma-makes-plethora-of-promises-as-mk-party-takes-early-lead-in-kzn/</link>
+            <guid isPermaLink="false">https://mg.co.za/news/south-africa/2026-11-05-zuma-makes-plethora-of-promises-as-mk-party-takes-early-lead-in-kzn/</guid>
+            <pubDate>Thu, 05 Nov 2026 10:31:25 GMT</pubDate>
+            <description></description>
+            <enclosure url="https://images.newsteam.io/image/594/GbSdY1y2zdNfokDh84wmLtJ72UWcLKyH2sHWfB9dRZfunHGG9DmsUxpV6mj69Q63dxkzHR4AeNsUe5CcyS1sJfenJUy2faHtzXDVXqe4sFLtsPdwwPZoMmZRQssux2mUo4JuB3xa1Db3VnUPpH19z" length="0" type="image//image/594/GbSdY1y2zdNfokDh84wmLtJ72UWcLKyH2sHWfB9dRZfunHGG9DmsUxpV6mj69Q63dxkzHR4AeNsUe5CcyS1sJfenJUy2faHtzXDVXqe4sFLtsPdwwPZoMmZRQssux2mUo4JuB3xa1Db3VnUPpH19z"/>
+        </item>
+<item>
+            <title><![CDATA[Investing in South Africa's STEM Future: Five New Science Teaching and Learning Centers Established in the Western Cape]]></title>
+            <link>https://mg.co.za/partner-content/2026-11-05-investing-in-south-africa-s-stem-future-five-new-science-teaching-and-learning-centers-established-in-the-western-cape/</link>
+            <guid isPermaLink="false">https://mg.co.za/partner-content/2026-11-05-investing-in-south-africa-s-stem-future-five-new-science-teaching-and-learning-centers-established-in-the-western-cape/</guid>
+            <pubDate>Thu, 05 Nov 2026 10:47:45 GMT</pubDate>
+            <description></description>
+            <enclosure url="https://images.newsteam.io/image/624/GbSdY1y2zdMK5B2vMRGSTPqwKTWcxmTFE9s7xnHNign7bE6F9zZp5Ak6qjSH3vHGCKSEhWDPHDnKCHbRwgYg5CgQXRgoYXWdu61rPjKP2XHFsfGY7mkV8JZcafmnKLxfNbT6uwNbAsGraH1n7mYRH" length="0" type="image//image/624/GbSdY1y2zdMK5B2vMRGSTPqwKTWcxmTFE9s7xnHNign7bE6F9zZp5Ak6qjSH3vHGCKSEhWDPHDnKCHbRwgYg5CgQXRgoYXWdu61rPjKP2XHFsfGY7mkV8JZcafmnKLxfNbT6uwNbAsGraH1n7mYRH"/>
+        </item>
+<item>
+            <title><![CDATA[Blaming the phone won’t save our kids]]></title>
+            <link>https://mg.co.za/thought-leader/2026-11-05-blaming-the-phone-won-t-save-our-kids/</link>
+            <guid isPermaLink="false">https://mg.co.za/thought-leader/2026-11-05-blaming-the-phone-won-t-save-our-kids/</guid>
+            <pubDate>Thu, 05 Nov 2026 08:28:57 GMT</pubDate>
+            <description></description>
+            <enclosure url="https://images.newsteam.io/image/3888/2Bq28FuGKoJucPFG6Mc6Hm63tm1tKboJVn3fqSRb41dEbqJVpjS7f5G1XVRM3UW7wMsZL2UuNDbxHjytvVuHuyuyANbwFsi4soRK2tNok3HzxULTiqH21Rhc9tEoyuWRPseuh7brtyVMaaFHCEH4WWk" length="0" type="image//image/3888/2Bq28FuGKoJucPFG6Mc6Hm63tm1tKboJVn3fqSRb41dEbqJVpjS7f5G1XVRM3UW7wMsZL2UuNDbxHjytvVuHuyuyANbwFsi4soRK2tNok3HzxULTiqH21Rhc9tEoyuWRPseuh7brtyVMaaFHCEH4WWk"/>
+        </item>
+    </channel>
+</rss>

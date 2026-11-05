@@ -176,10 +176,33 @@ def utc_iso(value: Any) -> str | None:
         except (TypeError, ValueError):
             parsed = None
     if parsed is None:
+        parsed = day_only(text)
+    if parsed is None:
         return None
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+MONTHS = ("january", "february", "march", "april", "may", "june", "july", "august", "september", "october",
+          "november", "december")
+
+
+def day_only(text: str) -> datetime | None:
+    """A date with no time of day, as midnight UTC: "2026/11/05" (Taiwan Today) or "Tuesday 3 November
+    2026" (the Prime Minister of Australia), as those feeds wrote them on 2026-11-05. No locale is read."""
+    slash = re.fullmatch(r"(\d{4})/(\d{1,2})/(\d{1,2})", text)
+    if slash:
+        year, month, day = (int(part) for part in slash.groups())
+    else:
+        words = re.fullmatch(r"(?:[A-Za-z]+day,?\s+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", text)
+        if not words or words.group(2).lower() not in MONTHS:
+            return None
+        day, month, year = int(words.group(1)), MONTHS.index(words.group(2).lower()) + 1, int(words.group(3))
+    try:
+        return datetime(year, month, day, tzinfo=timezone.utc)
+    except ValueError:
+        return None
 
 
 def now_utc() -> str:

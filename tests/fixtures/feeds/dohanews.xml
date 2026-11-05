@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>Doha News | Qatar</title>
+	<atom:link href="https://dohanews.co/feed/" rel="self" type="application/rss+xml" />
+	<link>https://dohanews.co</link>
+	<description>Doha News has been covering breaking news, politics, business, culture and more in and around Qatar since 2009.</description>
+	<lastBuildDate>Thu, 05 Nov 2026 07:16:22 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+<image>
+	<url>https://dohanews.co/wp-content/uploads/2020/08/cropped-DN-Favicon-140x140.png</url>
+	<title>Doha News | Qatar</title>
+	<link>https://dohanews.co</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>&#8216;Italy is at your side&#8217;: Ambassador reaffirms ties with Qatar at celebration in Doha</title>
+		<link>https://dohanews.co/italy-is-at-your-side-ambassador-reaffirms-ties-with-qatar-at-celebration-in-doha/</link>
+		<dc:creator><![CDATA[Halima Hashmi]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 23:30:49 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[doha]]></category>
+		<category><![CDATA[national day]]></category>
+		<category><![CDATA[sheikh tamim]]></category>
+		<category><![CDATA[top stories]]></category>
+		<category><![CDATA[italy]]></category>
+		<category><![CDATA[Qatar]]></category>
+		<category><![CDATA[Mediation]]></category>
+		<guid isPermaLink="false">https://dohanews.co/?p=208247</guid>
+					<description></description>
+			</item>
+<item>
+		<title>LuLu Hypermarket and Philippine Embassy join Hands for Smart Recycling initiative during Qatar Sustainability Week 2026</title>
+		<link>https://dohanews.co/lulu-hypermarket-and-philippine-embassy-join-hands-for-smart-recycling-initiative-during-qatar-sustainability-week-2026/</link>
+		<dc:creator><![CDATA[Doha News Team]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 13:58:54 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://dohanews.co/?p=208229</guid>
+					<description></description>
+			</item>
+<item>
+		<title>Building peace through music: Young Colombians take their talent to Qatar&#8217;s stage</title>
+		<link>https://dohanews.co/building-peace-through-music-young-colombians-take-their-talent-to-qatars-stage/</link>
+		<dc:creator><![CDATA[Sebastian Marmol]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 13:34:53 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Qatar]]></category>
+		<category><![CDATA[Qatar Philharmonic Orchestra]]></category>
+		<category><![CDATA[colombia]]></category>
+		<category><![CDATA[Katara Cultural Village]]></category>
+		<category><![CDATA[cultural diplomacy]]></category>
+		<category><![CDATA[peacebuilding]]></category>
+		<category><![CDATA[Santa Rosa del Sur]]></category>
+		<category><![CDATA[Music Education]]></category>
+		<category><![CDATA[Colombian Youth]]></category>
+		<guid isPermaLink="false">https://dohanews.co/?p=208211</guid>
+					<description></description>
+			</item>
+	</channel>
+</rss>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>BBSCL</title>
+	<atom:link href="https://www.bbs.bt/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.bbs.bt/</link>
+	<description>Your Trusted Source for Real-Time News</description>
+	<lastBuildDate>Thu, 05 Nov 2026 10:50:20 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.6.2</generator>
+<image>
+	<url>https://www.bbs.bt/wp-content/uploads/2024/09/weblogo-75x75.webp</url>
+	<title>BBSCL</title>
+	<link>https://www.bbs.bt/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Pineapple farming transforms livelihoods in Durungri, Pema Gatshel</title>
+		<link>https://www.bbs.bt/248404/</link>
+		<dc:creator><![CDATA[editor2]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:50:20 +0000</pubDate>
+				<category><![CDATA[Agriculture]]></category>
+		<guid isPermaLink="false">https://www.bbs.bt/?p=248404</guid>
+					<description></description>
+			</item>
+<item>
+		<title>Bhutan projected to become an ageing society by 2028: World Bank</title>
+		<link>https://www.bbs.bt/248399/</link>
+		<dc:creator><![CDATA[ugyen lhendup]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:36:07 +0000</pubDate>
+				<category><![CDATA[Headlines]]></category>
+		<category><![CDATA[Other Stories]]></category>
+		<category><![CDATA[Social]]></category>
+		<guid isPermaLink="false">https://www.bbs.bt/?p=248399</guid>
+					<description></description>
+			</item>
+<item>
+		<title>Bhutan prepares for SAFF Championship opener against Bangladesh</title>
+		<link>https://www.bbs.bt/248376/</link>
+		<dc:creator><![CDATA[editor2]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 10:30:02 +0000</pubDate>
+				<category><![CDATA[Sports]]></category>
+		<guid isPermaLink="false">https://www.bbs.bt/?p=248376</guid>
+					<description></description>
+			</item>
+	</channel>
+</rss>

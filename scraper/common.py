@@ -188,6 +188,7 @@ def get_html(url: str, referer: str | None = None, proxy_retry: bool = True) -> 
 
 
 RSS_NAMESPACES = {
+    "content": "http://purl.org/rss/1.0/modules/content/",
     "dc": "http://purl.org/dc/elements/1.1/",
     "media": "http://search.yahoo.com/mrss/",
     "atom": "http://www.w3.org/2005/Atom",
@@ -223,8 +224,11 @@ def atom_entry(entry: ElementTree.Element) -> dict[str, Any]:
     """
 
     def text(tag: str) -> str | None:
+        # itertext, not .text: an XHTML title or summary holds its words in a child <div>
+        # (Statistics Canada's The Daily, 2026-11-05).
         node = entry.find(f"atom:{tag}", RSS_NAMESPACES)
-        return node.text.strip() if node is not None and node.text and node.text.strip() else None
+        value = " ".join("".join(node.itertext()).split()) if node is not None else ""
+        return value or None
 
     link = None
     for node in entry.findall("atom:link", RSS_NAMESPACES):
@@ -236,6 +240,7 @@ def atom_entry(entry: ElementTree.Element) -> dict[str, Any]:
         "link": link,
         "guid": text("id"),
         "description": clean_text(text("summary") or text("content") or "") or None,
+        "content": clean_text(text("content") or "") or None,
         "published": text("published") or text("updated"),
         "creators": [
             node.text.strip()
@@ -251,6 +256,18 @@ def atom_entry(entry: ElementTree.Element) -> dict[str, Any]:
         "media_credit": None,
         "media_description": None,
     }
+
+
+def permalink_guid(item: ElementTree.Element) -> str | None:
+    """An RSS 2.0 item's <guid> when it is its address: an http(s) URL not marked isPermaLink="false".
+
+    Agência Senado's items carry no <link>, only this guid (2026-11-05).
+    """
+    node = item.find("guid")
+    value = node.text.strip() if node is not None and node.text else ""
+    if not value.lower().startswith(("http://", "https://")):
+        return None
+    return None if (node.get("isPermaLink") or "").strip().lower() == "false" else value
 
 
 def parse_rss(document: bytes) -> list[dict[str, Any]]:
@@ -277,9 +294,12 @@ def parse_rss(document: bytes) -> list[dict[str, Any]]:
         items.append(
             {
                 "title": text("title"),
-                "link": text("link"),
+                "link": text("link") or permalink_guid(item),
                 "guid": text("guid"),
                 "description": clean_text(text("description") or "") or None,
+                # Read for the third-party check only (rss_outlets.third_party): a wire's mark can sit in
+                # the full text and not in the summary. base_row does not store it.
+                "content": clean_text(text("content:encoded") or "") or None,
                 "published": rss_date(text("pubDate")) or text("dc:date"),
                 "creators": [node.text.strip() for node in item.findall("dc:creator", RSS_NAMESPACES) if node.text],
                 "categories": [

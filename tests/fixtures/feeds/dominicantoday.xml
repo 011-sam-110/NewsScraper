@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>Dominican Today</title>
+	<atom:link href="https://dominicantoday.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://dominicantoday.com</link>
+	<description></description>
+	<lastBuildDate>Thu, 05 Nov 2026 12:17:25 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.0.8</generator>
+	<item>
+		<title>INTRANT to launch vehicle technical inspection in first half of 2027</title>
+		<link>https://dominicantoday.com/intrant-to-launch-vehicle-technical-inspection-in-first-half-of-2027/</link>
+					<comments>https://dominicantoday.com/intrant-to-launch-vehicle-technical-inspection-in-first-half-of-2027/#respond</comments>
+		<dc:creator><![CDATA[Sara Pimentel]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 12:17:25 +0000</pubDate>
+				<category><![CDATA[Local]]></category>
+		<guid isPermaLink="false">https://dominicantoday.com/?p=7485</guid>
+					<description></description>
+					<wfw:commentRss>https://dominicantoday.com/intrant-to-launch-vehicle-technical-inspection-in-first-half-of-2027/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+<item>
+		<title>Authorities seek stronger regulations as Larimar reserves face depletion</title>
+		<link>https://dominicantoday.com/authorities-seek-stronger-regulations-as-larimar-reserves-face-depletion/</link>
+					<comments>https://dominicantoday.com/authorities-seek-stronger-regulations-as-larimar-reserves-face-depletion/#respond</comments>
+		<dc:creator><![CDATA[Sara Pimentel]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 12:02:08 +0000</pubDate>
+				<category><![CDATA[Local]]></category>
+		<guid isPermaLink="false">https://dominicantoday.com/?p=7482</guid>
+					<description></description>
+					<wfw:commentRss>https://dominicantoday.com/authorities-seek-stronger-regulations-as-larimar-reserves-face-depletion/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+<item>
+		<title>Speaking Spanish is not the same as speaking the market</title>
+		<link>https://dominicantoday.com/speaking-spanish-is-not-the-same-as-speaking-the-market/</link>
+					<comments>https://dominicantoday.com/speaking-spanish-is-not-the-same-as-speaking-the-market/#respond</comments>
+		<dc:creator><![CDATA[Monika Harel]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 21:44:25 +0000</pubDate>
+				<category><![CDATA[Digital Nomad]]></category>
+		<guid isPermaLink="false">https://dominicantoday.com/?p=7479</guid>
+					<description></description>
+					<wfw:commentRss>https://dominicantoday.com/speaking-spanish-is-not-the-same-as-speaking-the-market/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+	</channel>
+</rss>
