@@ -695,10 +695,10 @@ class ShuffledRerunTest(unittest.TestCase):
         return settings
 
     def resolve_hash(self, settings) -> str:
-        from newsfeed.geonames import Gazetteer, build_hash
+        from newsfeed.geonames import Gazetteer
 
         gazetteer = Gazetteer.open(settings.geonames_db)
-        value = cluster.resolve_config_hash(build_hash(gazetteer.connection))
+        value = cluster.gazetteer_resolve_hash(gazetteer.connection)
         gazetteer.connection.close()
         return value
 

@@ -250,11 +250,50 @@ CREATE TABLE cluster_members (
 CREATE INDEX cluster_members_cluster ON cluster_members(cluster_id, config_hash);
 """
 
+# Migration 5 is the verify stage (section 7.9, 2026-11-05): what a fresh DeepSeek call said about one
+# headline pin, what the critic said when it flagged something, and the one outcome that decides whether
+# the pin is sent. llm_calls stays the cost ledger (stages `verify` and `adjudicate`); this table holds
+# the answers, which llm_calls never did.
+#
+# ONE ROW PER STORY AND HASHES, so no story is asked twice under one configuration. input_hash is the hash
+# of the exact message the verifier read (the story text and the claim): a verdict is about that text, so
+# headline-places sends a pin only while the input still matches, and verify asks again when it does not.
+#
+# outcome is one of: verified, kept_after_review, overruled, split_dropped, not_run. Only the first two
+# send a pin. not_run means this run got no usable verdict (no budget, a 402, an error, or two bad
+# answers); `attempts` counts the runs that ended in bad answers, and verify gives up after
+# verify.MAX_BAD_RUNS of them.
+MIGRATION_5 = """
+CREATE TABLE verifications (
+    story_id        TEXT NOT NULL REFERENCES stories(story_id) ON DELETE CASCADE,
+    extract_hash    TEXT NOT NULL,
+    resolve_hash    TEXT NOT NULL,
+    verify_hash     TEXT NOT NULL,
+    input_hash      TEXT NOT NULL,
+    geonames_id     INTEGER,
+    place_precision TEXT,
+    fallback        INTEGER NOT NULL DEFAULT 0,
+    claim           TEXT NOT NULL,
+    verify_answer   TEXT,
+    flags           TEXT NOT NULL DEFAULT '[]',
+    critic_answer   TEXT,
+    outcome         TEXT NOT NULL,
+    reason          TEXT,
+    attempts        INTEGER NOT NULL DEFAULT 0,
+    cost_usd        REAL NOT NULL DEFAULT 0,
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL,
+    PRIMARY KEY (story_id, extract_hash, resolve_hash, verify_hash)
+);
+CREATE INDEX verifications_outcome ON verifications(updated_at, outcome);
+"""
+
 MIGRATIONS: tuple[tuple[int, str], ...] = (
     (1, MIGRATION_1),
     (2, MIGRATION_2),
     (3, MIGRATION_3),
     (4, MIGRATION_4),
+    (5, MIGRATION_5),
 )
 SCHEMA_VERSION = MIGRATIONS[-1][0]
 

@@ -37,8 +37,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from .config import extract_config_hash, resolve_config_hash
-from .geonames import Gazetteer, Place, build_hash
+from .config import extract_config_hash, gazetteer_resolve_hash
+from .geonames import Gazetteer, Place, names_rule_warning
 from .settings import Settings, load
 from .store import Store
 
@@ -73,6 +73,26 @@ KIND_PRECISION = {
     "region": "region",
     "country": "country",
 }
+
+# A REGION ANSWER NEVER LANDS ON A TOWN (2026-11-05). Two ways a region reached a town pin, both found in
+# the main store:
+#
+# 1. The model said the place is a region or a country, and the only rows with that name were towns.
+#    "A magnitude 5.7 earthquake struck Mindanao", kind region, landed on Mindanaw, a village of
+#    population 0 in Cebu, because GeoNames keeps the island in a class this gazetteer does not hold.
+#    A kind in REGION_KINDS now considers only rows that cannot be pinned.
+# 2. The name also names a region, and a town of no recorded population OUTSIDE that region shares it.
+#    "The town of Lara, west of Caracas", kind city, landed on Guachara, a village in Apure with the
+#    alternate name Lara, over the state of Lara (population 1.8 million). A town at or below
+#    NAMESAKE_TOWN_MAX_POPULATION that lies outside a region of the same name now yields to it, and the
+#    answer is the region: no pin. A town INSIDE the region of its name is that region's own town
+#    (Dhubab, seat of the Dhubab district) and keeps the pin.
+#
+# Population alone is not the rule, and that is measured: 32 of the store's 404 town pins on 2026-11-05
+# were population-0 places and most were right (Kempton Park, Tembisa, Plaka). Rule 2 acts only when a
+# REGION carries the same name.
+REGION_KINDS = frozenset({"region", "country"})
+NAMESAKE_TOWN_MAX_POPULATION = 0
 
 
 @dataclass(frozen=True)
@@ -204,8 +224,34 @@ def resolve_place(
             )
         return Resolution(None, None, f"{name} matched nothing in {country}")
 
+    asked = (kind or "").strip().lower()
+    if asked in REGION_KINDS:
+        # Rule 1 of the comment on REGION_KINDS: a region answer never lands on a town.
+        areas = [c for c in candidates if not c.pinnable]
+        if not areas:
+            if container is not None and not container.pinnable and not _climbing:
+                return Resolution(
+                    container,
+                    container.precision,
+                    f"{name} is a {asked} and matched only towns in {country}; climbed to {within}",
+                    climbed=True,
+                )
+            return Resolution(None, None, f"{name} is a {asked} and matched only towns in {country}")
+        candidates = areas
+
     ranked = _ranked(candidates, kind)
     best = ranked[0]
+
+    if best.pinnable and best.population <= NAMESAKE_TOWN_MAX_POPULATION:
+        # Rule 2: a town of no recorded population, outside a region of the same name, never takes it.
+        region = next((c for c in ranked if c.precision == "region" and not _inside(best, c)), None)
+        if region is not None:
+            return Resolution(
+                region,
+                region.precision,
+                f"{name} names a region of {country}; {best.name} ({best.feature_code}, population "
+                f"{best.population}) does not take the name",
+            )
 
     if len(ranked) > 1 and _ambiguous(best, ranked[1], kind):
         if container is not None and not _climbing:
@@ -245,7 +291,10 @@ def run(args: "argparse.Namespace", settings: "Settings | None" = None) -> int:
         print(str(error), file=sys.stderr)
         return 2
 
-    config_hash = resolve_config_hash(build_hash(gazetteer.connection))
+    config_hash = gazetteer_resolve_hash(gazetteer.connection)
+    warning = names_rule_warning(gazetteer.connection)
+    if warning:
+        print(warning, file=sys.stderr)
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     with Store(settings.news_db) as store:

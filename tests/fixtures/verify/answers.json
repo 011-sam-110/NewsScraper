@@ -1,0 +1,285 @@
+{
+ "_note": "Answers DeepSeek (deepseek-flash, max effort) gave on 2026-11-05 to the round 2 prompts that newsfeed/prompts.py now holds. One change: every critic 'evidence' field is blanked, because it copies words from the article and this repository is public. 'critic_unclear' is the one constructed answer: the measurement saw no 'unclear', so it is the recorded #861 critic answer with its decision and side set to unclear.",
+ "verified_summit": {
+  "verify": {
+   "kind": "pin",
+   "happened": {
+    "verdict": "agree",
+    "reason": "the story reports leaders gathering for a summit in Madrid"
+   },
+   "event_place": {
+    "verdict": "agree",
+    "reason": "the summit is being held in Madrid",
+    "correct_place": null
+   },
+   "map_place": {
+    "verdict": "agree",
+    "reason": "Madrid in Spain is the city named in the story",
+    "correct_place": null
+   },
+   "precision": {
+    "verdict": "agree",
+    "reason": "the story names Madrid as the summit host city"
+   },
+   "category": {
+    "acceptable": [
+     "politics_and_diplomacy"
+    ],
+    "reason": "a diplomatic summit bringing together national leaders"
+   }
+  }
+ },
+ "kept_airport": {
+  "verify": {
+   "kind": "pin",
+   "happened": {
+    "verdict": "agree",
+    "reason": "The story reports her departure from the airport this morning."
+   },
+   "event_place": {
+    "verdict": "disagree",
+    "reason": "The news is the son's killing; the airport is only where the mother later departed.",
+    "correct_place": null
+   },
+   "map_place": {
+    "verdict": "agree",
+    "reason": "Kotoka International Airport is in Accra, Ghana, as named.",
+    "correct_place": null
+   },
+   "precision": {
+    "verdict": "agree",
+    "reason": "The text names the airport, so the venue pin is supported."
+   },
+   "category": {
+    "acceptable": [
+     "society_culture_sport",
+     "crime_and_policing"
+    ],
+    "reason": "A mourning mother seeking justice for her slain son."
+   }
+  },
+  "critic": {
+   "points": [
+    {
+     "point": "event_place",
+     "side": "A",
+     "evidence": "",
+     "reason": "The reported happening is her departure, and the text places it at the airport."
+    }
+   ],
+   "decision": "A",
+   "reason": "The story directly reports the departure occurring at Kotoka International Airport."
+  }
+ },
+ "overruled_namesake": {
+  "verify": {
+   "kind": "pin",
+   "happened": {
+    "verdict": "agree",
+    "reason": "PSG beat Villarreal 6-0 in a Champions League match, a reported physical event"
+   },
+   "event_place": {
+    "verdict": "agree",
+    "reason": "the headline says the win was at Villarreal",
+    "correct_place": null
+   },
+   "map_place": {
+    "verdict": "disagree",
+    "reason": "the pin is a different Villarreal in Badajoz, not the football club's town in Castellón",
+    "correct_place": {
+     "name": "Villarreal",
+     "within": "Provincia de Castellón",
+     "country": "ES",
+     "kind": "city"
+    }
+   },
+   "precision": {
+    "verdict": "agree",
+    "reason": "the story names Villarreal, so a city or area pin is supported"
+   },
+   "category": {
+    "acceptable": [
+     "society_culture_sport"
+    ],
+    "reason": "a Champions League football match and coach's reaction"
+   }
+  },
+  "critic": {
+   "points": [
+    {
+     "point": "map_place",
+     "side": "B",
+     "evidence": "",
+     "reason": "The story means Villarreal CF's town in Castellón, not the tiny Badajoz place with the same name"
+    }
+   ],
+   "decision": "B",
+   "reason": "Reader A's pin is a different Villarreal from the football club's town in Castellón"
+  }
+ },
+ "overruled_date": {
+  "verify": {
+   "kind": "pin",
+   "happened": {
+    "verdict": "disagree",
+    "reason": "the flood was overnight Friday to Saturday, outside the three-day window before Thursday publication"
+   },
+   "event_place": {
+    "verdict": "agree",
+    "reason": "the flood hit neighbourhoods of Puerto Ayora",
+    "correct_place": null
+   },
+   "map_place": {
+    "verdict": "agree",
+    "reason": "the GeoNames populated place is Puerto Ayora in Santa Cruz, Ecuador",
+    "correct_place": null
+   },
+   "precision": {
+    "verdict": "agree",
+    "reason": "the story names Puerto Ayora and its neighbourhoods"
+   },
+   "category": {
+    "acceptable": [
+     "disaster"
+    ],
+    "reason": "a flash flood killed one and affected 2,000"
+   }
+  },
+  "critic": {
+   "points": [
+    {
+     "point": "happened",
+     "side": "B",
+     "evidence": "",
+     "reason": "published Thursday; the prior Friday-Saturday flood is outside the three-day window"
+    }
+   ],
+   "decision": "B",
+   "reason": "the reported flood date falls outside the allowed window, so no pin"
+  }
+ },
+ "overruled_court": {
+  "verify": {
+   "kind": "pin",
+   "happened": {
+    "verdict": "disagree",
+    "reason": "jury deliberations are a judicial proceeding; courts_and_justice stories never get a pin"
+   },
+   "event_place": {
+    "verdict": "agree",
+    "reason": "the trial is at Southwark Crown Court",
+    "correct_place": null
+   },
+   "map_place": {
+    "verdict": "agree",
+    "reason": "Southwark Crown Court is in London, Greater London",
+    "correct_place": null
+   },
+   "precision": {
+    "verdict": "agree",
+    "reason": "the story names the court as venue"
+   },
+   "category": {
+    "acceptable": [
+     "courts_and_justice"
+    ],
+    "reason": "courts_and_justice fits, but such stories never get a pin"
+   }
+  },
+  "critic": {
+   "points": [
+    {
+     "point": "happened",
+     "side": "B",
+     "evidence": "",
+     "reason": "jury deliberations are a court proceeding, not a witnessable physical happening; courts_and_justice stories never get a pin"
+    }
+   ],
+   "decision": "B",
+   "reason": "the story is a courts_and_justice trial report, so the no-pin rule applies"
+  }
+ },
+ "fallback_kept_plant": {
+  "verify": {
+   "kind": "pin",
+   "happened": {
+    "verdict": "agree",
+    "reason": "an explosion and fire at a steel plant killed four and injured 16 on Monday"
+   },
+   "event_place": {
+    "verdict": "agree",
+    "reason": "the blast was on Metafrique Steel premises in Douala's Bassa zone",
+    "correct_place": null
+   },
+   "map_place": {
+    "verdict": "agree",
+    "reason": "Douala in Littoral, Cameroon matches the city the story names",
+    "correct_place": null
+   },
+   "precision": {
+    "verdict": "agree",
+    "reason": "the story names Douala and the plant within it"
+   },
+   "category": {
+    "acceptable": [
+     "accident",
+     "disaster"
+    ],
+    "reason": "an industrial explosion and fire"
+   }
+  }
+ },
+ "fallback_overruled_outside_city": {
+  "verify": {
+   "kind": "pin",
+   "happened": {
+    "verdict": "agree",
+    "reason": "The story reports Bolsonaro landing and disembarking at the airport."
+   },
+   "event_place": {
+    "verdict": "agree",
+    "reason": "The landing and disembarking occurred at Opa-Locka Executive Airport.",
+    "correct_place": null
+   },
+   "map_place": {
+    "verdict": "disagree",
+    "reason": "The airport is in Opa-locka, not Miami; the story says it is outside Miami.",
+    "correct_place": "Opa-locka, Florida, US"
+   },
+   "precision": {
+    "verdict": "agree",
+    "reason": "The story names the airport, so an area-level pin is not too precise."
+   },
+   "category": {
+    "acceptable": [
+     "politics_and_diplomacy"
+    ],
+    "reason": "A foreign political figure's arrival and reception by US authorities."
+   }
+  },
+  "critic": {
+   "points": [
+    {
+     "point": "map_place",
+     "side": "B",
+     "evidence": "",
+     "reason": "The airport is in Opa-locka, outside Miami, so a Miami city pin is the wrong place."
+    }
+   ],
+   "decision": "B",
+   "reason": "The story places the landing at Opa-Locka Executive Airport outside Miami, not in Miami."
+  }
+ },
+ "critic_unclear": {
+  "points": [
+   {
+    "point": "map_place",
+    "side": "unclear",
+    "evidence": "",
+    "reason": "The story means Villarreal CF's town in Castellón, not the tiny Badajoz place with the same name"
+   }
+  ],
+  "decision": "unclear",
+  "reason": "Reader A's pin is a different Villarreal from the football club's town in Castellón"
+ }
+}

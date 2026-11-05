@@ -37,6 +37,8 @@ def collect(store: Store) -> dict[str, Any]:
     runs = [dict(row) for row in store.query(
         "SELECT * FROM scrape_runs ORDER BY run_id DESC LIMIT 5"
     )]
+    from .verify import outcome_counts
+
     flags = {row["flag"]: row["n"] for row in store.query(
         """SELECT json_each.value AS flag, COUNT(*) AS n
              FROM stories, json_each(stories.format_flags)
@@ -51,6 +53,8 @@ def collect(store: Store) -> dict[str, Any]:
         "format_flags": flags,
         "outlets": outlets,
         "recent_runs": runs,
+        # Headline pin verification (section 7.9): outcomes per UTC day, last 7 days.
+        "verifications": outcome_counts(store),
     }
 
 
@@ -74,6 +78,8 @@ def run(args: argparse.Namespace, settings: Settings | None = None) -> int:
     )
     print(f"By status    {report['by_status'] or 'none'}")
     print(f"Format flags {report['format_flags'] or 'none'}")
+    for day, outcomes in sorted(report["verifications"].items()):
+        print(f"Verify {day} " + ", ".join(f"{count} {outcome}" for outcome, count in sorted(outcomes.items())))
     print()
     print(f"{'outlet':10} {'stories':>7}  {'last new story':20} {'fails':>5}  last error")
     for outlet in report["outlets"]:

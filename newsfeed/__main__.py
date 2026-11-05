@@ -20,6 +20,7 @@ from . import rail as rail_stage
 from . import resolve as resolve_stage
 from . import scrape as scrape_stage
 from . import status as status_stage
+from . import verify as verify_stage
 from .settings import SettingsError
 
 # Stage -> the milestone in docs/ARCHITECTURE.md section 14 that builds it.
@@ -63,6 +64,12 @@ def build_parser() -> argparse.ArgumentParser:
              "see section 9.0.",
     )
     rail_stage.add_arguments(rail_parser)
+
+    verify_parser = stages.add_parser(
+        "verify",
+        help="A fresh DeepSeek call checks every headline pin; a critic settles any flag (section 7.9).",
+    )
+    verify_stage.add_arguments(verify_parser)
 
     headline_places_parser = stages.add_parser(
         "headline-places",
@@ -110,6 +117,8 @@ def main(argv: list[str] | None = None) -> int:
             return cluster_stage.run(args)
         if args.stage == "rail":
             return rail_stage.run(args)
+        if args.stage == "verify":
+            return verify_stage.run(args)
         if args.stage == "headline-places":
             return headline_places_stage.run(args)
         if args.stage == "health":

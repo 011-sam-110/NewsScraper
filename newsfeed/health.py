@@ -299,8 +299,12 @@ def run(
         print(f"health: no store at {settings.news_db}")
         return 1
 
+    from .verify import outcome_counts
+
     with Store(settings.news_db) as store:
         checks = store_checks(store, now)
+        # Not a check: today's headline pin verdicts (section 7.9), kept in health.json for the dashboard.
+        verifications = outcome_counts(store, days=1)
     checks.append(rail_check(read_json(settings.data_dir / "rail.json"), now))
     if settings.ingest_url and not args.no_production:
         status, error = read_status(status_url(settings.ingest_url))
@@ -311,6 +315,7 @@ def run(
         print(f"{mark} {check.name:22} {check.detail}")
 
     message, state = decide(read_json(settings.health_file), checks, now)
+    state["verifications"] = verifications
     if message:
         print("\n" + message)
     if args.dry_run:

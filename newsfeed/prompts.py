@@ -14,9 +14,11 @@ Editing anything here changes the config hash, which withholds pins until the ga
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from .taxonomy import (
+    CATEGORY_IDS,
     EVENT_DATE_DAYS_AFTER,
     EVENT_DATE_DAYS_BEFORE,
     NOT_EVENT_REASONS,
@@ -210,3 +212,220 @@ def prompt_components() -> dict[str, Any]:
 def cluster_prompt_components() -> dict[str, Any]:
     """What the CLUSTER config hash records about the prompts. Never mixed into the extract hash."""
     return {"cluster_prompt_version": CLUSTER_PROMPT_VERSION, "cluster_system": CLUSTER_SYSTEM}
+
+
+# --- Verify (docs/ARCHITECTURE.md section 7.9) ------------------------------------------------
+#
+# Two fresh calls after resolve. VERIFY judges every claim of a headline pin, the GeoNames place
+# included, and never sees the first call's reasoning. ADJUDICATE, the critic, runs only when VERIFY
+# flags a point, sees the text and both answers, and decides once. The texts below are the round 2
+# prompts measured on 5 Nov 2026 (57 pins, 200 non-pins, 14 venue fallbacks): every change from round 1
+# came from a measured round 1 miss. The "no_pin" half of VERIFY_SYSTEM is for the weekly recall check
+# (section 10.4); the daily stage sends only pin claims. Editing anything here moves the verify hash.
+
+VERIFY_PROMPT_VERSION = "verify/1"
+
+RULES = """The rules for a map pin. A story gets a pin only when ALL of these hold:
+1. HAPPENED. The story reports a physical happening that took place: something a person standing
+   there could have witnessed. Not a plan, a schedule, a threat, a demand, an expectation or a
+   hypothesis. Not opinion, analysis, a policy, a ruling or an announcement. Not a roundup of
+   several events in different places. A happening that an official, a police force or one side of
+   a conflict reports counts as reported; it fails only when the story says it is doubtful, denied
+   or did not take place.
+   DATE. The happening is dated from 3 days before to 1 day after the published date. When the story
+   gives no date for it, take the published date: a missing date is never a reason to object. Object
+   on the date only when the text dates the happening outside the window ("last week", a weekday or
+   a date more than 3 days before publication).
+2. EVENT PLACE. The place is where the happening that makes the story news took place. Not a
+   dateline (where the reporter filed from), not where somebody spoke or gave an interview, not where
+   somebody travelled from or to, not the home of a person or a team. When the news is a happening
+   somewhere else (a killing, a crash) and the named place is only where a later, smaller happening
+   took place (a relative's departure, a press conference, a vigil), the place is wrong.
+3. MAP PLACE. The map pin, a GeoNames row with its region and country, is the same real place the
+   story means, not another place with the same or a similar name. Use the story's context: a club,
+   a region, a nearby city, the size of the place. A hamlet with population 0 is rarely the place a
+   news story means when a well-known town of that name exists. A city pin for a venue inside or at
+   the edge of that city is the same place.
+4. PRECISION. The pin is not more precise than the text supports. A venue pin needs the text to name
+   that venue as the place. A city pin needs the text to name that city or a place inside it: when
+   the text names only a country or a region, a city pin is too precise.
+5. CATEGORY. Name the one or two categories that fit the story. Two categories that both fit are not
+   an error.
+Code applies two more rules, so do not argue them: courts_and_justice and opinion_analysis stories
+never get a pin, and a region, a coast, a mountain range or a country is never a pin."""
+
+VERIFY_SYSTEM = f"""You check a claim that another reader made about one news story. Return json only,
+with no other text.
+
+The other reader is sometimes wrong. Do not trust the claim. Read the story text yourself and test
+each part of the claim against it. Use only the story text, its published date, and general
+geographic knowledge (which town a football club plays in, which province a town is in, which
+country a city is in). Do not use other knowledge of the news.
+
+{RULES}
+
+The claim is one of two kinds.
+
+KIND "pin": the other reader says the story gets a pin. Check rules 1 to 4, and give the categories
+for rule 5. For rules 1 to 4 answer "agree", "disagree" or "unsure". Use "unsure" only when the text
+does not let you tell. When you disagree with the event place or the map place, give the place you
+think is right, or null when the text names no place that passes the rules.
+
+Return exactly this shape for KIND "pin":
+
+{{"kind": "pin", "happened": {{"verdict": "agree", "reason": "a fire destroyed the market on Monday"}},
+"event_place": {{"verdict": "agree", "reason": "the fire was at the market", "correct_place": null}},
+"map_place": {{"verdict": "agree", "reason": "the town in that province", "correct_place": null}},
+"precision": {{"verdict": "agree", "reason": "the story names the town"}},
+"category": {{"acceptable": ["accident"], "reason": "an accidental fire"}}}}
+
+KIND "no_pin": the other reader says the story gets no pin, and says why. Decide whether the story
+does in fact report a happening that passes rules 1 and 2, at a place the text names at venue,
+street, district or city precision, in a category code allows. Answer "agree" (no pin), "disagree"
+(there should be a pin) or "unsure". When you disagree, give the place and a quote copied word for
+word from the story text that names the place and shows what happened there.
+
+Return exactly this shape for KIND "no_pin":
+
+{{"kind": "no_pin", "verdict": "agree", "reason": "a policy announcement, nothing happened at a place",
+"place": null}}
+
+or, when you disagree:
+
+{{"kind": "no_pin", "verdict": "disagree", "reason": "a bus crash in the town on Sunday",
+"place": {{"name": "Kostiantynivka", "within": "Donetsk Oblast", "country": "UA", "kind": "city",
+"quote": "a drone hit a bus in Kostiantynivka on Sunday"}}}}
+
+Every "reason" is one short line, at most 25 words.
+"""
+
+ADJUDICATE_SYSTEM = f"""You settle a disagreement between two readers of one news story. Return json only,
+with no other text.
+
+Reader A made a claim about the story. Reader B checked the claim and objected to part of it, or gave
+a different answer. Either reader may be wrong, and neither is more likely to be right. An objection
+is not evidence, and neither is a claim. Read the story text yourself. For each disputed point, find
+the words in the text that settle it, and side with the reader those words support. When the text
+supports neither, answer "unclear". Use only the story text, its published date, and general
+geographic knowledge. Do not use other knowledge of the news.
+
+{RULES}
+
+For each disputed point give "side": "A", "B" or "unclear", and "evidence": the few words of the text
+that settle it (or "" when nothing does). Then give one decision about the map:
+- "A": reader A's answer about the map stands (A's pin, or A's "no pin").
+- "B": reader B is right (B's "no pin", or B's different answer).
+- "unclear": the text does not settle it.
+
+Return exactly this shape:
+
+{{"points": [{{"point": "event_place", "side": "B", "evidence": "departed Ghana for the United States",
+"reason": "the airport is where the mother left from; the killing was in the United States"}}],
+"decision": "B", "reason": "the pinned place is not where the reported happening took place"}}
+
+Every "reason" is one short line, at most 25 words.
+"""
+
+# What GeoNames calls a feature, in words the verifier reads beside the map pin.
+FEATURE_NAMES = {
+    "PPL": "populated place", "PPLA": "seat of a first-order admin area", "PPLA2": "seat of a second-order admin area",
+    "PPLA3": "seat of a third-order admin area", "PPLA4": "seat of a fourth-order admin area", "PPLC": "capital city",
+    "PPLX": "section of a populated place", "PPLL": "locality", "AIRP": "airport", "ADM1": "first-order admin area",
+    "ADM2": "second-order admin area", "ADM3": "third-order admin area", "ADM4": "fourth-order admin area",
+}
+
+CATEGORIES_LINE = "Categories: " + ", ".join(CATEGORY_IDS)
+
+VERIFY_RETRY_SUFFIX = (
+    "\n\nYour previous answer was not valid json in the shape asked for. Return it again, as json only."
+)
+
+
+def verify_story_block(outlet: str | None, published: str | None, headline: str | None, text: str) -> str:
+    """The story as both verify calls see it: a feed row's headline and RSS summary, and its date."""
+    return (
+        f"Outlet: {outlet}\n"
+        f"Published: {published or 'unknown'}\n"
+        f"Headline: {headline or 'untitled'}\n"
+        f"\nStory text:\n{text}\n"
+    )
+
+
+def _claim_head(category: str | None, place: dict[str, Any]) -> list[str]:
+    return [
+        "CLAIM, KIND \"pin\":",
+        "- Physical happening: yes",
+        f"- Category: {category}",
+        f"- Event place as the reader named it: \"{place.get('name')}\" (within: {place.get('within')}, "
+        f"country: {place.get('country')}, kind: {place.get('kind')})",
+        f"- Evidence quote the reader gave: \"{place.get('quote')}\"",
+    ]
+
+
+def verify_pin_claim(category: str | None, place: dict[str, Any], pin: dict[str, Any]) -> str:
+    """The first answer's claims, with the GeoNames place it resolved to. `place` is what the reader
+    named (name, within, country, kind, quote); `pin` is the map pin (name, lat, lon, precision,
+    feature_code, population)."""
+    feature = FEATURE_NAMES.get(pin["feature_code"], pin["feature_code"])
+    return "\n".join(_claim_head(category, place) + [
+        f"- Map pin: {pin.get('name')}. GeoNames {feature}, population {pin['population']}, at {pin.get('lat')}, "
+        f"{pin.get('lon')}. Pin precision: {pin.get('precision')}.",
+    ])
+
+
+def verify_fallback_claim(category: str | None, place: dict[str, Any], pin: dict[str, Any]) -> str:
+    """A pin claim for a venue GeoNames lacks, placed on the city the reader gave as "within"."""
+    feature = FEATURE_NAMES.get(pin["feature_code"], pin["feature_code"])
+    return "\n".join(_claim_head(category, place) + [
+        f"- Map pin: {pin['name']}. The venue is not in GeoNames, so the pin is the place the reader gave as "
+        f"\"within\": GeoNames {feature}, population "
+        f"{pin['population']}, at {pin['lat']}, {pin['lon']}. Pin precision: area (a town or district).",
+    ])
+
+
+def build_verify_user(story: str, claim: str) -> str:
+    return story + "\n" + claim + "\n" + CATEGORIES_LINE
+
+
+def objection_text(points: list[dict[str, Any]]) -> str:
+    """The verifier's flags, as the critic reads them: reader B's objections."""
+    lines = ["READER B (objections to the claim):"]
+    for point in points:
+        extra = ""
+        if point.get("correct_place"):
+            extra = f" B's place: {json.dumps(point['correct_place'], ensure_ascii=False)}."
+        if point.get("acceptable"):
+            extra = f" B's acceptable categories: {', '.join(point['acceptable'])}."
+        lines.append(f"- {point['point']}: {point.get('verdict')}. {point.get('reason') or ''}{extra}")
+    return "\n".join(lines)
+
+
+def build_adjudicate_user(story: str, claim: str, points: list[dict[str, Any]]) -> str:
+    return story + "\nREADER A:\n" + claim + "\n\n" + objection_text(points) + "\n\n" + CATEGORIES_LINE
+
+
+# One rendered example of each message, so an edit to a template moves the verify hash as surely as an
+# edit to a system prompt does. Made-up values: nothing here is a real story.
+_EXAMPLE_PLACE = {"name": "Example Market", "within": "Example City", "country": "GB", "kind": "venue",
+                  "quote": "a fire destroyed Example Market on Monday"}
+_EXAMPLE_PIN = {"name": "Example City, England, United Kingdom", "lat": 51.5, "lon": -0.1, "precision": "area",
+                "feature_code": "PPL", "population": 1000}
+_EXAMPLE_POINTS = [{"point": "map_place", "verdict": "disagree", "reason": "a namesake",
+                    "correct_place": {"name": "Example City", "within": "Example County", "country": "GB",
+                                      "kind": "city"}},
+                   {"point": "category", "verdict": None, "reason": "a court story", "acceptable": ["accident"]}]
+
+
+def verify_prompt_components() -> dict[str, Any]:
+    """What the VERIFY config hash records about the prompts. Never mixed into the extract hash."""
+    story = verify_story_block("example-outlet", "2026-11-05T09:00:00Z", "Example headline", "Example text.")
+    pin_claim = verify_pin_claim("accident", _EXAMPLE_PLACE, _EXAMPLE_PIN)
+    return {
+        "verify_prompt_version": VERIFY_PROMPT_VERSION,
+        "verify_system": VERIFY_SYSTEM,
+        "adjudicate_system": ADJUDICATE_SYSTEM,
+        "verify_retry_suffix": VERIFY_RETRY_SUFFIX,
+        "pin_claim_example": build_verify_user(story, pin_claim),
+        "fallback_claim_example": build_verify_user(story, verify_fallback_claim("accident", _EXAMPLE_PLACE, _EXAMPLE_PIN)),
+        "adjudicate_example": build_adjudicate_user(story, pin_claim, _EXAMPLE_POINTS),
+    }
