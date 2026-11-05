@@ -314,19 +314,21 @@ class StageTests(unittest.TestCase):
         )
         connection.close()
 
-    def seed_extraction(self, **over: object) -> None:
+    def seed_extraction(self, config_hash: str | None = None, story: bool = True, **over: object) -> None:
+        from newsfeed.config import extract_config_hash
         from newsfeed.identity import now_utc
 
         now = now_utc()
         with self.Store(self.settings.news_db) as store:
             store.migrate()
             with store.write() as connection:
-                connection.execute(
-                    """INSERT INTO stories (story_id, outlet, primary_alias, published,
-                                            first_seen_at, last_seen_at, status)
-                       VALUES ('st_1', 'reuters', 'st_1', ?, ?, ?, 'extracted')""",
-                    (now, now, now),
-                )
+                if story:
+                    connection.execute(
+                        """INSERT INTO stories (story_id, outlet, primary_alias, published,
+                                                first_seen_at, last_seen_at, status)
+                           VALUES ('st_1', 'reuters', 'st_1', ?, ?, ?, 'extracted')""",
+                        (now, now, now),
+                    )
                 row = {
                     "place_name": "Paris",
                     "place_within": None,
@@ -338,8 +340,9 @@ class StageTests(unittest.TestCase):
                     """INSERT INTO extractions (story_id, config_hash, accepted, is_physical_event,
                                                 place_name, place_within, place_country, place_kind,
                                                 created_at)
-                       VALUES ('st_1', 'cfgtest', 1, 1, ?, ?, ?, ?, ?)""",
+                       VALUES ('st_1', ?, 1, 1, ?, ?, ?, ?, ?)""",
                     (
+                        config_hash or extract_config_hash(),
                         row["place_name"],
                         row["place_within"],
                         row["place_country"],
@@ -365,7 +368,49 @@ class StageTests(unittest.TestCase):
         self.assertEqual(rows[0]["geonames_id"], PARIS_FRANCE)
         self.assertEqual(rows[0]["place_precision"], "city")
         self.assertEqual(rows[0]["pinnable"], 1)
-        self.assertEqual(rows[0]["extract_hash"], "cfgtest")
+        from newsfeed.config import extract_config_hash
+
+        self.assertEqual(rows[0]["extract_hash"], extract_config_hash())
+
+    def test_a_re_extracted_story_is_resolved_again_from_its_new_answer(self) -> None:
+        # Trap found 2026-11-05: a story re-extracted under a new hash kept the coordinate its OLD answer
+        # made, because resolve skipped any story that already had a row under the resolve hash. One of
+        # six stories re-asked at max effort that day named a different place.
+        self.write_gazetteer()
+        self.seed_extraction(config_hash="cfg_old", place_name="Atlantis")
+        with self.Store(self.settings.news_db) as store:
+            store.migrate()
+            with store.write() as connection:
+                connection.execute(
+                    """INSERT INTO resolutions (story_id, config_hash, extract_hash, resolved, pinnable,
+                                                climbed, reason, created_at)
+                       VALUES ('st_1', ?, 'cfg_old', 0, 0, 0, 'old answer', '2026-11-01T00:00:00Z')""",
+                    (self.resolve_hash(),),
+                )
+        self.seed_extraction(story=False)  # the same story, now under the current hash: Paris
+        resolve.run(argparse.Namespace(limit=10, story=None, dry_run=False), self.settings)
+        rows = self.resolutions()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["geonames_id"], PARIS_FRANCE)
+        from newsfeed.config import extract_config_hash
+
+        self.assertEqual(rows[0]["extract_hash"], extract_config_hash())
+
+    def test_an_answer_under_an_older_hash_only_is_not_resolved(self) -> None:
+        # Cluster reads only the current hash, so resolving an old answer would place a story nothing reads.
+        self.write_gazetteer()
+        self.seed_extraction(config_hash="cfg_old")
+        resolve.run(argparse.Namespace(limit=10, story=None, dry_run=False), self.settings)
+        self.assertEqual(self.resolutions(), [])
+
+    def resolve_hash(self) -> str:
+        from newsfeed.config import resolve_config_hash
+
+        gazetteer = geonames.Gazetteer(sqlite3.connect(self.settings.geonames_db))
+        try:
+            return resolve_config_hash(geonames.build_hash(gazetteer.connection))
+        finally:
+            gazetteer.connection.close()
 
     def test_a_second_run_does_not_redo_the_work(self) -> None:
         self.write_gazetteer()

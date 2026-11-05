@@ -293,8 +293,8 @@ class ConfigHashTests(unittest.TestCase):
 
     def test_the_components_cover_what_section_10_5_lists(self) -> None:
         components = config.extract_components()
-        for name in ("model", "temperature", "max_tokens", "thinking", "categories", "date_rule",
-                     "extract_system"):
+        for name in ("model", "temperature", "max_tokens", "thinking", "reasoning_effort",
+                     "categories", "date_rule", "extract_system"):
             with self.subTest(name=name):
                 self.assertIn(name, components)
 

@@ -307,10 +307,11 @@ Authorization: Bearer <DEEPSEEK_API_KEY>
 
 {
   "model": "deepseek-flash",
-  "thinking": {"type": "disabled"},
+  "thinking": {"type": "enabled"},
+  "reasoning_effort": "max",
   "response_format": {"type": "json_object"},
   "temperature": 0,
-  "max_tokens": 800,
+  "max_tokens": 8192,
   "messages": [
     {"role": "system", "content": "<fixed instructions, the category list, one worked example; mentions json>"},
     {"role": "user", "content": "<outlet, section, headline, published time, outlet tags, article text>"}
@@ -321,6 +322,7 @@ Authorization: Bearer <DEEPSEEK_API_KEY>
 - **Caching.** The system message is identical on every call, and nothing that varies comes before the article. DeepSeek caches repeated prompt prefixes automatically, and cached input tokens cost much less. Each call logs `usage.prompt_cache_hit_tokens` and `usage.prompt_cache_miss_tokens`.
 - **JSON mode.** It needs the word "json" in the prompt, and it can return empty content. Empty content is retried (table below).
 - **Model id.** When M5 starts, confirm the id with `GET https://api.deepseek.com/models`, and record the `model` string each response returns. Both go into the config hash.
+- **Max effort since 2026-11-05.** Sam: "v1 flash on max effort", for every DeepSeek call. The model list names `deepseek-flash` "DeepSeek-V4.1-Flash". Until then every call had thinking off. With thinking on, the model reasons before it answers, the reasoning is billed as output and counts against `max_tokens`, and `temperature` has no effect, so an answer is no longer repeatable call to call. Measured on 6 real extract calls that day: answers took 315 to 2,198 output tokens (mean 947, against a mean of 107 with thinking off in `llm_calls`) and 2.8 to 13.6 s (mean 6.2, against 1.4). The cap went from 800 to 8,192 for that reason. `newsfeed/deepseek.py` builds every request, and `tests/test_deepseek_max_effort.py` fails if a stage builds its own or names another model.
 
 Output schema, with an example:
 
@@ -1149,6 +1151,14 @@ Every report also shows the Wilson 95% interval beside the raw error rate.
   The cluster hash is not written here because it is derived from the other two, so copying it would
   give two places to disagree. The stage prints it on every run.
 
+  **2026-11-05: the extract hash moved to `3e17b96e25b937c5`** when every call went to max effort
+  (section 7.6). The prompts did not change. The cluster hash moves with it. The cut-over extracts the
+  stories first seen in the 72 hours before it again with `--redo`, which covers the 48-hour cluster
+  window. Older stories keep their answers under `633932b5b392beb3` only. Since this change, `extract`
+  exits 3 while a story from the last 48 hours holds an answer only under an older hash, and `resolve`
+  resolves a story again when its coordinate came from another answer. The gate (section 10) was
+  measured under the old hash, so it must be measured again before any pin is published.
+
   Editing any prompt moves its hash and every stage downstream reads an empty table, because a
   story that is already `extracted` is never claimed by status again. `python -m newsfeed extract
   --redo` is the deliberate way to pay for the backlog again. That is a feature of the freeze, not
@@ -1239,7 +1249,7 @@ Every week the host Claude labels 20 live pins. If 2 or more are wrong, publish 
 This is an estimate until M10 measures it.
 
 - **Volume:** a few hundred new stories a day across the five outlets.
-- **Extraction:** one `deepseek-flash` call per story, with thinking off and a cached system prompt. Roughly $0.0008 a story at peak rates.
+- **Extraction:** one `deepseek-flash` call per story, with a cached system prompt. Roughly $0.0008 a story at peak rates with thinking off. At max effort (since 2026-11-05) six real calls cost $0.0011 to $0.0032 at peak, mean $0.0018.
 - **Clustering:** same-event checks add a smaller call for each candidate pair.
 
 Total: roughly $15 to $30 a month, and about half that if the heavy work runs in DeepSeek's off-peak hours. A verify pass (section 7.9) would add to it.

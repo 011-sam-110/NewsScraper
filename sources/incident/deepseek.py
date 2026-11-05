@@ -19,7 +19,8 @@ def maybe_interpret(row: dict[str, str], client: Any) -> dict[str, Any]:
         "equipment": row.get("EquipmentItems"),
         "units": row.get("OrbatUnits") or row.get("Units"),
     }, ensure_ascii=False)
-    completion = client.complete(SYSTEM, user, json_object=True, max_tokens=400, temperature=0.0)
+    # The client's own cap: at max effort the model reasons before it answers, and 400 left no room.
+    completion = client.complete(SYSTEM, user, json_object=True, temperature=0.0)
     payload = json.loads(completion.content)
     if not isinstance(payload, dict):
         raise ValueError("DeepSeek response must be a JSON object")

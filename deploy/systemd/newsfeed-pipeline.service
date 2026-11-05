@@ -14,7 +14,11 @@ EnvironmentFile=-%h/.config/newsfeed/newsfeed.env
 # catch-up or a slow run, and cluster would then place stories with no coordinate, pin none of
 # them, and record that as done. Cluster refuses to start in that state, so three timers would
 # also mean a failed unit most hours. systemd runs these in order and stops at the first failure.
-ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed extract --limit 400
+# 200, not 400, since extract runs at max effort (2026-11-05): a call averages 6.2 s and took up to 13.6 s,
+# so 200 stories take about 21 minutes and 45 at the slowest, inside the 55-minute backstop below. A normal
+# hour brings about 24. Extract exits 3 while recent stories hold an answer only under an older config
+# hash: that is the unit failing on purpose, and the fix is `extract --redo` (docs/ARCHITECTURE.md 10.5).
+ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed extract --limit 200
 ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed resolve --limit 2000
 ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed cluster --limit 2000
 
