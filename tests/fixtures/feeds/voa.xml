@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">     
+    <channel>      
+        <title>Voice of America</title>     
+        <link>https://www.voanews.com</link>
+        <description>Voice of America is an international news and broadcast organization serving Central and Eastern Europe, the Caucasus, Central Asia, Russia, the Middle East and Balkan countries</description>
+        <image>
+            <url>https://www.voanews.com/Content/responsive/VOA/en-US/img/logo.png</url>
+            <title>Voice of America</title>
+            <link>https://www.voanews.com</link>
+        </image>
+        <language>en</language>
+        <copyright>2026 - VOA</copyright>   
+        <ttl>60</ttl>        
+        <lastBuildDate>Thu, 05 Nov 2026 07:04:28 -0500</lastBuildDate> 
+        <generator>Pangea CMS – VOA</generator>        
+        <atom:link href="https://www.voanews.com/api/" rel="self" type="application/rss+xml" />
+    		<item>
+            <title>UN warns of worsening humanitarian situation in Afghanistan</title>
+            <description></description>
+            <link>https://www.voanews.com/a/un-warns-of-worsening-humanitarian-situation-in-afghanistan/8219014.html</link> 
+            <guid>https://www.voanews.com/a/un-warns-of-worsening-humanitarian-situation-in-afghanistan/8219014.html</guid>            
+            <pubDate>Wed, 04 Nov 2026 16:45:22 -0500</pubDate>
+            <category>VOA Dari</category><author>webdesk@voanews.com (VOA Afghan)</author><enclosure url="https://gdb.voanews.com/73402278-5969-4524-a43e-851626a44d1f_w800_h450.jpg" length="0" type="image/jpeg"/>
+        </item>
+<item>
+            <title>Iran’s Supreme Court upholds death sentence for a fruit seller arrested in connection with nationwide protests  </title>
+            <description></description>
+            <link>https://www.voanews.com/a/irans-supreme-court-upholds-death-sentence-for-a-fruit-seller-arrested-in-connection-with-nationwide-protests/8217982.html</link> 
+            <guid>https://www.voanews.com/a/irans-supreme-court-upholds-death-sentence-for-a-fruit-seller-arrested-in-connection-with-nationwide-protests/8217982.html</guid>            
+            <pubDate>Mon, 02 Nov 2026 17:17:01 -0500</pubDate>
+            <category>VOA Persian</category><author>webdesk@voanews.com (VOA Persian)</author><enclosure url="https://gdb.voanews.com/e6c27c9c-9384-4d36-10ee-08ddb86e0292_w800_h450.jpg" length="0" type="image/jpeg"/>
+        </item>
+<item>
+            <title>ICBL: North Korea’s reported mine-laying could be world’s largest since 2001</title>
+            <description></description>
+            <link>https://www.voanews.com/a/icbl-north-koreas-reported-mine-laying-could-be-worlds-largest-since-2001/8217987.html</link> 
+            <guid>https://www.voanews.com/a/icbl-north-koreas-reported-mine-laying-could-be-worlds-largest-since-2001/8217987.html</guid>            
+            <pubDate>Mon, 02 Nov 2026 17:10:22 -0500</pubDate>
+            <category>VOA Korean</category><author>webdesk@voanews.com (Sangjin Cho)</author><enclosure url="https://gdb.voanews.com/89c1d59a-6ae2-469f-7ab4-08df13bedfec_w800_h450.jpg" length="0" type="image/jpeg"/>
+        </item>		
+        </channel></rss>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>Jamaica Information Service</title>
+	<atom:link href="https://jis.gov.jm/feed/" rel="self" type="application/rss+xml" />
+	<link>https://jis.gov.jm</link>
+	<description>The Voice of Jamaica</description>
+	<lastBuildDate>Thu, 05 Nov 2026 00:09:35 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+<image>
+	<url>https://jis.gov.jm/media/cropped-favicon-120x120.png</url>
+	<title>Jamaica Information Service</title>
+	<link>https://jis.gov.jm</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Consumer Protection and Competition Authority Coming</title>
+		<link>https://jis.gov.jm/consumer-protection-and-competition-authority-coming/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=consumer-protection-and-competition-authority-coming</link>
+		<dc:creator><![CDATA[Kamroy Ogilvie]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 00:07:09 +0000</pubDate>
+				<category><![CDATA[Finance & Public Service]]></category>
+		<guid isPermaLink="false">https://jis.gov.jm/?p=432679</guid>
+					<description></description>
+			</item>
+<item>
+		<title>IICA Working With Governments In Region to Promote Sustainable Agricultural Practices</title>
+		<link>https://jis.gov.jm/iica-working-with-governments-in-region-to-promote-sustainable-agricultural-practices/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=iica-working-with-governments-in-region-to-promote-sustainable-agricultural-practices</link>
+		<dc:creator><![CDATA[Kamroy Ogilvie]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 23:56:02 +0000</pubDate>
+				<category><![CDATA[Agriculture]]></category>
+		<guid isPermaLink="false">https://jis.gov.jm/?p=432674</guid>
+					<description></description>
+			</item>
+<item>
+		<title>Workers the True Architects of Jamaica’s Tourism Success – Minister Bartlett</title>
+		<link>https://jis.gov.jm/workers-the-true-architects-of-jamaicas-tourism-success-minister-bartlett/?utm_source=rss&#038;utm_medium=rss&#038;utm_campaign=workers-the-true-architects-of-jamaicas-tourism-success-minister-bartlett</link>
+		<dc:creator><![CDATA[Kamroy Ogilvie]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 23:54:11 +0000</pubDate>
+				<category><![CDATA[Tourism]]></category>
+		<guid isPermaLink="false">https://jis.gov.jm/?p=432664</guid>
+					<description></description>
+			</item>
+	</channel>
+</rss>

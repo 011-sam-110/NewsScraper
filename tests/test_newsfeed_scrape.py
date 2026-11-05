@@ -301,7 +301,7 @@ class ParallelOutletTests(SinkTestCase):
     def test_five_outlets_write_at_once(self) -> None:
         sources = [
             FakeSource(name, {"world": [[row(f"{name}-1", f"https://{name}.example.com/1")]]})
-            for name in ("reuters", "bbc", "pbs", "npr", "dw")
+            for name in ("reuters", "bbc", "pbs", "jpost", "semafor")
         ]
         with Store(self.path) as store:
             sink = StoreSink(store)
@@ -461,7 +461,7 @@ class FeedOutletTests(SinkTestCase):
     """Provenance's RSS feeds: stored with status `feed`, which no paid model stage claims."""
 
     def test_a_feed_row_is_stored_with_status_feed(self) -> None:
-        feed = FakeSource("npr", {"feed": [[row("npr-1", "https://www.npr.org/2026/11/05/1")]]})
+        feed = FakeSource("mercopress", {"feed": [[row("mercopress-1", "https://en.mercopress.com/2026/11/05/1")]]})
         scraper = FakeSource("bbc", {"world": [[row("urn:bbc:asset:9", "https://www.bbc.co.uk/news/a9")]]})
         with Store(self.path) as store:
             sink = StoreSink(store)
@@ -469,7 +469,7 @@ class FeedOutletTests(SinkTestCase):
                 common.scrape(self.output, [(feed, "feed"), (scraper, "world")], 8, 0.0, 0, True, sink=sink)
             statuses = {r["outlet"]: r["status"] for r in store.query("SELECT outlet, status FROM stories")}
             claimed = store.claim_stories("scraped", 10)
-        self.assertEqual(statuses, {"npr": "feed", "bbc": "scraped"})
+        self.assertEqual(statuses, {"mercopress": "feed", "bbc": "scraped"})
         self.assertEqual(len(claimed), 1, "only the scraped row is claimable by extract")
 
     def test_the_feeds_group_expands_to_every_feed_outlet(self) -> None:

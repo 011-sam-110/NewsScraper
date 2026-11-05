@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>Press Releases &#8211; United States Department of State</title>
+	<atom:link href="https://www.state.gov/rss-feed/press-releases/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.state.gov</link>
+	<description></description>
+	<lastBuildDate>Thu, 05 Nov 2026 02:24:40 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.0.8</generator>
+<image>
+	<url>https://www.state.gov/wp-content/uploads/2022/04/cropped-dos_seal-32x32.png</url>
+	<title>Press Releases &#8211; United States Department of State</title>
+	<link>https://www.state.gov</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Disrupting Iran’s Pursuit of Man-Portable Air-Defense Systems</title>
+		<link>https://www.state.gov/releases/office-of-the-spokesman/2026/11/disrupting-irans-pursuit-of-man-portable-air-defense-systems/</link>
+		<dc:creator><![CDATA[Thomas &quot;Tommy&quot; Pigott, SpokesmanOffice of the Spokesman]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 02:24:37 +0000</pubDate>
+				<guid isPermaLink="false">https://www.state.gov/releases/preview/713990/</guid>
+					<description></description>
+			</item>
+<item>
+		<title>Disrupting Iran’s Pursuit of Man-Portable Air-Defense Systems Fact Sheet</title>
+		<link>https://www.state.gov/releases/office-of-the-spokesman/2026/11/disrupting-irans-pursuit-of-man-portable-air-defense-systems-fact-sheet/</link>
+		<dc:creator><![CDATA[Office of the Spokesman]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 22:41:25 +0000</pubDate>
+				<guid isPermaLink="false">https://www.state.gov/releases/preview/713979/</guid>
+					<description></description>
+			</item>
+<item>
+		<title>U.S. Sanctions Fraudulent Ship Registries and Aviation Support for Iranian Regime</title>
+		<link>https://www.state.gov/releases/office-of-the-spokesman/2026/11/u-s-sanctions-fraudulent-ship-registries-and-aviation-support-for-iranian-regime/</link>
+		<dc:creator><![CDATA[Thomas &quot;Tommy&quot; Pigott, SpokesmanOffice of the Spokesman]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 18:20:11 +0000</pubDate>
+				<guid isPermaLink="false">https://www.state.gov/releases/preview/713935/</guid>
+					<description></description>
+			</item>
+	</channel>
+</rss>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Asia Times</title>
+	<atom:link href="https://asiatimes.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://asiatimes.com/</link>
+	<description>Covering geo-political news and current affairs across Asia</description>
+	<lastBuildDate>Thu, 05 Nov 2026 10:20:21 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	
+
+<image>
+	<url>https://asiatimes.com/wp-content/uploads/2020/02/ATLogo-192px.png</url>
+	<title>Asia Times</title>
+	<link>https://asiatimes.com/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+<site xmlns="com-wordpress:feed-additions:1">173017365</site>	<item>
+		<title>India&#8217;s $22 billion defense push can&#8217;t hide its missing fighter jets</title>
+		<link>https://asiatimes.com/2026/11/indias-22-billion-defense-push-cant-hide-its-missing-fighter-jets/</link>
+					<comments>https://asiatimes.com/2026/11/indias-22-billion-defense-push-cant-hide-its-missing-fighter-jets/#comments</comments>
+		<dc:creator><![CDATA[Saima Afzal]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 05:03:59 +0000</pubDate>
+				<category><![CDATA[South Asia]]></category>
+		<category><![CDATA[Block 2]]></category>
+		<category><![CDATA[Hindustan Aeronautics]]></category>
+		<category><![CDATA[India]]></category>
+		<category><![CDATA[India Defense]]></category>
+		<category><![CDATA[India Defense Spending]]></category>
+		<category><![CDATA[India Military Modernization]]></category>
+		<category><![CDATA[Rajnath Singh]]></category>
+		<category><![CDATA[Tejas Mk-1A Fighter]]></category>
+		<guid isPermaLink="false">https://asiatimes.com/?p=952360</guid>
+					<description></description>
+					<wfw:commentRss>https://asiatimes.com/2026/11/indias-22-billion-defense-push-cant-hide-its-missing-fighter-jets/feed/</wfw:commentRss>
+			<slash:comments>1</slash:comments>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">952360</post-id>	</item>
+<item>
+		<title>Trump, Putin and Xi can’t carve up the world like its 1945</title>
+		<link>https://asiatimes.com/2026/11/trump-xi-and-putin-cant-carve-up-the-world-like-its-1945/</link>
+					<comments>https://asiatimes.com/2026/11/trump-xi-and-putin-cant-carve-up-the-world-like-its-1945/#respond</comments>
+		<dc:creator><![CDATA[Nicholas Westcott]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:19:56 +0000</pubDate>
+				<category><![CDATA[Opinion]]></category>
+		<category><![CDATA[APEC Summit 2026]]></category>
+		<category><![CDATA[Donald Trump]]></category>
+		<category><![CDATA[Globalization]]></category>
+		<category><![CDATA[Iran War]]></category>
+		<category><![CDATA[Mark Carney]]></category>
+		<category><![CDATA[The Conversation]]></category>
+		<category><![CDATA[Ukraine war]]></category>
+		<category><![CDATA[United Nations]]></category>
+		<category><![CDATA[US Forever Wars]]></category>
+		<category><![CDATA[Vladimir Putin]]></category>
+		<category><![CDATA[Xi Jinping]]></category>
+		<guid isPermaLink="false">https://asiatimes.com/?p=952377</guid>
+					<description></description>
+					<wfw:commentRss>https://asiatimes.com/2026/11/trump-xi-and-putin-cant-carve-up-the-world-like-its-1945/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">952377</post-id>	</item>
+<item>
+		<title>China’s amphibious surge confronts a Taiwan invasion’s hard math</title>
+		<link>https://asiatimes.com/2026/11/chinas-amphibious-surge-confronts-a-taiwan-invasions-hard-math/</link>
+					<comments>https://asiatimes.com/2026/11/chinas-amphibious-surge-confronts-a-taiwan-invasions-hard-math/#respond</comments>
+		<dc:creator><![CDATA[Gabriel Honrada]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 04:45:02 +0000</pubDate>
+				<category><![CDATA[Military]]></category>
+		<category><![CDATA[Block 1]]></category>
+		<category><![CDATA[China Invasion of Taiwan]]></category>
+		<category><![CDATA[China Military]]></category>
+		<category><![CDATA[China Shipbuilding]]></category>
+		<category><![CDATA[PLA Navy]]></category>
+		<category><![CDATA[Taiwan war]]></category>
+		<category><![CDATA[Type 071 Hulls]]></category>
+		<category><![CDATA[US-China War]]></category>
+		<guid isPermaLink="false">https://asiatimes.com/?p=952353</guid>
+					<description></description>
+					<wfw:commentRss>https://asiatimes.com/2026/11/chinas-amphibious-surge-confronts-a-taiwan-invasions-hard-math/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">952353</post-id>	</item>
+	</channel>
+</rss>

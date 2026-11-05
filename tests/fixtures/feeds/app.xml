@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>Associated Press Of Pakistan</title>
+	<atom:link href="https://www.app.com.pk/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.app.com.pk</link>
+	<description>Pakistan&#039;s National News Agency</description>
+	<lastBuildDate>Thu, 05 Nov 2026 11:39:34 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+<image>
+	<url>https://www.app.com.pk/wp-content/uploads/2026/03/cropped-icon2-32x32.png</url>
+	<title>Associated Press Of Pakistan</title>
+	<link>https://www.app.com.pk</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>PM orders nationwide consultations, new anti-polio strategy within a week</title>
+		<link>https://www.app.com.pk/national/pm-orders-nationwide-consultations-new-anti-polio-strategy-within-a-week/</link>
+		<dc:creator><![CDATA[Najam ul Hassan]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:39:34 +0000</pubDate>
+				<category><![CDATA[National]]></category>
+		<guid isPermaLink="false">https://www.app.com.pk/?p=1304542</guid>
+					<description></description>
+			</item>
+<item>
+		<title>PTA conducts QoE/QoS field survey in Islamabad, Rawalpindi to assess telecom service quality</title>
+		<link>https://www.app.com.pk/national/pta-conducts-qoe-qos-field-survey-in-islamabad-rawalpindi-to-assess-telecom-service-quality/</link>
+		<dc:creator><![CDATA[Qadir Rajpoot]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:18:42 +0000</pubDate>
+				<category><![CDATA[National]]></category>
+		<category><![CDATA[PTA]]></category>
+		<guid isPermaLink="false">https://www.app.com.pk/?p=1304539</guid>
+					<description></description>
+			</item>
+<item>
+		<title>RCB to launch three-day food safety, hygiene awareness campaign from Nov 6</title>
+		<link>https://www.app.com.pk/punjab/rcb-to-launch-three-day-food-safety-hygiene-awareness-campaign-from-nov-6/</link>
+		<dc:creator><![CDATA[Qadir Rajpoot]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:17:04 +0000</pubDate>
+				<category><![CDATA[Punjab]]></category>
+		<category><![CDATA[RCB]]></category>
+		<guid isPermaLink="false">https://www.app.com.pk/?p=1304536</guid>
+					<description></description>
+			</item>
+	</channel>
+</rss>
+<!--
+Performance optimized by W3 Total Cache. Learn more: https://www.boldgrid.com/w3-total-cache/?utm_source=w3tc&utm_medium=footer_comment&utm_campaign=free_plugin
+Object Caching 63/64 objects using Memcached
+Minified using Memcached
+Served from: www.app.com.pk @ 2026-11-05 17:18:20 by W3 Total Cache
+-->

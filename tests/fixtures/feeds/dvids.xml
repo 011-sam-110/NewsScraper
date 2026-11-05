@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>DVIDS RSS Feed: News</title>
+    <description>DVIDS RSS Feed: News</description>
+    <generator>Zend_Feed_Writer 1.25.2 (http://framework.zend.com)</generator>
+    <link>https://www.dvidshub.net</link>
+    <atom:link rel="self" type="application/rss+xml" href="https://www.dvidshub.net/rss/news"/>
+    <item>
+      <title>Readiness exercise tests RAF Mildenhall capabilities</title>
+      <description></description>
+      <pubDate>Thu, 05 Nov 2026 06:30:54 -0500</pubDate>
+      <link>https://www.dvidshub.net/news/578664/readiness-exercise-tests-raf-mildenhall-capabilities</link>
+      <guid isPermaLink="false">news:578664</guid>
+      <author>Karen Abeyasekere</author>
+      <media:thumbnail url="https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/2611/10072173/250w_q95.jpg" width="250"/>
+      <dc:creator>Karen Abeyasekere</dc:creator>
+    </item>
+<item>
+      <title>Funakoshi hosts forces from Australia, India, Japan and U.S. for start of exercise Malabar 2026</title>
+      <description></description>
+      <pubDate>Thu, 05 Nov 2026 06:00:11 -0500</pubDate>
+      <link>https://www.dvidshub.net/news/578663/funakoshi-hosts-forces-australia-india-japan-and-us-start-exercise-malabar-2026</link>
+      <guid isPermaLink="false">news:578663</guid>
+      <media:thumbnail url="https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/2611/10072164/250w_q95.jpg" width="250"/>
+    </item>
+<item>
+      <title>USAG Stuttgart partners with Hiring our Heroes for Stuttgart Career Summit</title>
+      <description></description>
+      <pubDate>Thu, 05 Nov 2026 04:29:51 -0500</pubDate>
+      <link>https://www.dvidshub.net/news/578662/usag-stuttgart-partners-with-hiring-our-heroes-stuttgart-career-summit</link>
+      <guid isPermaLink="false">news:578662</guid>
+      <author>Michael Roach</author>
+      <media:thumbnail url="https://d1ldvf68ux039x.cloudfront.net/thumbs/photos/2611/10067384/250w_q95.jpg" width="250"/>
+      <dc:creator>Michael Roach</dc:creator>
+    </item>
+  </channel>
+</rss>

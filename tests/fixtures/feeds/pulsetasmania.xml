@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Pulse Tasmania</title>
+	<atom:link href="https://pulsetasmania.com.au/feed/" rel="self" type="application/rss+xml" />
+	<link>https://pulsetasmania.com.au</link>
+	<description>Free breaking news and top stories from Hobart and Tasmania</description>
+	<lastBuildDate>Thu, 05 Nov 2026 06:12:29 +0000</lastBuildDate>
+	<language>en-AU</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+	<item>
+		<title>Labor&#8217;s spending cap bill rewards ‘ticket fillers’ over independents, analyst says</title>
+		<link>https://pulsetasmania.com.au/news/labors-spending-cap-bill-rewards-ticket-fillers-over-independents-analyst-says/</link>
+		<dc:creator><![CDATA[Pulse Tasmania]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 05:51:22 +0000</pubDate>
+				<category><![CDATA[Politics]]></category>
+		<category><![CDATA[The Latest]]></category>
+		<guid isPermaLink="false">https://pulsetasmania.com.au/news/labors-spending-cap-bill-rewards-ticket-fillers-over-independents-analyst-says/</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>Fault delays Spirit of Tasmania IV arrival into Geelong</title>
+		<link>https://pulsetasmania.com.au/news/spirit-of-tasmania-iv-yet-to-dock-hours-after-630am-arrival-time/</link>
+		<dc:creator><![CDATA[Pulse Tasmania]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 00:11:27 +0000</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[The Latest]]></category>
+		<category><![CDATA[Tourism & Travel]]></category>
+		<guid isPermaLink="false">https://pulsetasmania.com.au/news/spirit-of-tasmania-iv-yet-to-dock-hours-after-630am-arrival-time/</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>TasTAFE’s $3.6m termination bill wipes out most wage savings, Labor says</title>
+		<link>https://pulsetasmania.com.au/news/tastafes-3-6m-termination-bill-wipes-out-most-wage-savings-labor-says/</link>
+		<dc:creator><![CDATA[Pulse Tasmania]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 06:12:11 +0000</pubDate>
+				<category><![CDATA[Politics]]></category>
+		<category><![CDATA[The Latest]]></category>
+		<guid isPermaLink="false">https://pulsetasmania.com.au/news/tastafes-3-6m-termination-bill-wipes-out-most-wage-savings-labor-says/</guid>
+					<description></description>
+					
+		
+			</item>
+	</channel>
+</rss>

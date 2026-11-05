@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cf="http://www.microsoft.com/schemas/rss/core/2005">
+  <channel>
+    <title>
+Department of War News Feed
+</title>
+    <link>
+https://www.war.gov/News/News-Stories/
+</link>
+    <description>
+Stories from around the Department of War.
+</description>
+    <language>en-us</language>
+    <pubDate>Wed, 04 Nov 2026 21:42:00 GMT</pubDate>
+    <lastBuildDate>Thu, 05 Nov 2026 11:54:34 GMT</lastBuildDate>
+    <atom:link href="www.war.gov?ContentType=1&amp;Site=945&amp;isdashboardselected=0&amp;max=10" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Centcom Benefits From Project Agincourt, Drone Dominance Efforts</title>
+      <link>https://www.war.gov/News/News-Stories/Article/Article/4641652/centcom-benefits-from-project-agincourt-drone-dominance-efforts/</link>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 21:42:00 GMT</pubDate>
+      <dc:creator>C. Todd Lopez</dc:creator>
+      <guid isPermaLink="false">https://www.war.gov/News/News-Stories/Article/Article/4641652/centcom-benefits-from-project-agincourt-drone-dominance-efforts/</guid>
+      <enclosure url="https://media.defense.gov/2024/Feb/08/2003391275/825/780/0/230515-D-KY598-1364.JPG" type="image/jpeg" />
+    </item>
+<item>
+      <title>U.S., Colombia Launch Joint Exercise to Strengthen Readiness, Regional Security</title>
+      <link>https://www.war.gov/News/News-Stories/Article/Article/4641347/us-colombia-launch-joint-exercise-to-strengthen-readiness-regional-security/</link>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 18:34:00 GMT</pubDate>
+      <dc:creator>U.S. Southern Command</dc:creator>
+      <guid isPermaLink="false">https://www.war.gov/News/News-Stories/Article/Article/4641347/us-colombia-launch-joint-exercise-to-strengthen-readiness-regional-security/</guid>
+      <enclosure url="https://media.defense.gov/2026/Nov/04/2004023018/825/780/0/261103-A-US199-9015.JPG" type="image/jpeg" />
+    </item>
+<item>
+      <title>Pentagon Official Discusses Forthcoming Review of Military Legal System</title>
+      <link>https://www.war.gov/News/News-Stories/Article/Article/4641428/pentagon-official-discusses-forthcoming-review-of-military-legal-system/</link>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 18:27:00 GMT</pubDate>
+      <dc:creator>Matthew Olay</dc:creator>
+      <guid isPermaLink="false">https://www.war.gov/News/News-Stories/Article/Article/4641428/pentagon-official-discusses-forthcoming-review-of-military-legal-system/</guid>
+      <enclosure url="https://media.defense.gov/2025/Nov/13/2003820344/825/780/0/251113-D-FN350-2397.JPG" type="image/jpeg" />
+    </item>
+  </channel>
+</rss>

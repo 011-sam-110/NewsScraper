@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Cabin Radio</title>
+	<atom:link href="https://cabinradio.ca/feed/" rel="self" type="application/rss+xml" />
+	<link>https://cabinradio.ca</link>
+	<description>Life&#039;s Better at the Cabin</description>
+	<lastBuildDate>Wed, 04 Nov 2026 23:11:31 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	
+
+<image>
+	<url>https://i0.wp.com/cabinradio.ca/wp-content/uploads/2018/01/cropped-CURRENTLY-USED-Icon_Tundra.png?fit=32%2C32&#038;ssl=1</url>
+	<title>Cabin Radio</title>
+	<link>https://cabinradio.ca</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+<site xmlns="com-wordpress:feed-additions:1">135450906</site>	<item>
+		<title>Jackie Jacobson celebrated at legislature portrait unveiling</title>
+		<link>https://cabinradio.ca/318470/news/politics/jackie-jacobson-celebrated-at-legislature-portrait-unveiling/</link>
+		<dc:creator><![CDATA[Ollie Williams]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 23:11:25 +0000</pubDate>
+				<category><![CDATA[Politics]]></category>
+		<category><![CDATA[Tuktoyaktuk]]></category>
+		<guid isPermaLink="false">https://cabinradio.ca/?p=318470</guid>
+					<description></description>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">318470</post-id>	</item>
+<item>
+		<title>Alberta man gets six years over cocaine, handgun in Norman Wells</title>
+		<link>https://cabinradio.ca/318351/news/sahtu/norman-wells/alberta-man-gets-six-years-over-cocaine-handgun-in-norman-wells/</link>
+		<dc:creator><![CDATA[Emily Blake]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 21:49:02 +0000</pubDate>
+				<category><![CDATA[Alberta]]></category>
+		<category><![CDATA[Crime]]></category>
+		<category><![CDATA[Norman Wells]]></category>
+		<guid isPermaLink="false">https://cabinradio.ca/?p=318351</guid>
+					<description></description>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">318351</post-id>	</item>
+<item>
+		<title>Apparent recording device found in Fort Smith girls&#8217; school change room</title>
+		<link>https://cabinradio.ca/318439/news/south-slave/fort-smith/apparent-recording-device-found-in-fort-smith-girls-school-change-room/</link>
+		<dc:creator><![CDATA[Eshana Gohil]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 21:47:09 +0000</pubDate>
+				<category><![CDATA[Crime]]></category>
+		<category><![CDATA[Fort Smith]]></category>
+		<category><![CDATA[Technology]]></category>
+		<category><![CDATA[Breaking News]]></category>
+		<guid isPermaLink="false">https://cabinradio.ca/?p=318439</guid>
+					<description></description>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">318439</post-id>	</item>
+	</channel>
+</rss>

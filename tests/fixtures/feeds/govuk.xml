@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom">
+  <id>tag:www.gov.uk,2005:/search/news-and-communications</id>
+  <link rel="alternate" type="text/html" href="https://www.gov.uk"/>
+  <link rel="self" type="application/atom+xml" href="https://www.gov.uk/search/news-and-communications.atom"/>
+  <title>News and communications</title>
+  <updated>2026-11-05T10:34:44+00:00</updated>
+  <author>
+    <name>HM Government</name>
+  </author>
+  <entry>
+    <id>tag:www.gov.uk,2005:/government/speeches/international-development-minister-speech-at-education-cannot-wait-replenishment-conference</id>
+    <updated>2026-11-05T10:34:44+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/government/speeches/international-development-minister-speech-at-education-cannot-wait-replenishment-conference"/>
+    <title>International Development Minister speech at Education Cannot Wait Replenishment Conference</title>
+    <summary type="html">Kirsty McNeill made a speech at the Education Cannot Wait Replenishment Conference on 05 November 2026. She outlined the UK&amp;#39;s commitment to supporting the continued provision of education during times of crisis.</summary>
+  </entry>
+<entry>
+    <id>tag:www.gov.uk,2005:/government/news/law-officers-mark-25-years-of-pro-bono-week</id>
+    <updated>2026-11-05T10:34:39+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/government/news/law-officers-mark-25-years-of-pro-bono-week"/>
+    <title>Law Officers mark 25 years of Pro Bono Week</title>
+    <summary type="html">Attorney General and Solicitor General celebrate the history of pro bono and encourage the next generation of lawyers to volunteer.</summary>
+  </entry>
+<entry>
+    <id>tag:www.gov.uk,2005:/government/case-studies/what-will-childhood-look-like-in-2040</id>
+    <updated>2026-11-05T10:30:00+00:00</updated>
+    <link rel="alternate" type="text/html" href="https://www.gov.uk/government/case-studies/what-will-childhood-look-like-in-2040"/>
+    <title>What will childhood look like in 2040?</title>
+    <summary type="html">Partnering with academics to explore what the future might hold.</summary>
+  </entry>
+</feed>

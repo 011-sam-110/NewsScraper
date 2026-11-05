@@ -1,6 +1,6 @@
 # NewsScraper
 
-Scrapes world and regional news from three scraped outlets and 26 RSS feeds. This file is the handoff for the agent that runs the scraper on its host machine.
+Scrapes world and regional news from three scraped outlets and 70 RSS feeds. This file is the handoff for the agent that runs the scraper on its host machine.
 
 ## Goal of the project
 
@@ -22,7 +22,7 @@ python main.py --list-sections
 python main.py                                  # every section of every outlet
 python main.py --sources bbc pbs --max-pages 3
 python main.py --sections reuters:africa -o news
-python -m unittest discover -s tests            # 756 tests, offline fixtures
+python -m unittest discover -s tests            # 768 tests, offline fixtures
 ```
 
 Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code is 1 if any outlet failed.
@@ -33,7 +33,7 @@ Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code
 - `scraper/common.py`: HTTP, RSS parsing, `empty_row()` and the one scrape loop (`scrape`, one thread per outlet).
 - `scraper/<outlet>.py`: `NAME`, `SECTIONS`, `list_page(section, page, size)`, optional `article_details(url)` and `close()`.
 - `scraper/feeds.py`: helpers for feed-only outlets.
-- `scraper/rss_outlets.py`: the 26 RSS feeds, one outlet each. The slugs are Provenance's FEEDS ids.
+- `scraper/rss_outlets.py`: the 70 RSS feeds, one outlet each. The slugs are Provenance's FEEDS ids.
 - Register a new outlet in `scraper/__init__.py`.
 - `tests/fixtures/<outlet>/`: saved real responses. There is no `tests/__init__.py`, so filter tests with `-k`.
 - `newsfeed/`: the hosted pipeline (store, stages). `main.py` does not use it.
@@ -58,11 +58,11 @@ A real `--write` needs Sam's separate approval and the dev schema. Production sc
 | Reuters | Section API and article pages, fetched from inside a real Chrome tab (DataDome) | yes |
 | BBC | `web-cdn.api.bbci.co.uk` content collections + `__NEXT_DATA__` | yes |
 | PBS | Section and tag pages, article HTML, video transcripts | yes |
-| 26 RSS feeds | The same feeds Provenance reads (`scraper/rss_outlets.py`), every 5 minutes, status `feed` | no |
+| 70 RSS feeds | The same feeds Provenance reads (`scraper/rss_outlets.py`), every 5 minutes, status `feed` | no |
 
 In scraped rows, categories come from each outlet's own taxonomy. Do not infer them there. The AI category (`docs/ARCHITECTURE.md` section 6.2) is a separate field in the pipeline. A story listed in several sections gets one row per section (intentional: "the more data the better, prune later").
 
-Rights: Sam dropped the Guardian and NYT on 2026-11-05 (the Guardian's robots header forbids LLM/AI and commercial use; NYT says automated collection needs written permission). Their stored rows are never pushed (`DROPPED_OUTLETS`). Feed rows cross as headline and link only. Al Jazeera and UN News are not read: the paid site does not serve them. Never bypass a paywall, a login or a subscription wall, and never use a CAPTCHA-solving service.
+Rights: Sam dropped the Guardian and NYT on 2026-11-05 (the Guardian's robots header forbids LLM/AI and commercial use; NYT says automated collection needs written permission). Their stored rows are never pushed (`DROPPED_OUTLETS`). The same day Sam dropped every feed whose own terms say no to a commercial site (23 more, each quoted in `scraper/__init__.py`), and the feeds left follow one terms rule (`scraper/rss_outlets.py`). BBC and PBS say no as well, but their website scrapers still run until Sam decides on them. Feed rows cross as headline and link only. A proxy does not change a source's terms. Never bypass a paywall, a login or a subscription wall, and never use a CAPTCHA-solving service.
 
 ## Proxy
 
@@ -116,7 +116,7 @@ Reuters is the risk. It launches installed Google Chrome with a visible window (
 
 ```
 python -m newsfeed scrape --sources bbc pbs               # M1, on an hourly systemd timer
-python -m newsfeed scrape --sources feeds                 # the 26 RSS feeds, every 5 minutes
+python -m newsfeed scrape --sources feeds                 # the 70 RSS feeds, every 5 minutes
 python -m newsfeed status                                  # what the store holds, per outlet
 python -m newsfeed extract                                 # M5, DeepSeek, not yet on a timer
 python -m newsfeed geonames-build                          # M6, monthly, downloads the dumps
@@ -124,7 +124,7 @@ python -m newsfeed resolve --dry-run                       # M6, place name to c
 python -m newsfeed cluster                                 # M7, same event across outlets
 python -m newsfeed rail --dry-run                          # push stories to Provenance's LIVE news rail
 python -m newsfeed health --dry-run                        # every health check, nothing posted
-python -m newsfeed drop-outlets                            # dry run: what forgetting the Guardian and NYT removes
+python -m newsfeed drop-outlets                            # dry run: what forgetting the dropped outlets removes
 python -m newsfeed extract --feeds                         # the feed rows, read from headline and RSS summary
 python -m newsfeed headline-places --dry-run                # the places Provenance's Headline sources would get
 ```

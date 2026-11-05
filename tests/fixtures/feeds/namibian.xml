@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>The Namibian</title>
+	<atom:link href="https://www.namibian.com.na/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.namibian.com.na</link>
+	<description></description>
+	<lastBuildDate>Thu, 05 Nov 2026 10:46:30 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+<image>
+	<url>https://www.namibian.com.na/wp-content/uploads/2026/07/cropped-fav_img-32x32.png</url>
+	<title>The Namibian</title>
+	<link>https://www.namibian.com.na</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Leon Schuster stands by controversial comedy: ‘I will die a prankster’</title>
+		<link>https://www.namibian.com.na/leon-schuster-stands-by-controversial-comedy-i-will-die-a-prankster/</link>
+		<dc:creator><![CDATA[Theonishta]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:00:00 +0000</pubDate>
+				<category><![CDATA[Entertainment]]></category>
+		<guid isPermaLink="false">https://fox.namibian.com.na/?p=2061653</guid>
+					<description></description>
+			</item>
+<item>
+		<title>Namibia’s ‘Lovly’ R&#038;B King On a Roll</title>
+		<link>https://www.namibian.com.na/namibias-lovly-rb-king-on-a-roll/</link>
+		<dc:creator><![CDATA[Theonishta]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:00:00 +0000</pubDate>
+				<category><![CDATA[Entertainment]]></category>
+		<guid isPermaLink="false">https://fox.namibian.com.na/?p=2061648</guid>
+					<description></description>
+			</item>
+<item>
+		<title>House fire kills two Oshikuku children</title>
+		<link>https://www.namibian.com.na/house-fire-kills-two-oshikuku-children/</link>
+		<dc:creator><![CDATA[Emily]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 08:32:40 +0000</pubDate>
+				<category><![CDATA[National]]></category>
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://fox.namibian.com.na/?p=2061691</guid>
+					<description></description>
+			</item>
+	</channel>
+</rss>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:media="http://search.yahoo.com/mrss/" >
+
+<channel>
+	<title>City AM</title>
+	<atom:link href="https://www.cityam.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.cityam.com/</link>
+	<description>London&#039;s Business Newspaper</description>
+	<lastBuildDate>Thu, 05 Nov 2026 11:23:47 +0000</lastBuildDate>
+	<language>en-GB</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+
+<image>
+	<url>https://www.cityam.com/wp-content/uploads/2024/09/app_launcher_icon_final_rounded.png?w=32</url>
+	<title>City AM</title>
+	<link>https://www.cityam.com/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+<site xmlns="com-wordpress:feed-additions:1">213406410</site>	<item>
+		<title>Leicester City slammed for allowing links to porn star Eva Elfie via sponsor BC Game</title>
+		<link>https://www.cityam.com/leicester-city-slammed-for-allowing-links-to-porn-star-eva-elfie-via-sponsor-bc-game/</link>
+		<dc:creator><![CDATA[Frank Dalleres]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:18:58 +0000</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Football]]></category>
+		<category><![CDATA[Sport]]></category>
+		<category><![CDATA[Sport Business]]></category>
+		<guid isPermaLink="false">https://www.cityam.com/?p=2474816</guid>
+					<description></description>
+					
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">2474816</post-id><media:credit role="author">Frank Dalleres</media:credit>
+<media:credit scheme="urn:ebu">Frank Dalleres</media:credit>
+	</item>
+<item>
+		<title>BT boss refuses to rule out job cuts after &#8216;unprecedented&#8217; Talktalk rescue</title>
+		<link>https://www.cityam.com/bt-boss-refuses-to-rule-out-job-cuts-after-unprecedented-talktalk-rescue/</link>
+		<dc:creator><![CDATA[Saskia Koopman]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:08:34 +0000</pubDate>
+				<category><![CDATA[Business]]></category>
+		<guid isPermaLink="false">https://www.cityam.com/?p=2474756</guid>
+					<description></description>
+					
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">2474756</post-id><media:credit role="author">Saskia Koopman</media:credit>
+<media:credit scheme="urn:ebu">Saskia Koopman</media:credit>
+	</item>
+<item>
+		<title>Trump is wounded but not finished – that’s a problem for Burnham</title>
+		<link>https://www.cityam.com/trump-is-wounded-but-not-finished-thats-a-problem-for-burnham/</link>
+		<dc:creator><![CDATA[Michael Martins]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:53:08 +0000</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Opinion]]></category>
+		<guid isPermaLink="false">https://www.cityam.com/?p=2474804</guid>
+					<description></description>
+					
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">2474804</post-id><media:credit role="author">Michael Martins</media:credit>
+<media:credit scheme="urn:ebu">Michael Martins</media:credit>
+	</item>
+	</channel>
+</rss>

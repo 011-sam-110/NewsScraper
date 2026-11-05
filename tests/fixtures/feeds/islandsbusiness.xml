@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>Islands Business</title>
+	<atom:link href="https://islandsbusiness.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://islandsbusiness.com/</link>
+	<description>Your trusted source for Pacific Islands news, analysis, opinions, events and business intelligence.</description>
+	<lastBuildDate>Thu, 05 Nov 2026 10:21:38 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+<image>
+	<url>https://islandsbusiness.com/wp-content/uploads/2021/05/cropped-IB-square-logo-32x32.jpg</url>
+	<title>Islands Business</title>
+	<link>https://islandsbusiness.com/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Pacific women are already doing the work. COP31 must back them</title>
+		<link>https://islandsbusiness.com/news-break/pacific-women-are-already-doing-the-work-cop31-must-back-them/</link>
+		<dc:creator><![CDATA[FELETI TEO, LYNDA TABUYA and ALISON DAVIDIAN]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:21:35 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Climate Change]]></category>
+		<category><![CDATA[Climate Finance]]></category>
+		<category><![CDATA[Gender Equality]]></category>
+		<category><![CDATA[Pacific Women]]></category>
+		<category><![CDATA[Resilience]]></category>
+		<guid isPermaLink="false">https://islandsbusiness.com/?p=53777</guid>
+					<description></description>
+			</item>
+<item>
+		<title>PACNEWS THREE 04 NOVEMBER 2026</title>
+		<link>https://islandsbusiness.com/pacnews/pacnews-three-04-november-2026/</link>
+		<dc:creator><![CDATA[PINA]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 06:20:49 +0000</pubDate>
+				<category><![CDATA[PACNEWS]]></category>
+		<category><![CDATA[Climate]]></category>
+		<category><![CDATA[Fiji]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[Security]]></category>
+		<category><![CDATA[Trade]]></category>
+		<guid isPermaLink="false">https://islandsbusiness.com/?p=53757</guid>
+					<description></description>
+			</item>
+<item>
+		<title>Fiefia makes Tongan-American history in Utah</title>
+		<link>https://islandsbusiness.com/news-break/fiefia-makes-tongan-american-history-in-utah/</link>
+		<dc:creator><![CDATA[EMA GANIVATU]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 09:01:25 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Elections]]></category>
+		<category><![CDATA[Fiefia]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[Tonga]]></category>
+		<category><![CDATA[Utah]]></category>
+		<guid isPermaLink="false">https://islandsbusiness.com/?p=53776</guid>
+					<description></description>
+			</item>
+	</channel>
+</rss>

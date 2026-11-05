@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>TATOLI Agência Noticiosa de Timor-Leste</title>
+	<atom:link href="https://en.tatoli.tl/feed/" rel="self" type="application/rss+xml" />
+	<link>https://en.tatoli.tl</link>
+	<description></description>
+	<lastBuildDate>Thu, 05 Nov 2026 08:35:33 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.3</generator>
+<image>
+	<url>https://en.tatoli.tl/wp-content/uploads/2022/07/cropped-cropped-favicion1-1-32x32.png</url>
+	<title>TATOLI Agência Noticiosa de Timor-Leste</title>
+	<link>https://en.tatoli.tl</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Govt considers introducing English in primary schools</title>
+		<link>https://en.tatoli.tl/2026/11/05/govt-considers-introducing-english-in-primary-schools/17/</link>
+					<comments>https://en.tatoli.tl/2026/11/05/govt-considers-introducing-english-in-primary-schools/17/#respond</comments>
+		<dc:creator><![CDATA[Filomeno Martins]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 08:18:20 +0000</pubDate>
+				<category><![CDATA[EDUCATION]]></category>
+		<category><![CDATA[HEADLINE]]></category>
+		<category><![CDATA[Govt considers introducing English in primary schools]]></category>
+		<guid isPermaLink="false">https://en.tatoli.tl/?p=74180</guid>
+					<description></description>
+					<wfw:commentRss>https://en.tatoli.tl/2026/11/05/govt-considers-introducing-english-in-primary-schools/17/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+<item>
+		<title>Vietnam ready to support Timor-Leste in English teaching and digitalization</title>
+		<link>https://en.tatoli.tl/2026/11/05/vietnam-ready-to-support-timor-leste-in-english-teaching-and-digital-transformation/16/</link>
+					<comments>https://en.tatoli.tl/2026/11/05/vietnam-ready-to-support-timor-leste-in-english-teaching-and-digital-transformation/16/#respond</comments>
+		<dc:creator><![CDATA[Filomeno Martins]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 07:35:09 +0000</pubDate>
+				<category><![CDATA[EDUCATION]]></category>
+		<category><![CDATA[Vietnam ready to support Timor-Leste in English teaching and digital transformation]]></category>
+		<guid isPermaLink="false">https://en.tatoli.tl/?p=74175</guid>
+					<description></description>
+					<wfw:commentRss>https://en.tatoli.tl/2026/11/05/vietnam-ready-to-support-timor-leste-in-english-teaching-and-digital-transformation/16/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+<item>
+		<title>FHT director to represent Timor-Leste at regional ASEAN dialogue on online scams</title>
+		<link>https://en.tatoli.tl/2026/11/05/fht-director-to-represent-timor-leste-at-regional-asean-dialogue-on-online-scams/16/</link>
+					<comments>https://en.tatoli.tl/2026/11/05/fht-director-to-represent-timor-leste-at-regional-asean-dialogue-on-online-scams/16/#respond</comments>
+		<dc:creator><![CDATA[Filomeno Martins]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 07:12:32 +0000</pubDate>
+				<category><![CDATA[HEADLINE]]></category>
+		<category><![CDATA[FHT director to represent Timor-Leste at regional ASEAN dialogue on online scams]]></category>
+		<guid isPermaLink="false">https://en.tatoli.tl/?p=74170</guid>
+					<description></description>
+					<wfw:commentRss>https://en.tatoli.tl/2026/11/05/fht-director-to-represent-timor-leste-at-regional-asean-dialogue-on-online-scams/16/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+	</channel>
+</rss>
