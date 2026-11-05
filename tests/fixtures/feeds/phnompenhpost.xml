@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:media="http://search.yahoo.com/mrss/" >
+
+<channel>
+	<title>Phnom Penh Post</title>
+	<atom:link href="https://phnompenhpost.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://phnompenhpost.com</link>
+	<description>Cambodia News Today</description>
+	<lastBuildDate>Thu, 05 Nov 2026 11:14:26 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+
+<image>
+	<url>https://phnompenhpost.com/wp-content/uploads/2026/05/cropped-site-icon-logo-32x32.png</url>
+	<title>Phnom Penh Post</title>
+	<link>https://phnompenhpost.com</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Cambodia adopting high-tech surveillance protection for Mekong dolphins</title>
+		<link>https://phnompenhpost.com/national/cambodia-adopting-high-tech-surveillance-protection-for-mekong-dolphins/</link>
+		<dc:creator><![CDATA[post staff]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 09:15:33 +0000</pubDate>
+				<category><![CDATA[National]]></category>
+		<guid isPermaLink="false">https://phnompenhpost.com/?p=548521</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>Rena Lee becomes first Singaporean elected as International Court of Justice judge</title>
+		<link>https://phnompenhpost.com/international/rena-lee-becomes-first-singaporean-elected-as-international-court-of-justice-judge/</link>
+		<dc:creator><![CDATA[Asia News Network]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 03:00:48 +0000</pubDate>
+				<category><![CDATA[World]]></category>
+		<guid isPermaLink="false">https://phnompenhpost.com/?p=548475</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>Prudential-ACLEDA Undergraduate Scholarship Programme launches to support Cambodian students</title>
+		<link>https://phnompenhpost.com/business/prudential-acleda-undergraduate-scholarship-programme-launches-to-support-cambodian-students/</link>
+		<dc:creator><![CDATA[SPONSORED]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:14:20 +0000</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[sponsored]]></category>
+		<guid isPermaLink="false">https://phnompenhpost.com/?p=548525</guid>
+					<description></description>
+					
+		
+			</item>
+	</channel>
+</rss>

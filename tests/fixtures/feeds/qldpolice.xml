@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+    xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+    xmlns:media="http://search.yahoo.com/mrss/"
+>
+<channel>
+    <title>Queensland Police News</title>
+    <atom:link href="https://mypolice.qld.gov.au/feed/" rel="self" type="application/rss+xml" />
+    <link>https://mypolice.qld.gov.au/</link>
+    <description>News, alerts, videos and community information from the Queensland Police Service</description>
+    <lastBuildDate>Thu, 05 Nov 2026 04:00:29 +0000</lastBuildDate>
+    <language>en-AU</language>
+    <sy:updatePeriod>
+    hourly    </sy:updatePeriod>
+    <sy:updateFrequency>
+    1    </sy:updateFrequency>
+    <generator>https://wordpress.org/?v=7.1.3</generator>
+<image>
+	<url>https://mypolice.qld.gov.au/wp-content/uploads/2016/09/cropped-site-icon-512x512-32x32.png</url>
+	<title>Queensland Police News</title>
+	<link>https://mypolice.qld.gov.au/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+<item>
+    <title>Investigation Sphynx, Stones Corner Report</title>
+    <link>https://mypolice.qld.gov.au/news/2026/11/05/investigation-sphynx-stones-corner-report/</link>
+        <pubDate>Thu, 05 Nov 2026 04:00:27 +0000</pubDate>
+    <dc:creator><![CDATA[QPS Media]]></dc:creator>
+    		<category><![CDATA[South Brisbane]]></category>
+    <guid isPermaLink="false">https://mypolice.qld.gov.au/?p=331922</guid>
+        <description></description>
+                        <media:content url="https://mypolice.qld.gov.au/wp-content/uploads/2022/02/Blue-Police-Sign_2022-02-24_07-47-37-1024x683.jpg" medium="image" width="921" height="614" type="image/jpeg" />
+<media:thumbnail url="https://mypolice.qld.gov.au/wp-content/uploads/2022/02/Blue-Police-Sign_2022-02-24_07-47-37-240x240.jpg" width="240" height="240" />
+<dc:identifier>1.331922</dc:identifier>
+</item>
+<item>
+    <title>Serious traffic crash, Monkland (Gympie)</title>
+    <link>https://mypolice.qld.gov.au/news/2026/11/05/serious-traffic-crash-monkland-gympie/</link>
+        <pubDate>Thu, 05 Nov 2026 01:02:17 +0000</pubDate>
+    <dc:creator><![CDATA[QPS Media]]></dc:creator>
+    		<category><![CDATA[North Coast]]></category>
+		<category><![CDATA[Wide Bay Burnett]]></category>
+    <guid isPermaLink="false">https://mypolice.qld.gov.au/?p=331903</guid>
+        <description></description>
+                        <media:content url="https://mypolice.qld.gov.au/wp-content/uploads/2025/08/FCU-Truck-4_2025-08-04_21-26-33-1024x595.jpg" medium="image" width="921" height="535" type="image/jpeg" />
+<media:thumbnail url="https://mypolice.qld.gov.au/wp-content/uploads/2025/08/FCU-Truck-4_2025-08-04_21-26-33-240x240.jpg" width="240" height="240" />
+<dc:identifier>1.331903</dc:identifier>
+</item>
+<item>
+    <title>Police crackdown on dangerous driving behaviour on the Sunshine Coast through Operation Redline</title>
+    <link>https://mypolice.qld.gov.au/news/2026/11/05/police-crackdown-on-dangerous-driving-behaviour-on-the-sunshine-coast-through-operation-redline/</link>
+        <pubDate>Thu, 05 Nov 2026 00:48:42 +0000</pubDate>
+    <dc:creator><![CDATA[QPS Media]]></dc:creator>
+    		<category><![CDATA[North Coast]]></category>
+		<category><![CDATA[Sunshine Coast]]></category>
+    <guid isPermaLink="false">https://mypolice.qld.gov.au/?p=331901</guid>
+        <description></description>
+                        <media:content url="https://mypolice.qld.gov.au/wp-content/uploads/2025/07/PoliceSignages-6_2025-07-29_12-39-15-1024x524.jpg" medium="image" width="921" height="471" type="image/jpeg" />
+<media:thumbnail url="https://mypolice.qld.gov.au/wp-content/uploads/2025/07/PoliceSignages-6_2025-07-29_12-39-15-240x240.jpg" width="240" height="240" />
+<dc:identifier>1.331901</dc:identifier>
+</item></channel>
+</rss>

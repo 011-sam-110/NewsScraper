@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:media="http://search.yahoo.com/mrss/"
+xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+xmlns:podcast="https://podcastindex.org/namespace/1.0"
+xmlns:rawvoice="https://blubrry.com/developer/rawvoice-rss/"
+xmlns:georss="http://www.georss.org/georss" >
+
+<channel>
+	<title>Global Voices</title>
+	<atom:link href="https://globalvoices.org/feed/" rel="self" type="application/rss+xml" />
+	<link>https://globalvoices.org</link>
+	<description>Citizen media stories from around the world</description>
+	<lastBuildDate>Wed, 04 Nov 2026 21:12:39 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.0.2</generator>
+	<atom:link rel="hub" href="https://pubsubhubbub.appspot.com/" />
+	<itunes:author>Global Voices</itunes:author>
+	<itunes:explicit>false</itunes:explicit>
+	<itunes:image href="https://globalvoices.org/wp-content/uploads/2023/02/gv-podcast-logo-2022-icon-square-2400-GREEN.png" />
+	<itunes:owner>
+		<itunes:name>Global Voices</itunes:name>
+		<itunes:email>webmaster@globalvoices.org</itunes:email>
+	</itunes:owner>
+	<copyright>Creative Commons Attribution, see our Attribution Policy for details.</copyright>
+	<podcast:license>Creative Commons Attribution, see our Attribution Policy for details.</podcast:license>
+	<podcast:medium>podcast</podcast:medium>
+	<image>
+		<title>Global Voices</title>
+		<url>https://globalvoices.org/wp-content/uploads/2023/02/gv-podcast-logo-2022-icon-square-2400-GREEN.png</url>
+		<link>https://globalvoices.org</link>
+	</image>
+	<itunes:category text="Society &amp; Culture" />
+	<podcast:podping usesPodping="true" />
+	<rawvoice:subscribe feed="https://globalvoices.org/feed/" itunes="https://itunes.apple.com/ca/podcast/global-voices-podcast-global/id74941523?mt=2" spotify="https://open.spotify.com/show/4oufL3s0zJxdF3H3clojym"></rawvoice:subscribe>
+	<item>
+		<title>Unmarried Chinese women are rewriting the marriage script</title>
+		<link>https://globalvoices.org/2026/11/05/unmarried-chinese-women-are-rewriting-the-marriage-script/</link>
+		<dc:creator><![CDATA[Lina Ma]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 06:03:41 +0000</pubDate>
+				<category><![CDATA[China]]></category>
+		<category><![CDATA[Chinese]]></category>
+		<category><![CDATA[Digital Activism]]></category>
+		<category><![CDATA[East Asia]]></category>
+		<category><![CDATA[English]]></category>
+		<category><![CDATA[Feature]]></category>
+		<category><![CDATA[Weblog]]></category>
+		<category><![CDATA[Women & Gender]]></category>
+		<guid isPermaLink="false">https://globalvoices.org/?p=860166</guid>
+					<description><![CDATA[Some unmarried Chinese women are actively challenging the social stigma associated with being “leftover women” by questioning family pressure, sharing ways to escape it, or reframing the discussion altogether.]]></description>
+					
+		
+		<media:content url="https://globalvoices.org/wp-content/uploads/2026/11/960px-Marriage_market_Shanghai-400x300.jpg" medium="image" width='270' height='202'	/>	</item>
+<item>
+		<title>The scandals and suspects surrounding Flávio Bolsonaro, according to the Brazilian press</title>
+		<link>https://globalvoices.org/2026/11/04/the-scandals-and-suspects-surrounding-flavio-bolsonaro-according-to-the-brazilian-press/</link>
+		<dc:creator><![CDATA[Global Voices Brazil]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 17:38:28 +0000</pubDate>
+				<category><![CDATA[Brazil]]></category>
+		<category><![CDATA[Censorship]]></category>
+		<category><![CDATA[Elections]]></category>
+		<category><![CDATA[International Relations]]></category>
+		<category><![CDATA[Latin America]]></category>
+		<category><![CDATA[North America]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[U.S.A.]]></category>
+		<category><![CDATA[Weblog]]></category>
+		<guid isPermaLink="false">https://globalvoices.org/?p=860027</guid>
+					<description><![CDATA[The former president's eldest son, Flávio, had been linked to embezzlement charges in his own cabinet. During the campaign, however, his resume was exposed even further]]></description>
+					
+		
+		<media:content url="https://globalvoices.org/wp-content/uploads/2026/10/Untitled-design-11-400x300.jpg" medium="image" width='270' height='202'	/>	</item>
+<item>
+		<title>Tracing the recruitment trap behind Russia’s war</title>
+		<link>https://globalvoices.org/2026/11/04/tracing-the-recruitment-trap-behind-russias-war/</link>
+		<dc:creator><![CDATA[Zulker Naeen]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 05:26:29 +0000</pubDate>
+				<category><![CDATA[Bangladesh]]></category>
+		<category><![CDATA[Citizen Media]]></category>
+		<category><![CDATA[Development]]></category>
+		<category><![CDATA[Eastern & Central Europe]]></category>
+		<category><![CDATA[English]]></category>
+		<category><![CDATA[Feature]]></category>
+		<category><![CDATA[Human Rights]]></category>
+		<category><![CDATA[International Relations]]></category>
+		<category><![CDATA[Migration & Immigration]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[Russia]]></category>
+		<category><![CDATA[South Asia]]></category>
+		<category><![CDATA[Ukraine]]></category>
+		<category><![CDATA[War & Conflict]]></category>
+		<category><![CDATA[Weblog]]></category>
+		<guid isPermaLink="false">https://globalvoices.org/?p=860151</guid>
+					<description><![CDATA[Bangladeshi men paid agents for Russian jobs and ended up on the front lines. Families wait for bodies and answers, and they want the recruiters behind it in a courtroom.]]></description>
+					
+		
+		<media:content url="https://globalvoices.org/wp-content/uploads/2026/11/Two-Bangladeshi-mercenaries_edit-400x300.webp" medium="image" width='270' height='202'	/>	</item>
+	</channel>
+</rss>

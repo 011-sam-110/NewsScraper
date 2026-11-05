@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:yandex="http://news.yandex.ru"
+     xmlns:media="http://search.yahoo.com/mrss/"
+     xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>UZA.uz</title>
+  <link>https://uza.uz</link>
+  <description>Özbekiston Milliy axborot agentligi</description>
+  <language>en</language>
+  <atom:link href="https://uza.uz/en/rss" rel="self" type="application/rss+xml"/>
+  <item>
+    <title>Regional cooperation on sustainable wheat production discussed in Samarkand</title>
+    <link>https://uza.uz/en/posts/regional-cooperation-on-sustainable-wheat-production-discussed-in-samarkand_932930</link>
+    <description></description>
+    <pubDate>Thu, 05 Nov 2026 11:21:40 +0000</pubDate>
+    <guid>https://uza.uz/en/posts/regional-cooperation-on-sustainable-wheat-production-discussed-in-samarkand_932930</guid>
+    <category>Жамият</category>
+    <enclosure url="https://cdn.uza.uz/2026/11/05/11/44/QeyxYZxqrDyopJ7yOSv4xclPTGtGKvTf_small.jpg" type="image/jpg" length="0"/>
+    <media:thumbnail url="https://cdn.uza.uz/2026/11/05/11/44/QeyxYZxqrDyopJ7yOSv4xclPTGtGKvTf_small.jpg"/>
+    <yandex:genre>message</yandex:genre>
+  </item>
+<item>
+    <title>International dialogue on modern approaches to judicial and legal practice</title>
+    <link>https://uza.uz/en/posts/international-dialogue-on-modern-approaches-to-judicial-and-legal-practice_932825</link>
+    <description></description>
+    <pubDate>Thu, 05 Nov 2026 10:08:09 +0000</pubDate>
+    <guid>https://uza.uz/en/posts/international-dialogue-on-modern-approaches-to-judicial-and-legal-practice_932825</guid>
+    <category>Жамият</category>
+    <enclosure url="https://cdn.uza.uz/2026/11/05/09/20/hdpoF3wb4XuN2b9b7uh57CatbMxcHlQ2_small.jpg" type="image/jpg" length="0"/>
+    <media:thumbnail url="https://cdn.uza.uz/2026/11/05/09/20/hdpoF3wb4XuN2b9b7uh57CatbMxcHlQ2_small.jpg"/>
+    <yandex:genre>message</yandex:genre>
+  </item>
+<item>
+    <title>Foreign professionals to be recruited to manage medical institutions</title>
+    <link>https://uza.uz/en/posts/foreign-professionals-to-be-recruited-to-manage-medical-institutions_932798</link>
+    <description></description>
+    <pubDate>Thu, 05 Nov 2026 09:19:18 +0000</pubDate>
+    <guid>https://uza.uz/en/posts/foreign-professionals-to-be-recruited-to-manage-medical-institutions_932798</guid>
+    <enclosure url="https://cdn.uza.uz/2026/11/05/08/33/cPNKLjOQFHIwbKq1almq0dHgodpqXgnS_small.jpg" type="image/jpg" length="0"/>
+    <media:thumbnail url="https://cdn.uza.uz/2026/11/05/08/33/cPNKLjOQFHIwbKq1almq0dHgodpqXgnS_small.jpg"/>
+    <yandex:genre>message</yandex:genre>
+  </item>
+</channel>
+</rss>

@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:media="http://search.yahoo.com/mrss/">
+
+<channel>
+	<title>BusinessWorld Online</title>
+	<atom:link href="https://bworldonline.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://bworldonline.com/</link>
+	<description>BusinessWorld: The leading and most trusted source of business news and analysis in the Philippines</description>
+	<lastBuildDate>Thu, 05 Nov 2026 11:17:42 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.3</generator>
+
+<image>
+	<url>https://bworldonline.com/wp-content/uploads/2024/09/cropped-bworld_icon-1-32x32.png</url>
+	<title>BusinessWorld Online</title>
+	<link>https://bworldonline.com/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Gin Kings, Converge gun for strong final push for PBA semifinals</title>
+		<link>https://bworldonline.com/sports/2026/11/05/791811/gin-kings-converge-gun-for-strong-final-push-for-pba-semifinals/</link>
+		<dc:creator><![CDATA[CEDTyClea]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:17:42 +0000</pubDate>
+				<category><![CDATA[Editors' Picks]]></category>
+		<category><![CDATA[Sports]]></category>
+		<category><![CDATA[Olmin Leyba]]></category>
+		<guid isPermaLink="false">https://bworldonline.com/?p=791811</guid>
+					<description></description>
+					
+		
+		<media:content medium="image" extension="jpg" mime_type="image/jpeg" type="image/jpeg" url="https://bworldonline.com/wp-content/uploads/2026/11/BARANGAY-GINEBRA-300x200.jpg" width="300" height="200" /><image>https://bworldonline.com/wp-content/uploads/2026/11/BARANGAY-GINEBRA-300x200.jpg</image>	</item>
+<item>
+		<title>Zverev falls in first match as world number one; Djokovic’s ATP Finals hopes over</title>
+		<link>https://bworldonline.com/sports/2026/11/05/791808/zverev-falls-in-first-match-as-world-number-one-djokovics-atp-finals-hopes-over/</link>
+		<dc:creator><![CDATA[CEDTyClea]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:16:03 +0000</pubDate>
+				<category><![CDATA[Sports]]></category>
+		<category><![CDATA[Reuters]]></category>
+		<guid isPermaLink="false">https://bworldonline.com/?p=791808</guid>
+					<description></description>
+					
+		
+		<media:content medium="image" extension="jpg" mime_type="image/jpeg" type="image/jpeg" url="https://bworldonline.com/wp-content/uploads/2026/10/Tennis-2026-default-300x169.jpg" width="300" height="169" /><image>https://bworldonline.com/wp-content/uploads/2026/10/Tennis-2026-default-300x169.jpg</image>	</item>
+<item>
+		<title>San Diego stuns WGM Enkhtuul of Mongolia to share second in ASEAN+ Individual Chess Championships</title>
+		<link>https://bworldonline.com/sports/2026/11/05/791810/san-diego-stuns-wgm-enkhtuul-of-mongolia-to-share-second-in-asean-individual-chess-championships/</link>
+		<dc:creator><![CDATA[CEDTyClea]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:17:14 +0000</pubDate>
+				<category><![CDATA[Editors' Picks]]></category>
+		<category><![CDATA[Sports]]></category>
+		<category><![CDATA[Joey Villar]]></category>
+		<guid isPermaLink="false">https://bworldonline.com/?p=791810</guid>
+					<description></description>
+					
+		
+		<media:content medium="image" extension="jpg" mime_type="image/jpeg" type="image/jpeg" url="https://bworldonline.com/wp-content/uploads/2026/11/MARIE-ANTOINETTE-SAN-DIEGO-300x300.jpg" width="300" height="300" /><image>https://bworldonline.com/wp-content/uploads/2026/11/MARIE-ANTOINETTE-SAN-DIEGO-300x300.jpg</image>	</item>
+	</channel>
+</rss>

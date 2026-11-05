@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	xmlns:media="http://search.yahoo.com/mrss/"
+>
+<channel>
+	<title>The Tico Times | Costa Rica News | Travel | Real Estate</title>
+	<atom:link href="https://ticotimes.net/feed" rel="self" type="application/rss+xml" />
+	<link>https://ticotimes.net/</link>
+	<description>Costa Rica English language news featuring breaking news, travel, business, sports, entertainment and real estate.</description>
+	<lastBuildDate>Thu, 05 Nov 2026 00:15:33 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+<image>
+	<url>https://ticotimes.net/wp-content/uploads/2022/09/152x152icon-150x150.jpg</url>
+	<title>The Tico Times | Costa Rica News | Travel | Real Estate</title>
+	<link>https://ticotimes.net/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Call Center Cuts Costa Rica Job Pledge Over Asian Competition</title>
+		<link>https://ticotimes.net/2026/11/04/costa-rica-call-center-free-zone-jobs-india-philippines</link>
+		<dc:creator><![CDATA[The Tico Times]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 02:43:00 +0000</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Costa Rica]]></category>
+		<category><![CDATA[Featured]]></category>
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://ticotimes.net/?p=201756</guid>
+					<description></description>
+		<media:content url="https://ticotimes.net/wp-content/uploads/2017/03/170321callcenters.jpg" medium="image" type="image/jpeg" width="1700" height="1100" />
+<enclosure url="https://ticotimes.net/wp-content/uploads/2017/03/170321callcenters.jpg" length="0" type="image/jpeg" />
+	</item>
+<item>
+		<title>Honduran Migrant Caravan Heads to US Amid Midterm Elections</title>
+		<link>https://ticotimes.net/2026/11/04/honduran-migrant-caravan-us-midterm-elections</link>
+		<dc:creator><![CDATA[AFP]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 15:00:00 +0000</pubDate>
+				<category><![CDATA[Featured]]></category>
+		<category><![CDATA[Honduras]]></category>
+		<category><![CDATA[Latin America]]></category>
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://ticotimes.net/?p=201717</guid>
+					<description></description>
+		<media:content url="https://ticotimes.net/wp-content/uploads/2026/11/hondurs-caravan-scaled.jpg" medium="image" type="image/jpeg" width="1800" height="1200" />
+<enclosure url="https://ticotimes.net/wp-content/uploads/2026/11/hondurs-caravan-scaled.jpg" length="0" type="image/jpeg" />
+	</item>
+<item>
+		<title>El Niño Leaves Gulf of Nicoya Fishermen With Catches Too Small to Pay for Fuel</title>
+		<link>https://ticotimes.net/2026/11/04/el-nino-gulf-of-nicoya-fishermen-catch-decline</link>
+		<dc:creator><![CDATA[The Tico Times]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 00:15:00 +0000</pubDate>
+				<category><![CDATA[Environment and Wildlife]]></category>
+		<category><![CDATA[Featured]]></category>
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://ticotimes.net/?p=201759</guid>
+					<description></description>
+		<media:content url="https://ticotimes.net/wp-content/uploads/2014/06/140627pescaartisanal.jpg" medium="image" type="image/jpeg" width="1674" height="1116" />
+<enclosure url="https://ticotimes.net/wp-content/uploads/2014/06/140627pescaartisanal.jpg" length="0" type="image/jpeg" />
+	</item>
+	</channel>
+</rss>

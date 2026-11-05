@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:feedburner="http://rssnamespace.org/feedburner/ext/1.0">
+    <channel>
+        <title>Latest news</title>
+        <link>https://www.ukrinform.net/block-lastnews</link>
+        <description>Latest news</description>
+        <language>en</language>
+        <image>
+            <title>Latest news</title>
+            <link>https://www.ukrinform.net/block-lastnews</link>
+            <url>https://www.ukrinform.net/img/logo.png</url>
+        </image>
+
+        
+        <item>
+            <guid isPermaLink="false">4181697</guid>
+            <title><![CDATA[Humanitarian aid reportedly not reaching residents in occupied Oleshky community – Military Administration]]></title>
+            <link>https://www.ukrinform.net/rubric-ato/4181697-humanitarian-aid-reportedly-not-reaching-residents-in-occupied-oleshky-community-military-administration.html</link>
+            <enclosure url="https://static.ukrinform.com/photos/2026_03/thumb_files/630_360_1774635046-487.jpg" length="1" type="image/jpeg"></enclosure>
+            <description><![CDATA[There are reports that humanitarian aid left for residents of the temporarily occupied Oleshky community is not reaching those in need.]]></description>
+            <pubDate>Thu, 05 Nov 2026 12:27:00 +0200</pubDate>
+            <category><![CDATA[War]]></category>
+        </item>
+        <item>
+            <guid isPermaLink="false">4181689</guid>
+            <title><![CDATA[Defense Forces put 15 of Russia's 38 major oil refineries out of operation in late September – Intelligence]]></title>
+            <link>https://www.ukrinform.net/rubric-ato/4181689-defense-forces-put-15-of-russias-38-major-oil-refineries-out-of-operation-in-late-september-intelligence.html</link>
+            <enclosure url="https://static.ukrinform.com/photos/2026_11/thumb_files/630_360_1793872754-522.jpeg" length="1" type="image/jpeg"></enclosure>
+            <description><![CDATA[As of late September, Ukraine's Defense Forces had put 15 of Russia's 38 major oil refineries out of operation.]]></description>
+            <pubDate>Thu, 05 Nov 2026 11:53:00 +0200</pubDate>
+            <category><![CDATA[War]]></category>
+        </item>
+        <item>
+            <guid isPermaLink="false">4181666</guid>
+            <title><![CDATA[Death toll from airstrike on Komyshuvakha rises to 42, search operations continue]]></title>
+            <link>https://www.ukrinform.net/rubric-ato/4181666-death-toll-from-airstrike-on-komyshuvakha-rises-to-42-search-operations-continue.html</link>
+            <enclosure url="https://static.ukrinform.com/photos/2026_11/thumb_files/630_360_1793869923-406.jpeg" length="1" type="image/jpeg"></enclosure>
+            <description><![CDATA[The death toll in Komyshuvakha, Zaporizhzhia region, following a Russian airstrike has risen to 42.]]></description>
+            <pubDate>Thu, 05 Nov 2026 11:21:00 +0200</pubDate>
+            <category><![CDATA[War]]></category>
+        </item>
+        
+    </channel>
+</rss>

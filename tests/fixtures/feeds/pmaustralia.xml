@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0" xml:base="https://www.pm.gov.au/">
+  <channel>
+    <title>Prime Minister of Australia</title>
+    <link>https://www.pm.gov.au/</link>
+    <description>Latest media items</description>
+    <language>en</language>
+    <item>
+  <title>Press conference - Saint John's, Antigua and Barbuda</title>
+  <link>https://www.pm.gov.au/media/press-conference-saint-johns-antigua-and-barbuda-3-nov-2026</link>
+  <description></description>
+  <pubDate>Tuesday 3 November 2026</pubDate>
+    <dc:creator>PMC</dc:creator>
+    <guid isPermaLink="true">https://www.pm.gov.au/node/47722</guid>
+    </item>
+<item>
+  <title>Commonwealth Heads of Government 2026 statement between the UK and Australia</title>
+  <link>https://www.pm.gov.au/media/commonwealth-heads-government-2026-statement-between-uk-and-australia</link>
+  <description></description>
+  <pubDate>Wednesday 4 November 2026</pubDate>
+    <dc:creator>PMC</dc:creator>
+    <guid isPermaLink="true">https://www.pm.gov.au/node/47721</guid>
+    </item>
+<item>
+  <title>CHOGM Joint Forums and side events official launch</title>
+  <link>https://www.pm.gov.au/media/chogm-joint-forums-and-side-events-official-launch</link>
+  <description></description>
+  <pubDate>Tuesday 3 November 2026</pubDate>
+    <dc:creator>PMC</dc:creator>
+    <guid isPermaLink="true">https://www.pm.gov.au/node/47720</guid>
+    </item>
+  </channel>
+</rss>

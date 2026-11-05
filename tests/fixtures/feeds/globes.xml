@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>News - Globes</title>
+    <link>https://en.globes.co.il/en/mador.aspx?fid=1725#utm_source=RSS</link>
+    <description>Israel's Business Arena</description>
+    <copyright>Globes</copyright>
+    <language>en</language>
+    <lastBuildDate>Thu, 05 Nov 2026 10:54:42 GMT</lastBuildDate>
+    <managingEditor>feedback@globes.co.il</managingEditor>
+    <ttl>10</ttl>
+    <image>
+      <height>70</height>
+      <width>144</width>
+      <url>https://images.globes.co.il/rss/Globes_logo_RSS_ENG.png</url>
+      <link>https://en.globes.co.il/en/mador.aspx?fid=1725#utm_source=RSS</link>
+      <title>News - Globes</title>
+    </image>
+    <item>
+      <title>Ending US aid casts doubt on $10b in Israeli arms orders - report</title>
+      <link>https://en.globes.co.il/en/article-1001562188#utm_source=RSS</link>
+      <guid isPermaLink="false">1001562188</guid>
+      <description></description>
+      <author>Globes correspondent</author>
+      <pubDate>Thu, 05 Nov 2026 10:38:00 GMT</pubDate>
+      <enn>enn</enn>
+      <category>Aerospace &amp; defense</category>
+      <media:content url="https://res.cloudinary.com/globes/image/upload/t_800X392/v1697966443/direct/WhatsApp_Image_2023-10-19_at_15.51.14_hctrhy.jpg" type="image/jpg" expression="full" width="800" height="392">
+      </media:content>
+    </item>
+<item>
+      <title>El Al reports higher revenue, lower profit, big dividend</title>
+      <link>https://en.globes.co.il/en/article-1001562172#utm_source=RSS</link>
+      <guid isPermaLink="false">1001562172</guid>
+      <description></description>
+      <author>Netanel Ariel</author>
+      <pubDate>Thu, 05 Nov 2026 08:39:58 GMT</pubDate>
+      <enn>enn</enn>
+      <category>Tourism</category>
+      <category>Market</category>
+      <media:content url="https://res.cloudinary.com/globes/image/upload/t_800X392/v1755073089/direct/0W4A8848_xw66rb.jpg" type="image/jpg" expression="full" width="800" height="392">
+      </media:content>
+    </item>
+<item>
+      <title>Palo Alto Networks in talks to buy Clutch Security for $500m</title>
+      <link>https://en.globes.co.il/en/article-1001562156#utm_source=RSS</link>
+      <guid isPermaLink="false">1001562156</guid>
+      <description></description>
+      <author>Meytal Vaizberg</author>
+      <pubDate>Thu, 05 Nov 2026 07:27:15 GMT</pubDate>
+      <enn>enn</enn>
+      <category>Mergers &amp; acquisitions</category>
+      <category>Start ups</category>
+      <category>IT</category>
+      <media:content url="https://res.cloudinary.com/globes/image/upload/t_800X392/v1772124427/direct/66c13a14-45c4-4912-8ddf-c20ece15d1ed_%D7%A4%D7%90%D7%9C%D7%95_%D7%90%D7%9C%D7%98%D7%95_j9tv9m.jpg" type="image/jpg" expression="full" width="800" height="392">
+      </media:content>
+    </item>
+  </channel>
+</rss>

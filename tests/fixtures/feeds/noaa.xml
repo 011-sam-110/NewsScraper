@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0" xml:base="https://www.noaa.gov/">
+  <channel>
+    <title>National Oceanic and Atmospheric Administration - U.S. Department of Commerce</title>
+    <link>https://www.noaa.gov/</link>
+    <description/>
+    <language>en</language>
+    <item>
+  <title>Maine partners update shoreline maps to improve coastal planning</title>
+  <link>https://www.noaa.gov/stories/maine-partners-update-shoreline-maps-to-improve-coastal-planning</link>
+  <description></description>
+  <pubDate>Wed, 04 Nov 2026 20:01:47 +0000</pubDate>
+    <dc:creator>allison.burrell</dc:creator>
+    <guid isPermaLink="false">16828 at https://www.noaa.gov</guid>
+    </item>
+<item>
+  <title>California coastal water levels break records</title>
+  <link>https://www.noaa.gov/stories/california-coastal-water-levels-break-records</link>
+  <description></description>
+  <pubDate>Wed, 04 Nov 2026 19:43:03 +0000</pubDate>
+    <dc:creator>allison.burrell</dc:creator>
+    <guid isPermaLink="false">16827 at https://www.noaa.gov</guid>
+    </item>
+<item>
+  <title>NOAA, NASA release measurements of 2026 ozone hole</title>
+  <link>https://www.noaa.gov/news-release/noaa-nasa-release-measurements-of-2026-ozone-hole</link>
+  <description></description>
+  <pubDate>Tue, 03 Nov 2026 17:16:45 +0000</pubDate>
+    <dc:creator>genevieve.contey</dc:creator>
+    <guid isPermaLink="false">16824 at https://www.noaa.gov</guid>
+    </item>
+  </channel>
+</rss>

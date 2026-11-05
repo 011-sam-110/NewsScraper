@@ -173,7 +173,7 @@ loginctl enable-linger              # so the timers survive a logout. No sudo, n
 | `newsfeed-scrape.timer` | hourly, on the hour | BBC, PBS |
 | `newsfeed-scrape-reuters.timer` | every three hours, at 20 past | Reuters, on the seat's real display |
 | `newsfeed-pipeline.timer` | hourly, at half past | extract, resolve, cluster |
-| `newsfeed-rail.timer` | every 5 minutes | the 26 RSS feeds, then push the last 7 days' changes to Provenance |
+| `newsfeed-rail.timer` | every 5 minutes | the 70 RSS feeds, then push the last 7 days' changes to Provenance |
 | `newsfeed-health.timer` | every 15 minutes | the health checks (`newsfeed/health.py`) |
 
 A story pushed before the pipeline has seen it reaches the World news feed at once, because that

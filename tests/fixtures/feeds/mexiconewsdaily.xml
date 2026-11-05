@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+<channel>
+	<title>Mexico News Daily</title>
+	<atom:link href="https://mexiconewsdaily.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://mexiconewsdaily.com/</link>
+	<description>Mexico&#039;s English-language news</description>
+	<lastBuildDate>Thu, 05 Nov 2026 05:33:21 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+<image>
+	<url>https://mexiconewsdaily.com/wp-content/uploads/2022/10/cropped-Favicon-MND-32x32.jpg</url>
+	<title>Mexico News Daily</title>
+	<link>https://mexiconewsdaily.com/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>US $40M Pilgrim&#8217;s Pride plant will open Thursday in Gómez Palacio, Durango</title>
+		<link>https://mexiconewsdaily.com/business/us-40-million-pilgrims-pride-plant-open-thursday/</link>
+					<comments>https://mexiconewsdaily.com/business/us-40-million-pilgrims-pride-plant-open-thursday/#respond</comments>
+		<dc:creator><![CDATA[MND Staff]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 00:00:43 +0000</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Northern Border Zone]]></category>
+		<category><![CDATA[DUrango Gov. Villegas]]></category>
+		<category><![CDATA[Gomez Palacio in Durango]]></category>
+		<category><![CDATA[Pilgrim's Pride $40 million plant]]></category>
+		<category><![CDATA[plan mexico]]></category>
+		<guid isPermaLink="false">https://mexiconewsdaily.com/?p=795070</guid>
+					<description></description>
+					<wfw:commentRss>https://mexiconewsdaily.com/business/us-40-million-pilgrims-pride-plant-open-thursday/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+<item>
+		<title>As Ibero-American Summit gets underway in Madrid, foreign ministers cite &#8216;excellent&#8217; Spain-Mexico relations</title>
+		<link>https://mexiconewsdaily.com/news/30th-ibero-american-summit-gets-underway-madrid-foreign-ministers-praise-excellent-spain-mexico-relations/</link>
+					<comments>https://mexiconewsdaily.com/news/30th-ibero-american-summit-gets-underway-madrid-foreign-ministers-praise-excellent-spain-mexico-relations/#respond</comments>
+		<dc:creator><![CDATA[MND Staff]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 22:30:41 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Foreign Relatons Minister Roberto Velasco]]></category>
+		<category><![CDATA[Ibero-American Summit]]></category>
+		<category><![CDATA[Spanish Foreign Affairs Minister José Manuel Albare]]></category>
+		<guid isPermaLink="false">https://mexiconewsdaily.com/?p=794885</guid>
+					<description></description>
+					<wfw:commentRss>https://mexiconewsdaily.com/news/30th-ibero-american-summit-gets-underway-madrid-foreign-ministers-praise-excellent-spain-mexico-relations/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+<item>
+		<title>Mexican-Americans among historic winners in Tuesday&#8217;s US elections</title>
+		<link>https://mexiconewsdaily.com/politics/mexican-americans-historic-winners-tuesday-elections/</link>
+					<comments>https://mexiconewsdaily.com/politics/mexican-americans-historic-winners-tuesday-elections/#respond</comments>
+		<dc:creator><![CDATA[MND Staff]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 21:10:53 +0000</pubDate>
+				<category><![CDATA[Northern Border Zone]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[Bobby Pulido]]></category>
+		<category><![CDATA[California governorship]]></category>
+		<category><![CDATA[editors_pick]]></category>
+		<category><![CDATA[Gina Hinojosa]]></category>
+		<category><![CDATA[Mexican-American winners]]></category>
+		<category><![CDATA[Texas governorship]]></category>
+		<category><![CDATA[xavier becerra]]></category>
+		<guid isPermaLink="false">https://mexiconewsdaily.com/?p=795019</guid>
+					<description></description>
+					<wfw:commentRss>https://mexiconewsdaily.com/politics/mexican-americans-historic-winners-tuesday-elections/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+			</item>
+	</channel>
+</rss>

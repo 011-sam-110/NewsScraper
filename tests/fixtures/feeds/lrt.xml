@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss xmlns:media="http://search.yahoo.com/mrss/" version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+		<title><![CDATA[LRT News]]></title>
+		<atom:link href="https://www.lrt.lt/en/news-in-english?rss" rel="self" type="application/rss+xml" />
+		<link>https://www.lrt.lt/en/news-in-english</link>
+		<description><![CDATA[LRT News RSS]]></description>
+		<image>
+			<url>https://www.lrt.lt/images/lrt_lt_logo_fb.jpg?v262</url>
+			<title><![CDATA[LRT News]]></title>
+			<link>https://www.lrt.lt/en/news-in-english</link>
+			<width>100</width>
+			<height>100</height>
+		</image>
+	<language>
+	<![CDATA[ en ]]>
+	</language>
+	<managingEditor>
+	<![CDATA[ webmaster@lrt.lt (Online Editor) ]]>
+	</managingEditor>
+	<webMaster>
+	<![CDATA[ webmaster@lrt.lt (Web Feeds) ]]>
+	</webMaster>
+		<item>
+			<title>
+				<![CDATA[
+				Lithuania weighs energy windfall tax as Orlen threatens to close down refinery
+				]]>
+			</title>
+			<description></description>
+			<link>
+				https://www.lrt.lt/en/news-in-english/19/3105224/lithuania-weighs-energy-windfall-tax-as-orlen-threatens-to-close-down-refinery
+			</link>
+			<guid isPermaLink="true">
+				https://www.lrt.lt/en/news-in-english/19/3105224/lithuania-weighs-energy-windfall-tax-as-orlen-threatens-to-close-down-refinery
+			</guid>
+			<category>
+				<![CDATA[ News ]]>
+			</category>
+			<pubDate>Thu, 05 Nov 2026 12:32:00 +0200</pubDate>
+		</item>
+<item>
+			<title>
+				<![CDATA[
+				Three Ukrainians expelled from Lithuania before doing ‘any actual damage’ – VSD
+				]]>
+			</title>
+			<description></description>
+			<link>
+				https://www.lrt.lt/en/news-in-english/19/3105180/three-ukrainians-expelled-from-lithuania-before-doing-any-actual-damage-vsd
+			</link>
+			<guid isPermaLink="true">
+				https://www.lrt.lt/en/news-in-english/19/3105180/three-ukrainians-expelled-from-lithuania-before-doing-any-actual-damage-vsd
+			</guid>
+			<category>
+				<![CDATA[ News ]]>
+			</category>
+			<pubDate>Thu, 05 Nov 2026 11:50:00 +0200</pubDate>
+		</item>
+<item>
+			<title>
+				<![CDATA[
+				Lithuanian president under fire for missing predecessor’s centennial celebrations
+				]]>
+			</title>
+			<description></description>
+			<link>
+				https://www.lrt.lt/en/news-in-english/19/3105167/lithuanian-president-under-fire-for-missing-predecessor-s-centennial-celebrations
+			</link>
+			<guid isPermaLink="true">
+				https://www.lrt.lt/en/news-in-english/19/3105167/lithuanian-president-under-fire-for-missing-predecessor-s-centennial-celebrations
+			</guid>
+			<category>
+				<![CDATA[ News ]]>
+			</category>
+			<pubDate>Thu, 05 Nov 2026 11:26:00 +0200</pubDate>
+		</item>
+</channel>
+</rss>

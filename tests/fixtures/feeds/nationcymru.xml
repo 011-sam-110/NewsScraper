@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Nation.Cymru</title>
+	<atom:link href="https://nation.cymru/feed/" rel="self" type="application/rss+xml" />
+	<link>https://nation.cymru/</link>
+	<description>A news service by the people of Wales, for the people of Wales.</description>
+	<lastBuildDate>Thu, 05 Nov 2026 11:15:09 +0000</lastBuildDate>
+	<language>en-GB</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.7.5</generator>
+<site xmlns="com-wordpress:feed-additions:1">129727616</site>	<item>
+		<title>Row over proposed ferry from Wales to Devon and Cornwall</title>
+		<link>https://nation.cymru/news/row-over-proposed-ferry-from-wales-to-devon-and-cornwall/</link>
+					<comments>https://nation.cymru/news/row-over-proposed-ferry-from-wales-to-devon-and-cornwall/#comments</comments>
+		<dc:creator><![CDATA[Stephen Price]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:14:09 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://nation.cymru/?p=364160</guid>
+					<description></description>
+					
+					<wfw:commentRss>https://nation.cymru/news/row-over-proposed-ferry-from-wales-to-devon-and-cornwall/feed/</wfw:commentRss>
+			<slash:comments>2</slash:comments>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">364160</post-id>	</item>
+<item>
+		<title>Long-running dispute over access to mountainside returns to the spotlight</title>
+		<link>https://nation.cymru/news/long-running-dispute-over-access-to-mountainside-returns-to-the-spotlight/</link>
+					<comments>https://nation.cymru/news/long-running-dispute-over-access-to-mountainside-returns-to-the-spotlight/#comments</comments>
+		<dc:creator><![CDATA[Stephen Price]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:10:52 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://nation.cymru/?p=363863</guid>
+					<description></description>
+					
+					<wfw:commentRss>https://nation.cymru/news/long-running-dispute-over-access-to-mountainside-returns-to-the-spotlight/feed/</wfw:commentRss>
+			<slash:comments>1</slash:comments>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">363863</post-id>	</item>
+<item>
+		<title>Why I&#8217;m not calling for a fireworks ban this year</title>
+		<link>https://nation.cymru/opinion/why-im-not-calling-for-a-fireworks-ban-this-year/</link>
+					<comments>https://nation.cymru/opinion/why-im-not-calling-for-a-fireworks-ban-this-year/#respond</comments>
+		<dc:creator><![CDATA[Stephen Price]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:33:52 +0000</pubDate>
+				<category><![CDATA[Opinion]]></category>
+		<guid isPermaLink="false">https://nation.cymru/?p=364196</guid>
+					<description></description>
+					
+					<wfw:commentRss>https://nation.cymru/opinion/why-im-not-calling-for-a-fireworks-ban-this-year/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">364196</post-id>	</item>
+	</channel>
+</rss>

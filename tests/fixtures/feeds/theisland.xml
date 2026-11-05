@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>The Island</title>
+	<atom:link href="http://island.lk/feed/" rel="self" type="application/rss+xml" />
+	<link>http://island.lk</link>
+	<description>Daily English Language Newspaper in Sri Lanka</description>
+	<lastBuildDate>Thu, 05 Nov 2026 11:20:48 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.6.2</generator>
+
+<image>
+	<url>http://island.lk/wp-content/uploads/2020/07/cropped-site-icon-32x32.jpg</url>
+	<title>The Island</title>
+	<link>http://island.lk</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Ronaldo retires from Portugal duty</title>
+		<link>http://island.lk/__trashed-3/</link>
+					<comments>http://island.lk/__trashed-3/#respond</comments>
+		<dc:creator><![CDATA[Priyan]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:19:48 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">http://island.lk/?p=295912</guid>
+					<description></description>
+					
+					<wfw:commentRss>http://island.lk/__trashed-3/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+			</item>
+<item>
+		<title>Oman secure spot at 2027 men&#8217;s World Cup Qualifiers</title>
+		<link>http://island.lk/oman-secure-spot-at-2027-mens-world-cup-qualifiers/</link>
+					<comments>http://island.lk/oman-secure-spot-at-2027-mens-world-cup-qualifiers/#respond</comments>
+		<dc:creator><![CDATA[Priyan]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 10:56:01 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">http://island.lk/?p=295909</guid>
+					<description></description>
+					
+					<wfw:commentRss>http://island.lk/oman-secure-spot-at-2027-mens-world-cup-qualifiers/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+			</item>
+<item>
+		<title>World record 53 red cards shown in Brazilian youth game</title>
+		<link>http://island.lk/world-record-53-red-cards-shown-in-brazilian-youth-game/</link>
+					<comments>http://island.lk/world-record-53-red-cards-shown-in-brazilian-youth-game/#respond</comments>
+		<dc:creator><![CDATA[Priyan]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 09:30:38 +0000</pubDate>
+				<category><![CDATA[Latest News]]></category>
+		<category><![CDATA[Sports]]></category>
+		<guid isPermaLink="false">http://island.lk/?p=295906</guid>
+					<description></description>
+					
+					<wfw:commentRss>http://island.lk/world-record-53-red-cards-shown-in-brazilian-youth-game/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+			</item>
+	</channel>
+</rss>

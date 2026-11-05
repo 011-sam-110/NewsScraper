@@ -326,7 +326,7 @@ class RefillAndDropTests(unittest.TestCase):
         rows = [
             ("st_old", "bbc", "2026-09-20T06:00:00Z"),       # weeks old
             ("st_week", "bbc", "2026-10-30T06:00:00Z"),      # 6.25 days old: inside 7 days
-            ("st_new", "npr", "2026-11-05T11:00:00Z"),
+            ("st_new", "mercopress", "2026-11-05T11:00:00Z"),
             ("st_gu", "guardian", "2026-11-05T11:10:00Z"),   # dropped outlet
             ("st_ny", "nyt", "2026-11-05T11:20:00Z"),        # dropped outlet
         ]

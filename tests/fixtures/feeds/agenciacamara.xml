@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>Câmara notícias - Câmara dos Deputados</title>
+        <link>https://www2.camara.leg.br/camaranoticias</link>
+        <description>Câmara Notícias </description>
+        <lastBuildDate>Thu, 05 Nov 2026 12:17:10 GMT</lastBuildDate>
+        <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+        <generator>Câmara notícias</generator>
+        <copyright>Copyright(C) Câmara dos Deputados</copyright>
+        <item>
+            <title><![CDATA[Câmara pode votar projetos sobre monitoramento de agressores e maus-tratos a animais]]></title>
+            <link>https://www.camara.leg.br/noticias/1316213-camara-pode-votar-projetos-sobre-monitoramento-de-agressores-e-maus-tratos-a-animais</link>
+            <guid>https://www.camara.leg.br/noticias/1316213-camara-pode-votar-projetos-sobre-monitoramento-de-agressores-e-maus-tratos-a-animais</guid>
+            <pubDate>Thu, 05 Nov 2026 11:42:00 GMT</pubDate>
+            <description></description>
+        </item>
+<item>
+            <title><![CDATA[Comissão que analisa MP sobre crédito para empresas atingidas por tarifaço analisa relatório nesta quinta]]></title>
+            <link>https://www.camara.leg.br/noticias/1316195-comissao-que-analisa-mp-sobre-credito-para-empresas-atingidas-por-tarifaco-analisa-relatorio-nesta-quinta</link>
+            <guid>https://www.camara.leg.br/noticias/1316195-comissao-que-analisa-mp-sobre-credito-para-empresas-atingidas-por-tarifaco-analisa-relatorio-nesta-quinta</guid>
+            <pubDate>Thu, 05 Nov 2026 10:49:00 GMT</pubDate>
+        </item>
+<item>
+            <title><![CDATA[Debatedores divergem sobre projeto de lei para ampliar concorrência no mercado de gás natural]]></title>
+            <link>https://www.camara.leg.br/noticias/1316160-debatedores-divergem-sobre-projeto-de-lei-para-ampliar-concorrencia-no-mercado-de-gas-natural</link>
+            <guid>https://www.camara.leg.br/noticias/1316160-debatedores-divergem-sobre-projeto-de-lei-para-ampliar-concorrencia-no-mercado-de-gas-natural</guid>
+            <pubDate>Wed, 04 Nov 2026 23:26:00 GMT</pubDate>
+            <description></description>
+        </item>
+    </channel>
+</rss>

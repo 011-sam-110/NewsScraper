@@ -74,8 +74,8 @@ class OutletRunTests(StoreCase):
         self.assertIn("401 from DataDome", check.detail)
 
     def test_two_failed_runs_are_still_a_pass(self) -> None:
-        self.outlet("npr", failures=2)
-        self.assertTrue(self.checks()["runs:npr"].ok)
+        self.outlet("mercopress", failures=2)
+        self.assertTrue(self.checks()["runs:mercopress"].ok)
 
     def test_a_dropped_outlet_is_not_checked(self) -> None:
         self.outlet("guardian", failures=9)
@@ -100,25 +100,25 @@ class SilenceTests(StoreCase):
         self.assertTrue(self.checks()["silence:pbs"].ok)
 
     def test_a_feed_has_no_silence_check(self) -> None:
-        # One quiet feed (RNZ's Pacific feed) is normal. The newest-story check covers all of them.
-        self.outlet("rnz", new_story=ago(hours=30))
-        self.assertNotIn("silence:rnz", self.checks())
+        # One quiet feed is normal. The newest-story check covers all of them.
+        self.outlet("batimes", new_story=ago(hours=30))
+        self.assertNotIn("silence:batimes", self.checks())
 
 
 class NewestStoryTests(StoreCase):
     def test_no_new_story_for_an_hour_fails(self) -> None:
-        self.story("a", "npr", ago(minutes=61))
+        self.story("a", "mercopress", ago(minutes=61))
         self.assertFalse(self.checks()["newest"].ok)
 
     def test_a_story_in_the_last_hour_passes(self) -> None:
-        self.story("a", "npr", ago(minutes=61))
-        self.story("b", "dw", ago(minutes=4))
+        self.story("a", "mercopress", ago(minutes=61))
+        self.story("b", "jpost", ago(minutes=4))
         check = self.checks()["newest"]
         self.assertTrue(check.ok)
         self.assertIn("4 min", check.detail)
 
     def test_a_dropped_outlet_does_not_count_as_fresh(self) -> None:
-        self.story("a", "npr", ago(hours=3))
+        self.story("a", "mercopress", ago(hours=3))
         self.story("g", "guardian", ago(minutes=1))
         self.assertFalse(self.checks()["newest"].ok)
 
@@ -185,6 +185,57 @@ class ProductionTests(unittest.TestCase):
             "https://provenance-online.com/api/status",
         )
 
+    # A deploy restarts Provenance and empties its in-memory push store until the next rail push
+    # (every 5 min). On 2026-11-05 the check ran 2 to 4 s after two restarts and posted FAIL both times.
+
+    def restarted(self, started: str | None, **overrides: object) -> dict:
+        """The status of a site that started at `started` and has had no push since."""
+        status = self.news(newestTs=None, held=0, outlets=0, lastPushAt=None, pushedHeld=0)
+        status["news"].update(overrides)
+        status["evidenceScope"] = {"scope": "process", "ageMs": 0}
+        if started is not None:
+            status["evidenceScope"]["observingSinceMs"] = ms(started)
+        return status
+
+    def assert_old_failures(self, check: health.Check) -> None:
+        self.assertFalse(check.ok)
+        self.assertIn("the site holds no headline", check.detail)
+        self.assertIn("the site has received no push since it started", check.detail)
+        self.assertIn("the site's push store is empty", check.detail)
+
+    def test_a_site_restarted_30_seconds_ago_is_waiting_not_failed(self) -> None:
+        check = health.production_check(self.restarted(ago(seconds=30)), None, NOW)
+        self.assertIsNone(check.ok)
+        self.assertEqual(check.detail, "site restarted 0 min ago, waiting for the first push")
+
+    def test_a_site_restarted_9_minutes_ago_is_still_waiting(self) -> None:
+        check = health.production_check(self.restarted(ago(minutes=9)), None, NOW)
+        self.assertIsNone(check.ok)
+        self.assertIn("site restarted 9 min ago", check.detail)
+
+    def test_a_site_restarted_11_minutes_ago_with_no_push_fails_as_before(self) -> None:
+        self.assert_old_failures(health.production_check(self.restarted(ago(minutes=11)), None, NOW))
+
+    def test_a_status_without_observing_since_fails_as_before(self) -> None:
+        self.assert_old_failures(health.production_check(self.restarted(None), None, NOW))
+        status = self.restarted(None)
+        del status["evidenceScope"]
+        self.assert_old_failures(health.production_check(status, None, NOW))
+        status["evidenceScope"] = "process"
+        self.assert_old_failures(health.production_check(status, None, NOW))
+
+    def test_a_restarted_site_that_has_its_first_push_is_checked_as_normal(self) -> None:
+        fresh = self.restarted(
+            ago(minutes=3), newestTs=ms(ago(minutes=2)), held=900, lastPushAt=ms(ago(minutes=1)), pushedHeld=900,
+        )
+        self.assertTrue(health.production_check(fresh, None, NOW).ok)
+        stale = self.restarted(
+            ago(minutes=3), newestTs=ms(ago(minutes=90)), held=900, lastPushAt=ms(ago(minutes=1)), pushedHeld=900,
+        )
+        check = health.production_check(stale, None, NOW)
+        self.assertFalse(check.ok, "a push has arrived, so the grace for a restart is over")
+        self.assertIn("90 min", check.detail)
+
 
 class DecideTests(unittest.TestCase):
     def checks(self, *failing: str) -> list[health.Check]:
@@ -244,7 +295,7 @@ class RunTests(unittest.TestCase):
             with store.write() as connection:
                 connection.execute(
                     "INSERT INTO stories (story_id, outlet, primary_alias, url, headline,"
-                    " published, first_seen_at, last_seen_at) VALUES ('a', 'npr', 'a',"
+                    " published, first_seen_at, last_seen_at) VALUES ('a', 'mercopress', 'a',"
                     " 'https://example.com/a', 'a', ?, ?, ?)",
                     (ago(minutes=3),) * 3,
                 )
@@ -284,6 +335,24 @@ class RunTests(unittest.TestCase):
         self.run_stage(dry_run=True)
         self.assertEqual(self.posts, [])
         self.assertFalse(self.settings.health_file.exists())
+
+    def test_a_deploy_restart_posts_nothing_and_exits_0(self) -> None:
+        self.run_stage()
+        self.assertEqual(len(self.posts), 1, "the first run posts the all-pass digest")
+        restarted = {
+            "evidenceScope": {"observingSinceMs": ms(ago(seconds=4))},
+            "news": {"newestTs": None, "held": 0, "lastPushAt": None, "pushedHeld": 0},
+        }
+        args = argparse.Namespace(dry_run=False, no_production=False)
+        with contextlib.redirect_stdout(io.StringIO()):
+            code = health.run(
+                args, self.settings, post=lambda text: self.posts.append(text) or True, now=NOW,
+                read_status=lambda url: (restarted, None),
+            )
+        self.assertEqual(code, 0)
+        self.assertEqual(len(self.posts), 1, "a restart is not a failure, so nothing new is posted")
+        saved = json.loads(self.settings.health_file.read_text())
+        self.assertIsNone(saved["checks"]["production"]["ok"])
 
 
 

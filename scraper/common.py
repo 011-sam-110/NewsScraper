@@ -188,6 +188,7 @@ def get_html(url: str, referer: str | None = None, proxy_retry: bool = True) -> 
 
 
 RSS_NAMESPACES = {
+    "content": "http://purl.org/rss/1.0/modules/content/",
     "dc": "http://purl.org/dc/elements/1.1/",
     "media": "http://search.yahoo.com/mrss/",
     "atom": "http://www.w3.org/2005/Atom",
@@ -206,17 +207,76 @@ def rss_date(value: str | None) -> str | None:
 
 # RSS 1.0 (RDF) puts its own elements in this namespace: DW publishes it.
 RSS1_NAMESPACE = "http://purl.org/rss/1.0/"
+# Atom: GOV.UK publishes only Atom (2026-11-05). Its entries are <entry>, in the Atom namespace.
+ATOM_ENTRY = f"{{{RSS_NAMESPACES['atom']}}}entry"
 
 
 def feed_items(root: ElementTree.Element) -> list[ElementTree.Element]:
-    """The items of an RSS 2.0 or an RSS 1.0 (RDF) document, in document order."""
-    return [node for node in root.iter() if node.tag in ("item", f"{{{RSS1_NAMESPACE}}}item")]
+    """The items of an RSS 2.0, an RSS 1.0 (RDF) or an Atom document, in document order."""
+    return [node for node in root.iter() if node.tag in ("item", f"{{{RSS1_NAMESPACE}}}item", ATOM_ENTRY)]
+
+
+def atom_entry(entry: ElementTree.Element) -> dict[str, Any]:
+    """The same fields parse_rss gives for an RSS item, read from one Atom <entry>.
+
+    Atom dates are ISO 8601 already, so they pass through as given. The link is the entry's
+    rel="alternate" link (a link with no rel is alternate by the Atom spec).
+    """
+
+    def text(tag: str) -> str | None:
+        # itertext, not .text: an XHTML title or summary holds its words in a child <div>
+        # (Statistics Canada's The Daily, 2026-11-05).
+        node = entry.find(f"atom:{tag}", RSS_NAMESPACES)
+        value = " ".join("".join(node.itertext()).split()) if node is not None else ""
+        return value or None
+
+    link = None
+    for node in entry.findall("atom:link", RSS_NAMESPACES):
+        if node.get("href") and node.get("rel", "alternate") == "alternate":
+            link = node.get("href").strip()
+            break
+    return {
+        "title": text("title"),
+        "link": link,
+        "guid": text("id"),
+        "description": clean_text(text("summary") or text("content") or "") or None,
+        "content": clean_text(text("content") or "") or None,
+        "published": text("published") or text("updated"),
+        "creators": [
+            node.text.strip()
+            for node in entry.findall("atom:author/atom:name", RSS_NAMESPACES)
+            if node.text and node.text.strip()
+        ],
+        "categories": [
+            {"domain": node.get("scheme") or None, "name": node.get("term").strip()}
+            for node in entry.findall("atom:category", RSS_NAMESPACES)
+            if node.get("term") and node.get("term").strip()
+        ],
+        "media": [],
+        "media_credit": None,
+        "media_description": None,
+    }
+
+
+def permalink_guid(item: ElementTree.Element) -> str | None:
+    """An RSS 2.0 item's <guid> when it is its address: an http(s) URL not marked isPermaLink="false".
+
+    Agência Senado's items carry no <link>, only this guid (2026-11-05).
+    """
+    node = item.find("guid")
+    value = node.text.strip() if node is not None and node.text else ""
+    if not value.lower().startswith(("http://", "https://")):
+        return None
+    return None if (node.get("isPermaLink") or "").strip().lower() == "false" else value
 
 
 def parse_rss(document: bytes) -> list[dict[str, Any]]:
-    """Every field an RSS 2.0 or RSS 1.0 item carries, with outlet taxonomy kept as {domain, name}."""
+    """Every field an RSS 2.0, RSS 1.0 or Atom item carries, with outlet taxonomy kept as {domain, name}."""
     items = []
     for item in feed_items(ElementTree.fromstring(document)):
+        if item.tag == ATOM_ENTRY:
+            items.append(atom_entry(item))
+            continue
         rss1 = item.tag.startswith("{")
 
         def text(tag: str) -> str | None:
@@ -234,9 +294,12 @@ def parse_rss(document: bytes) -> list[dict[str, Any]]:
         items.append(
             {
                 "title": text("title"),
-                "link": text("link"),
+                "link": text("link") or permalink_guid(item),
                 "guid": text("guid"),
                 "description": clean_text(text("description") or "") or None,
+                # Read for the third-party check only (rss_outlets.third_party): a wire's mark can sit in
+                # the full text and not in the summary. base_row does not store it.
+                "content": clean_text(text("content:encoded") or "") or None,
                 "published": rss_date(text("pubDate")) or text("dc:date"),
                 "creators": [node.text.strip() for node in item.findall("dc:creator", RSS_NAMESPACES) if node.text],
                 "categories": [

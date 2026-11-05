@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <atom:link rel="self" type="application/rss+xml" href="https://www12.senado.leg.br/noticias/rss.xml" />
+    <title>Senado Notícias</title>
+    <link>https://www12.senado.leg.br/noticias</link>
+    <description></description>
+    <language>pt-br</language>
+    <copyright></copyright>
+    <generator>Plone</generator>
+    <item>
+      <title>Debate aponta precarização do emprego em contratos na saúde entre governo e organizações sociais</title>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 21:06:37 -0300</pubDate>
+      <guid>https://www12.senado.leg.br/noticias/audios/2026/11/debate-aponta-precarizacao-do-emprego-em-contratos-na-saude-entre-governo-e-organizacoes-sociais</guid>
+    </item>
+<item>
+      <title>Projeto que proíbe obsolescência programada de produtos vai à Câmara</title>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 20:55:50 -0300</pubDate>
+      <guid>https://www12.senado.leg.br/noticias/audios/2026/11/projeto-que-proibe-obsolescencia-programada-de-produtos-vai-a-camara</guid>
+    </item>
+<item>
+      <title>Política de enfrentamento à violência contra a mulher avança no Senado</title>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 20:47:09 -0300</pubDate>
+      <guid>https://www12.senado.leg.br/noticias/audios/2026/11/politica-de-enfrentamento-a-violencia-contra-a-mulher-avanca-no-senado</guid>
+    </item>
+  </channel>
+</rss>

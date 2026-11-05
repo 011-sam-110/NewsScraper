@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cf="http://www.microsoft.com/schemas/rss/core/2005">
+  <channel>
+    <title>
+News Releases - U.S. Dept. of War
+</title>
+    <link>
+https://www.war.gov/News/Releases/
+</link>
+    <description>
+Stay up to date on the latest Department of War statements and announcements.
+</description>
+    <language>en-us</language>
+    <pubDate>Wed, 04 Nov 2026 17:00:25 GMT</pubDate>
+    <lastBuildDate>Thu, 05 Nov 2026 09:54:44 GMT</lastBuildDate>
+    <atom:link href="www.war.gov?ContentType=9&amp;Site=945&amp;isdashboardselected=0&amp;max=10" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Advanced Radar Contract Bolsters USCENTCOM Counter-UAS Defense</title>
+      <link>https://www.war.gov/News/Releases/Release/Article/4641125/advanced-radar-contract-bolsters-uscentcom-counter-uas-defense/</link>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 17:00:25 GMT</pubDate>
+      <dc:creator>Press Operations</dc:creator>
+      <guid isPermaLink="false">https://www.war.gov/News/Releases/Release/Article/4641125/advanced-radar-contract-bolsters-uscentcom-counter-uas-defense/</guid>
+    </item>
+<item>
+      <title>DRPM-UxS Deliver Over 25,000 Autonomous and Counter-Unmanned Systems to CENTCOM AOR</title>
+      <link>https://www.war.gov/News/Releases/Release/Article/4641098/drpm-uxs-deliver-over-25000-autonomous-and-counter-unmanned-systems-to-centcom/</link>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 15:30:00 GMT</pubDate>
+      <dc:creator>Press Operations</dc:creator>
+      <guid isPermaLink="false">https://www.war.gov/News/Releases/Release/Article/4641098/drpm-uxs-deliver-over-25000-autonomous-and-counter-unmanned-systems-to-centcom/</guid>
+    </item>
+<item>
+      <title>Department of War's Office of Strategic Capital Signs $150 Million Conditional Loan Commitment With LeoLabs, Inc.</title>
+      <link>https://www.war.gov/News/Releases/Release/Article/4641087/department-of-wars-office-of-strategic-capital-signs-150-million-conditional-lo/</link>
+      <description></description>
+      <pubDate>Wed, 04 Nov 2026 15:00:00 GMT</pubDate>
+      <dc:creator>Press Operations</dc:creator>
+      <guid isPermaLink="false">https://www.war.gov/News/Releases/Release/Article/4641087/department-of-wars-office-of-strategic-capital-signs-150-million-conditional-lo/</guid>
+    </item>
+  </channel>
+</rss>

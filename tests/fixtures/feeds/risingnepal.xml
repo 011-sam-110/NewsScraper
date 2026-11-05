@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+	<channel>
+		<atom:link href="https://risingnepaldaily.com/rss" rel="self" type="application/rss+xml"/>
+		<language>en-US</language>
+		<title><![CDATA[The Rising Nepal | Nepal's First English Broadsheet Daily.]]></title>
+		<link><![CDATA[https://risingnepaldaily.com]]></link>
+		<description><![CDATA[]]></description>
+		<image>
+			<url>https://risingnepaldaily.com/commons/gopa_static.png</url>
+			<title><![CDATA[The Rising Nepal | Nepal's First English Broadsheet Daily.]]></title>
+			<link><![CDATA[https://risingnepaldaily.com]]></link>
+		</image>
+		<pubDate>Thu, 05 Nov 2026 18:02:01 +0545</pubDate>
+					<item>
+				<title><![CDATA[India's Foreign Secretary Misri pays courtesy call on PM Shah]]></title>
+				<link>https://risingnepaldaily.com/news/88423</link>
+				<description></description>
+				<guid isPermaLink="false">https://risingnepaldaily.com/news/88423</guid>
+				<pubDate>Thu, 05 Nov 2026 17:42:03 +0545</pubDate>
+			</item>
+<item>
+				<title><![CDATA[PM Shah takes briefing from security chiefs]]></title>
+				<link>https://risingnepaldaily.com/news/88422</link>
+				<description></description>
+				<guid isPermaLink="false">https://risingnepaldaily.com/news/88422</guid>
+				<pubDate>Thu, 05 Nov 2026 17:33:37 +0545</pubDate>
+			</item>
+<item>
+				<title><![CDATA['Millions of children in Nepal facing overlapping climate, environmental, disaster risks']]></title>
+				<link>https://risingnepaldaily.com/news/88421</link>
+				<description></description>
+				<guid isPermaLink="false">https://risingnepaldaily.com/news/88421</guid>
+				<pubDate>Thu, 05 Nov 2026 17:05:35 +0545</pubDate>
+			</item>
+			</channel>
+</rss>

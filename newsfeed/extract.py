@@ -532,7 +532,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--feeds", action="store_true",
-        help="Extract feed rows (the 26 RSS feeds) first seen in the last --feed-hours that have no answer "
+        help="Extract feed rows (the 70 RSS feeds) first seen in the last --feed-hours that have no answer "
              "under the current config hash. Their text is the headline and the RSS summary. For the "
              "Headline sources placement (python -m newsfeed headline-places).",
     )

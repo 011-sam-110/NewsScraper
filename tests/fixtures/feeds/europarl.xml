@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Press releases - European Parliament</title>
+    <link>https://www.europarl.europa.eu/news/en</link>
+    <description>Press releases on debates and decisions in plenary and in committee</description>
+    <language>EN</language>
+    <copyright>© European Union, 2026 - EP</copyright>
+    <pubDate>Thu, 05 Nov 2026 12:00:37 GMT</pubDate>
+    <item>
+      <title>Press release - CO2 emissions: adjusted targets, more incentives for clean vehicles</title>
+      <link>https://www.europarl.europa.eu/news/en/press-room/20261103IPR48613/</link>
+      <description></description>
+      <source url="https://www.europarl.europa.eu/rss/doc/press-releases/en.xml">Press releases - European Parliament</source>
+      <category domain="901:008">Institutions</category>
+      <category domain="type">Press release</category>
+      <category domain="body">ENVI</category>
+      <pubDate>Wed, 04 Nov 2026 14:39:48 GMT</pubDate>
+      <guid isPermaLink="false">IPR-COM_IPR-2026-11-03-48613_EN</guid>
+    </item>
+<item>
+      <title>Press release - Corporate fleets: accelerating the uptake of zero- and low-emission vehicles</title>
+      <link>https://www.europarl.europa.eu/news/en/press-room/20261103IPR48612/</link>
+      <description></description>
+      <source url="https://www.europarl.europa.eu/rss/doc/press-releases/en.xml">Press releases - European Parliament</source>
+      <category domain="901:008">Institutions</category>
+      <category domain="type">Press release</category>
+      <category domain="body">ENVI</category>
+      <category domain="body">TRAN</category>
+      <pubDate>Wed, 04 Nov 2026 14:17:04 GMT</pubDate>
+      <guid isPermaLink="false">IPR-COM_IPR-2026-11-03-48612_EN</guid>
+    </item>
+<item>
+      <title>Press release - Automotive sector: boost electric vehicles, simplify measures</title>
+      <link>https://www.europarl.europa.eu/news/en/press-room/20261103IPR48611/</link>
+      <description></description>
+      <source url="https://www.europarl.europa.eu/rss/doc/press-releases/en.xml">Press releases - European Parliament</source>
+      <category domain="901:008">Institutions</category>
+      <category domain="type">Press release</category>
+      <category domain="body">ENVI</category>
+      <category domain="body">TRAN</category>
+      <category domain="body">IMCO</category>
+      <pubDate>Wed, 04 Nov 2026 13:53:04 GMT</pubDate>
+      <guid isPermaLink="false">IPR-COM_IPR-2026-11-03-48611_EN</guid>
+    </item>
+  </channel>
+</rss>

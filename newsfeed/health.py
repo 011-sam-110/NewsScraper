@@ -13,6 +13,11 @@ The checks, each with the threshold it alarms on:
 - production        Provenance's /api/status: newest headline older than 60 minutes, no push
                     received for 20 minutes, or an empty push store. A site without the `news`
                     block (before that change is deployed) is "unknown", not a failure.
+                    Provenance keeps pushed news in process memory, so a deploy restart empties
+                    it until the next rail push. For 10 minutes after a restart
+                    (`evidenceScope.observingSinceMs`), a site with no push yet is "unknown"
+                    too. On 2026-11-05 two deploys made this check post FAIL 2 to 4 s after the
+                    restart, and "Recovered" 15 minutes later.
 
 Where it reports: the agent hub, which Sam reads in Discord. It posts when a check starts failing,
 when one recovers, and once a day whatever the state, so silence from this stage is itself a
@@ -53,6 +58,7 @@ NEWEST_MINUTES = 60
 RAIL_MINUTES = 20
 PRODUCTION_NEWEST_MINUTES = 60
 PRODUCTION_PUSH_MINUTES = 20
+RESTART_GRACE_MINUTES = 10
 DIGEST_HOURS = 24
 ERROR_CHARS = 200
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
@@ -197,6 +203,11 @@ def production_check(status: dict[str, Any] | None, error: str | None, now: date
     if not news.get("pushedHeld"):
         problems.append("the site's push store is empty")
     if problems:
+        # A deploy restarts the site, and its push store stays empty until the next rail push.
+        scope = status.get("evidenceScope")
+        started = minutes(scope.get("observingSinceMs")) if isinstance(scope, dict) else None
+        if pushed is None and started is not None and started < RESTART_GRACE_MINUTES:
+            return Check("production", None, f"site restarted {max(started, 0)} min ago, waiting for the first push")
         return Check("production", False, "; ".join(problems))
     return Check(
         "production", True,
