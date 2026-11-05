@@ -1,0 +1,110 @@
+16169653	2509493	link	https://en.wikipedia.org/wiki/Vila_Real_%28Oliven%C3%A7a%29						
+1177107	2509509	en	Vila-real						
+2944706	2509509	link	https://en.wikipedia.org/wiki/Villarreal						
+11216100	2509509	es	Vila-real	1					
+1177492	2510769	en	Spanish State						
+1177493	2510769		Spanien						
+1177494	2510769		Espagne						
+1177495	2510769		Espanha						
+1177496	2510769		Spain						
+1177499	2510769		Spagna						
+1556730	2510769	en	Spain	1					
+2944899	2510769	link	https://en.wikipedia.org/wiki/Spain						
+3051414	2510769	link	https://ru.wikipedia.org/wiki/%D0%98%D1%81%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F						
+4564637	2510769	en	Kingdom of Spain						
+6145088	2510769		Hispania						
+6145089	2510769		Spanish State						
+6145090	2510769		Estado Español						
+10724876	2510769	link	http://id.loc.gov/authorities/names/n79006971						
+1212330	2593113	en	Valencian Community						
+1568992	2593113	ca	Comunitat Valenciana	1					
+1626631	2593113	es	Comunidad Valenciana	1					
+2187034	2593113	ja	ヴァレンシア	1					
+2187036	2593113	de	Landes Valencia	1					
+2187038	2593113	en	Region of Valencia						
+2256664	2593113	fr	Communauté Valencienne	1					
+2427808	2593113	ru	Область Валенсия	1					
+2728520	2593113	en	Valencia	1	1				
+2947462	2593113	link	https://en.wikipedia.org/wiki/Valencian_Community						
+7717504	2593113		Valencia	1	1				
+8038523	2593113	it	Valenza	1	1				
+8617313	2593113	ko	발렌시아 지방	1					
+16735958	2593113	de	Valencia	1	1				
+1325170	3125881		Castelló	1	1				
+2080190	3125881	es	Provincia de Castellón	1					
+2186847	3125881	ja	カステヨン	1	1				
+2186848	3125881	en	Castellon	1	1				
+2186849	3125881	de	Castellón	1	1				
+2186850	3125881	fr	Castellon	1	1				
+2186851	3125881	ja	カステジョン	1	1				
+2431033	3125881	gl	Castelló	1	1				
+2431034	3125881	eu	Castello	1	1				
+2431385	3125881	ca	Província de Castelló	1					
+2974929	3125881	link	https://en.wikipedia.org/wiki/Province_of_Castell%C3%B3n						
+3058124	3125881	link	https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D1%81%D1%82%D0%B5%D0%BB%D1%8C%D0%BE%D0%BD_%28%D0%BF%D1%80%D0%BE%D0%B2%D0%B8%D0%BD%D1%86%D0%B8%D1%8F%29						
+10782227	3125881	link	http://id.loc.gov/authorities/names/n80132333						
+17681913	3125881	en	Castellón Province						
+843772	1694008		Republika ng Pilipinas						
+843774	1694008		Commonwealth of the Philippines						
+1557663	1694008	en	Philippines	1					
+2919995	1694008	link	https://en.wikipedia.org/wiki/Philippines						
+3050651	1694008	link	https://ru.wikipedia.org/wiki/%D0%A4%D0%B8%D0%BB%D0%B8%D0%BF%D0%BF%D0%B8%D0%BD%D1%8B						
+4063958	1694008	en	Republic of the Philippines						
+8155176	1694008		República de las Islas Filipinas						
+8155177	1694008		Filipinas						
+8155178	1694008		Philippine Islands						
+8155179	1694008		Las Islas Felipenas						
+8155180	1694008		República de las Filipinas						
+11262212	1694008	link	http://id.loc.gov/authorities/names/n79058386						
+845494	1699596		Mindanaw						
+3183356	1699596		Mindanao						
+1473191	3625428	en	United States of Venezuela						
+1473193	3625428	en	Republic of Venezuela						
+1563475	3625428	en	Venezuela	1					
+2919983	3625428	link	https://en.wikipedia.org/wiki/Venezuela						
+3056601	3625428	link	https://ru.wikipedia.org/wiki/%D0%92%D0%B5%D0%BD%D0%B5%D1%81%D1%83%D1%8D%D0%BB%D0%B0						
+4401825	3625428	en	Bolivarian Republic of Venezuela						
+6132081	3625428		República Bolivariana de Venezuela						
+6132082	3625428		United States of Venezuela						
+6132083	3625428		Estados Unidos de Venezuela						
+6132084	3625428		Republic of Venezuela						
+8103243	3625428	en	Venezuela, Bolivarian Republic Of						
+11262172	3625428	link	http://id.loc.gov/authorities/names/n78095508						
+2185888	3632191	en	Miranda	1	1				
+5650451	3632191	es	Estado Miranda	1					
+5701785	3632191	link	https://en.wikipedia.org/wiki/Miranda_(state)						
+7948872	3632191	en	Estado Miranda						
+7948873	3632191	pt	Estado Miranda	1					
+8041804	3632191		Miranda						
+8793229	3632191		Estado Bolivariano de Miranda						
+9066187	3632191		Caracas						
+2185886	3636539	en	Lara	1	1				
+5650453	3636539	es	Estado Lara	1					
+5701759	3636539	link	https://en.wikipedia.org/wiki/Lara_(state)						
+7948950	3636539	en	Estado Lara						
+1476363	3640454		Lara						
+4404295	3640454		Guachara						
+1592364	3646738	en	Caracas						
+1592365	3646738	es	Caracas	1					
+2920112	3646738	link	https://en.wikipedia.org/wiki/Caracas						
+4405335	3646738		Caracas						
+10782224	3646738	link	http://id.loc.gov/authorities/names/n79097478						
+192667	281133		Ghazzah						
+192668	281133		Ghuzze						
+192669	281133		Ghazah						
+192670	281133		Azzah						
+192671	281133		Ghazza						
+192672	281133		Ghazze						
+192673	281133		Ghazzi						
+192674	281133		`Azzā						
+1628786	281133	en	Gaza	1	1				
+2645860	281133	en	Gaza City						
+3047529	281133	link	https://en.wikipedia.org/wiki/Gaza_City						
+2920358	11184609	link	https://en.wikipedia.org/wiki/Gaza_City						
+11801051	11184609	link	https://en.wikipedia.org/wiki/Gaza_Governorate						
+17539394	11184609	en	Gaza Governorate						
+21478	76089		Kafr Dubáh						
+21479	76089		Dubāb						
+3160499	76089		Dhubāb						
+16317370	76089	link	https://en.wikipedia.org/wiki/Dhubab						
+7495599	6940689	link	https://en.wikipedia.org/wiki/Dhubab						

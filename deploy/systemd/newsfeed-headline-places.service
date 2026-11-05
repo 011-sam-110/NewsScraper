@@ -1,5 +1,5 @@
 [Unit]
-Description=NewsScraper: read the new feed headlines with DeepSeek, then send their places to Provenance's relay
+Description=NewsScraper: read the new feed headlines with DeepSeek, verify each pin, then send the verified places to Provenance's relay
 Documentation=file:///home/sampo/NewsScraper/newsfeed/headline_places.py
 After=network-online.target
 Wants=network-online.target
@@ -13,13 +13,19 @@ EnvironmentFile=-%h/.config/provenance-sources/sources.env
 
 # First read the feed rows no answer covers yet (headline and RSS summary). The day's model budget
 # (NEWSFEED_DAILY_BUDGET_USD) is shared with the main extract and stops this run when it is spent.
+# 60 a run: at max effort a feed row took 3.3 s on average and a call up to 13.6 s, so a run fits the
+# timeout below; a normal 10 minutes brings fewer than 15, and a backlog drains at 60 a run.
 # The leading "-": a stopped extract must not stop the push of what is already placed.
-ExecStart=-%h/NewsScraper/.venv/bin/python -m newsfeed extract --feeds --limit 150
-# Then one signed snapshot of every placed feed row of the last 48 hours. Provenance keeps it in
+ExecStart=-%h/NewsScraper/.venv/bin/python -m newsfeed extract --feeds --limit 60
+# Then a fresh DeepSeek call checks every new pin, and a critic settles any flag (section 7.9). About
+# 10 s a pin and 18 s a critic call. A pin with no passing verdict is not sent, so a stopped verify
+# (no budget, a 402) sends fewer pins, never an unchecked one; the leading "-" keeps the push going.
+ExecStart=-%h/NewsScraper/.venv/bin/python -m newsfeed verify --limit 20
+# Then one signed snapshot of every verified feed pin of the last 48 hours. Provenance keeps it in
 # process memory, so a deploy empties it and the next run refills it.
 ExecStart=%h/NewsScraper/.venv/bin/python -m newsfeed headline-places
 
-TimeoutStartSec=9min
+TimeoutStartSec=25min
 Nice=10
 IOSchedulingClass=idle
 

@@ -37,7 +37,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Iterable, Sequence
 
 from . import taxonomy
-from .config import cluster_config_hash, extract_config_hash, resolve_config_hash
+from .config import cluster_config_hash, extract_config_hash, gazetteer_resolve_hash
 from .deepseek import (
     DEFAULT_MODEL,
     BalanceError,
@@ -46,7 +46,7 @@ from .deepseek import (
     TransientError,
 )
 from .extract import BudgetReached
-from .geonames import Gazetteer, build_hash
+from .geonames import Gazetteer
 from .prompts import CLUSTER_SYSTEM, build_cluster_user
 from .resolve import distance_km
 from .settings import Settings, load
@@ -620,7 +620,7 @@ def run(
         return 2
     # Only the hash is wanted here. Cluster never asks the gazetteer a question: resolve already
     # wrote the coordinate, and re-reading it would let the two stages disagree about one story.
-    resolve_hash = resolve_config_hash(build_hash(gazetteer.connection))
+    resolve_hash = gazetteer_resolve_hash(gazetteer.connection)
     gazetteer.connection.close()
     config_hash = cluster_config_hash(resolve_hash, extract_hash, args.model)
 

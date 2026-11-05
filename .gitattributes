@@ -10,3 +10,6 @@ tests/fixtures/geonames/* -text
 # -text on the whole directory, not just the CRLF one. Git was about to convert the two LF
 # files to CRLF on a Windows checkout, which would have left every fixture in this directory
 # CRLF and the LF half of the parser untested while the tests still passed.
+
+# Real GeoNames lines for the namesake tests, kept byte for byte.
+tests/fixtures/geonames-namesakes/* -text

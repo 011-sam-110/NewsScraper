@@ -71,12 +71,17 @@ def extract_config_hash(model: str = DEFAULT_MODEL) -> str:
     return hash_components(extract_components(model))
 
 
-def resolve_components(gazetteer_hash: str) -> dict[str, Any]:
+def resolve_components(gazetteer_hash: str, names_rule: int) -> dict[str, Any]:
     """Everything that can move a coordinate, including the bytes the gazetteer was built from.
 
     The gazetteer hash is an argument rather than read here, because reading it means opening the
     database, and config.py is imported by code that must work without one. Passing it in also
     makes it impossible to compute this hash while forgetting which gazetteer it describes.
+
+    The names rule is an argument for the same reason, and because the build hash cannot carry it: the
+    build hash covers the five source files, and names rule 2 (geonames.NAMES_RULE) reads more names out
+    of the same files. Pass the rule the gazetteer was BUILT with (gazetteer_resolve_hash does), never
+    the rule this code knows, or a gazetteer built before the rule would carry the new hash.
     """
     from .geonames import KEPT_CLASSES, PINNABLE_PRECISIONS, PRECISION_BY_CODE
     from .resolve import (
@@ -84,12 +89,15 @@ def resolve_components(gazetteer_hash: str) -> dict[str, Any]:
         AMBIGUITY_POPULATION_RATIO,
         CITY_RADIUS_KM,
         KIND_PRECISION,
+        NAMESAKE_TOWN_MAX_POPULATION,
+        REGION_KINDS,
         REGION_RADIUS_KM,
     )
 
     return {
         "stage": "resolve",
         "gazetteer": gazetteer_hash,
+        "names_rule": names_rule,
         "kept_classes": sorted(KEPT_CLASSES),
         "precision_by_code": dict(sorted(PRECISION_BY_CODE.items())),
         "pinnable": sorted(PINNABLE_PRECISIONS),
@@ -98,11 +106,20 @@ def resolve_components(gazetteer_hash: str) -> dict[str, Any]:
         "region_radius_km": REGION_RADIUS_KM,
         "ambiguity_distance_km": AMBIGUITY_DISTANCE_KM,
         "ambiguity_population_ratio": AMBIGUITY_POPULATION_RATIO,
+        "region_kinds": sorted(REGION_KINDS),
+        "namesake_town_max_population": NAMESAKE_TOWN_MAX_POPULATION,
     }
 
 
-def resolve_config_hash(gazetteer_hash: str) -> str:
-    return hash_components(resolve_components(gazetteer_hash))
+def resolve_config_hash(gazetteer_hash: str, names_rule: int) -> str:
+    return hash_components(resolve_components(gazetteer_hash, names_rule))
+
+
+def gazetteer_resolve_hash(connection: Any) -> str:
+    """The resolve hash of an open gazetteer: its build hash and the names rule it was built with."""
+    from .geonames import build_hash, names_rule
+
+    return resolve_config_hash(build_hash(connection), names_rule(connection))
 
 
 def cluster_components(
@@ -147,3 +164,68 @@ def cluster_config_hash(
     resolve_hash: str, extract_hash: str, model: str = DEFAULT_MODEL
 ) -> str:
     return hash_components(cluster_components(resolve_hash, extract_hash, model))
+
+
+# The verify stage (section 7.9). Same model and effort as every other call: a fresh call, not a stronger one.
+VERIFY_TEMPERATURE = 0.0
+VERIFY_MAX_TOKENS = DEFAULT_MAX_TOKENS
+
+
+def verify_components(model: str = DEFAULT_MODEL) -> dict[str, Any]:
+    """Everything that can change what the verifier and the critic answer, and how code reads it.
+
+    Its own hash, apart from extract's: `verifications` is keyed by it, so a verify prompt change asks
+    the pins again and never throws away an extraction.
+    """
+    from .verify import CRITIC_CALLS_MAX, DECISIONS, RULE_POINTS
+
+    return {
+        "stage": "verify",
+        "model": model,
+        "temperature": VERIFY_TEMPERATURE,
+        "max_tokens": VERIFY_MAX_TOKENS,
+        "thinking": EXTRACT_THINKING,
+        "reasoning_effort": EXTRACT_EFFORT,
+        "rule_points": list(RULE_POINTS),
+        # A category flag only when no category the verifier accepts can pin, so the pin flags are part of it.
+        "category_flag": "no acceptable category can pin",
+        "pin_possible": taxonomy.pin_possible_map(),
+        "critic_calls_max": CRITIC_CALLS_MAX,
+        "decisions": dict(sorted(DECISIONS.items())),
+        **prompts.verify_prompt_components(),
+    }
+
+
+def verify_config_hash(model: str = DEFAULT_MODEL) -> str:
+    return hash_components(verify_components(model))
+
+
+def placement_components(extract_hash: str, resolve_hash: str, verify_hash: str) -> dict[str, Any]:
+    """Everything that decides which headline pins Provenance gets: the snapshot's configHash.
+
+    The gate (section 10) measures the final output, so this is the hash `gate.json` records for the
+    Headline sources layer. It carries the three stage hashes rather than repeating their parts, and adds
+    the rules headline-places applies itself: which categories can pin, the precision levels, the venue
+    fallback, and which verify outcomes send a pin.
+    """
+    from .headline_places import FALLBACK_KINDS, FALLBACK_LEVEL, FALLBACK_PRECISIONS, PRECISION
+    from .verify import PASSING
+
+    return {
+        "stage": "placement",
+        "extract": extract_hash,
+        "resolve": resolve_hash,
+        "verify": verify_hash,
+        "pin_possible": taxonomy.pin_possible_map(),
+        "precision_levels": dict(sorted(PRECISION.items())),
+        "venue_fallback": {
+            "kinds": sorted(FALLBACK_KINDS),
+            "container_precisions": sorted(FALLBACK_PRECISIONS),
+            "level": FALLBACK_LEVEL,
+        },
+        "passing": sorted(PASSING),
+    }
+
+
+def placement_config_hash(extract_hash: str, resolve_hash: str, verify_hash: str) -> str:
+    return hash_components(placement_components(extract_hash, resolve_hash, verify_hash))

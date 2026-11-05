@@ -404,11 +404,11 @@ class StageTests(unittest.TestCase):
         self.assertEqual(self.resolutions(), [])
 
     def resolve_hash(self) -> str:
-        from newsfeed.config import resolve_config_hash
+        from newsfeed.config import gazetteer_resolve_hash
 
         gazetteer = geonames.Gazetteer(sqlite3.connect(self.settings.geonames_db))
         try:
-            return resolve_config_hash(geonames.build_hash(gazetteer.connection))
+            return gazetteer_resolve_hash(gazetteer.connection)
         finally:
             gazetteer.connection.close()
 
@@ -442,3 +442,219 @@ class StageTests(unittest.TestCase):
         self.seed_extraction()
         code = resolve.run(argparse.Namespace(limit=10, story=None, dry_run=False), self.settings)
         self.assertEqual(code, 2)
+
+
+# ------------------------------------------------------------------------------------------------
+# Namesakes (2026-11-05). Real GeoNames rows for two wrong pins the verification plan found and one
+# from the main store: "Villarreal" on a hamlet in Badajoz, "Mindanao" on a village in Cebu, "Lara"
+# on a village in Apure. tests/fixtures/geonames-namesakes/ holds unedited lines of the 2026-09-18
+# download for exactly these places and the containers the stories named (English, unnamed-language,
+# preferred and link rows only; the parser drops every other language anyway).
+# ------------------------------------------------------------------------------------------------
+
+NAMESAKES = Path(__file__).parent / "fixtures" / "geonames-namesakes"
+
+VILA_REAL = 2509509  # P PPL ES 60 CS, population 50,577. English Wikipedia title: "Villarreal"
+VILLARREAL_HAMLET = 2509493  # P PPL ES 57 BA (Badajoz), population 0
+CASTELLON = 3125881  # A ADM2 ES 60 CS
+MINDANAW = 1699596  # P PPL PH 07 21 (Cebu), population 0, alternate name "Mindanao"
+MINDANAO_BARANGAY = 11869674  # A ADM4 PH 07 21 (Cebu), population 0
+PHILIPPINES = 1694008  # A PCLI PH
+ESTADO_LARA = 3636539  # A ADM1 VE 13, population 1,795,100, alternate name "Lara"
+GUACHARA = 3640454  # P PPL VE 03 (Apure), population 0, alternate name "Lara"
+GAZA_CITY = 281133  # P PPLA PS, population 410,000. English Wikipedia: "Gaza City"
+GAZA_ADM2 = 11184609  # A ADM2 PS, population 505,700. Links "Gaza City" AND "Gaza Governorate"
+DHUBAB_TOWN = 76089  # P PPLA2 YE 25 1507, population 0
+DHUBAB_DISTRICT = 6940689  # A ADM2 YE 25 1507, population 0
+
+
+def namesake_lines(name: str) -> list[str]:
+    return (NAMESAKES / name).read_text(encoding="utf-8").splitlines()
+
+
+def build_namesake_gazetteer(alternates: list[str] | None = None) -> Gazetteer:
+    connection = sqlite3.connect(":memory:")
+    geonames.build_database(
+        connection,
+        namesake_lines("allCountries.sample.txt"),
+        namesake_lines("alternateNamesV2.sample.txt") if alternates is None else alternates,
+        [], [], [],
+    )
+    return Gazetteer(connection)
+
+
+class WikipediaTitleTests(unittest.TestCase):
+    """Names rule 2: the title of a place's English Wikipedia article is one of its names."""
+
+    def test_an_english_wikipedia_link_is_read_as_a_name(self) -> None:
+        rows = list(geonames.parse_alternate_names(
+            ["2944706\t2509509\tlink\thttps://en.wikipedia.org/wiki/Villarreal\t\t\t\t\t\t"]
+        ))
+        self.assertEqual(rows, [("villarreal", VILA_REAL, "wikipedia")])
+
+    def test_the_title_is_decoded_and_loses_its_qualifier(self) -> None:
+        title = geonames.wikipedia_title
+        self.assertEqual(title("https://en.wikipedia.org/wiki/Vila_Real_%28Oliven%C3%A7a%29"), "Vila Real")
+        self.assertEqual(title("https://en.wikipedia.org/wiki/Lara_(state)"), "Lara")
+        self.assertEqual(title("https://en.wikipedia.org/wiki/Athens,_Texas"), "Athens")
+        self.assertEqual(title("https://en.wikipedia.org/wiki/Province_of_Castell%C3%B3n"), "Province of Castellón")
+
+    def test_other_links_are_still_not_names(self) -> None:
+        title = geonames.wikipedia_title
+        self.assertIsNone(title("https://ru.wikipedia.org/wiki/%D0%A4"))
+        self.assertIsNone(title("http://id.loc.gov/authorities/names/n79097478"))
+        self.assertIsNone(title("https://example.org"))
+        self.assertIsNone(title("https://en.wikipedia.org/wiki/"))
+        rows = list(geonames.parse_alternate_names(
+            ["3050651\t1694008\tlink\thttps://ru.wikipedia.org/wiki/%D0%A4\t\t\t\t\t\t",
+             "11262212\t1694008\tlink\thttp://id.loc.gov/authorities/names/n79058386\t\t\t\t\t\t"]
+        ))
+        self.assertEqual(rows, [])
+
+    def test_the_names_rule_is_recorded_in_the_build_and_read_back(self) -> None:
+        connection = sqlite3.connect(":memory:")
+        geonames.record_build(connection, [])
+        self.assertEqual(geonames.NAMES_RULE, 2)
+        self.assertEqual(geonames.names_rule(connection), geonames.NAMES_RULE)
+
+    def test_a_gazetteer_built_before_the_rule_reads_as_rule_1(self) -> None:
+        # The live gazetteer of 2026-09-18 has no names_rule row. It must never pass for a rule 2 build.
+        connection = sqlite3.connect(":memory:")
+        connection.executescript(geonames.SCHEMA)
+        self.assertEqual(geonames.names_rule(connection), 1)
+
+
+class VillarrealTests(unittest.TestCase):
+    """#861: "Villarreal" landed on a hamlet of population 0 in Badajoz. The football club's town is
+    Vila-real, population 50,577, and GeoNames holds no "Villarreal" name for it at all: only the
+    link to its English Wikipedia article, whose title is "Villarreal"."""
+
+    def test_villarreal_is_vila_real(self) -> None:
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        result = resolve.resolve_place(gazetteer, "Villarreal", None, "ES", "city")
+        self.assertEqual(result.place.geonames_id, VILA_REAL)
+        self.assertTrue(result.pinnable)
+        self.assertFalse(result.climbed)
+
+    def test_villarreal_within_castellon_is_vila_real_too(self) -> None:
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        result = resolve.resolve_place(gazetteer, "Villarreal", "Castellón", "ES", "city")
+        self.assertEqual(result.place.geonames_id, VILA_REAL)
+        self.assertFalse(result.climbed)
+
+    def test_without_the_wikipedia_names_it_is_the_hamlet(self) -> None:
+        # The fault this rule fixes, kept visible: names rule 1 drops every link row.
+        without = [line for line in namesake_lines("alternateNamesV2.sample.txt") if "\tlink\t" not in line]
+        gazetteer = build_namesake_gazetteer(without)
+        self.addCleanup(gazetteer.close)
+        result = resolve.resolve_place(gazetteer, "Villarreal", None, "ES", "city")
+        self.assertEqual(result.place.geonames_id, VILLARREAL_HAMLET)
+
+    def test_an_admin_area_takes_no_wikipedia_title(self) -> None:
+        # Measured over the store on 2026-11-05: the Gaza ADM2 (population 505,700) links the article
+        # "Gaza City" as well as "Gaza Governorate". With the title as a name it outranked the city
+        # (410,000), so every district "within Gaza City" climbed to a region. An admin area's article is
+        # often the article about its main town, so names rule 2 reads titles for towns and spots only.
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        holders = {row[0] for row in gazetteer.connection.execute(
+            "SELECT geonames_id FROM names WHERE folded = 'gaza city'")}
+        self.assertEqual(holders, {GAZA_CITY})
+        result = resolve.resolve_place(gazetteer, "Tal al-Hawa", "Gaza City", "PS", "district")
+        self.assertEqual((result.place.geonames_id, result.precision, result.climbed), (GAZA_CITY, "city", True))
+
+    def test_the_name_comes_from_the_wikipedia_row(self) -> None:
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        sources = {row[0] for row in gazetteer.connection.execute(
+            "SELECT source FROM names WHERE folded = 'villarreal' AND geonames_id = ?", (VILA_REAL,))}
+        self.assertEqual(sources, {"wikipedia"})
+
+
+class RegionAnswerTests(unittest.TestCase):
+    """A region answer never lands on a town."""
+
+    def test_mindanao_the_region_is_not_a_village_in_cebu(self) -> None:
+        # Main store, 2026-11-05: "A magnitude 5.7 earthquake struck Mindanao in the Philippines",
+        # kind region, pinned on Mindanaw, a village of population 0 in Cebu.
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        result = resolve.resolve_place(gazetteer, "Mindanao", "Philippines", "PH", "region")
+        self.assertFalse(result.pinnable)
+        self.assertNotIn(result.place.geonames_id if result.place else None, (MINDANAW, MINDANAO_BARANGAY))
+
+    def test_a_region_answer_with_no_container_is_no_place(self) -> None:
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        result = resolve.resolve_place(gazetteer, "Mindanao", None, "PH", "region")
+        self.assertFalse(result.pinnable)
+        self.assertIsNone(result.place)
+
+    def test_a_country_answer_never_lands_on_a_town_either(self) -> None:
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        self.assertFalse(resolve.resolve_place(gazetteer, "Mindanao", None, "PH", "country").pinnable)
+
+    def test_lara_the_state_is_not_a_village_in_apure(self) -> None:
+        # Main store, 2026-11-05: "the town of Lara, west of Caracas", kind city. "Caracas" alone is
+        # ambiguous with the state of Miranda, so the search ran country-wide and the village won on
+        # fit. A town of population 0 never takes a name that also names a region of the country.
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        result = resolve.resolve_place(gazetteer, "Lara", "Caracas", "VE", "city")
+        self.assertFalse(result.pinnable)
+        self.assertEqual(result.place.geonames_id, ESTADO_LARA)
+
+    def test_a_town_inside_the_region_of_its_name_keeps_it(self) -> None:
+        # "The Iran-backed Houthis reached the Yemeni town of Dhubab": Dhubab is the seat of the Dhubab
+        # district, both population 0. The town is inside the region that shares its name, so it is the
+        # place, not a namesake from elsewhere. Rule 2 acts only on a town OUTSIDE that region (Lara).
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        result = resolve.resolve_place(gazetteer, "Dhubab", None, "YE", "city")
+        self.assertEqual(result.place.geonames_id, DHUBAB_TOWN)
+        self.assertTrue(result.pinnable)
+
+    def test_a_town_with_people_still_wins_its_own_name(self) -> None:
+        # The guard acts only on a town of population 0 against a region of the same name.
+        gazetteer = build_namesake_gazetteer()
+        self.addCleanup(gazetteer.close)
+        self.assertTrue(resolve.resolve_place(gazetteer, "Villarreal", None, "ES", "city").pinnable)
+        self.assertTrue(resolve.resolve_place(gazetteer, "Caracas", None, "VE", "city").pinnable)
+
+    def test_the_golden_city_answers_are_untouched(self) -> None:
+        gazetteer = build_gazetteer()
+        self.addCleanup(gazetteer.close)
+        self.assertEqual(resolve.resolve_place(gazetteer, "Paris", "Texas", "US", "city").place.geonames_id,
+                         PARIS_TEXAS)
+        self.assertEqual(
+            resolve.resolve_place(gazetteer, "Westminster", "London", "GB", "district").place.geonames_id,
+            WESTMINSTER_LONDON_ADM,
+        )
+
+
+class ResolveHashTests(unittest.TestCase):
+    def test_the_names_rule_moves_the_resolve_hash(self) -> None:
+        from newsfeed.config import resolve_config_hash
+
+        self.assertNotEqual(resolve_config_hash("gazetteer", 1), resolve_config_hash("gazetteer", 2))
+
+    def test_the_region_guard_is_in_the_resolve_hash(self) -> None:
+        from newsfeed.config import resolve_components
+
+        components = resolve_components("gazetteer", 2)
+        self.assertEqual(components["names_rule"], 2)
+        self.assertEqual(components["region_kinds"], ["country", "region"])
+        self.assertEqual(components["namesake_town_max_population"], 0)
+
+    def test_the_stage_hash_reads_the_rule_the_gazetteer_was_built_with(self) -> None:
+        from newsfeed.config import gazetteer_resolve_hash, resolve_config_hash
+
+        connection = sqlite3.connect(":memory:")
+        connection.executescript(geonames.SCHEMA)
+        old = gazetteer_resolve_hash(connection)
+        self.assertEqual(old, resolve_config_hash(geonames.build_hash(connection), 1))
+        connection.execute("INSERT INTO build_meta VALUES ('names_rule', '2')")
+        self.assertNotEqual(gazetteer_resolve_hash(connection), old)

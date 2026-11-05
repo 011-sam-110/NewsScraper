@@ -36,6 +36,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator
+from urllib.parse import unquote
 from urllib.request import Request, urlopen
 
 from .settings import Settings, load
@@ -79,6 +80,30 @@ PRECISION_BY_CODE: dict[str, str] = {
 
 # Precisions a pin may carry. Section 6.1: region and country are never pinned.
 PINNABLE_PRECISIONS = frozenset({"point", "district", "city"})
+
+# Which spellings of a place the names table holds. The build hash covers the five source FILES, not
+# the rules that parse them, so a new rule over the same downloads leaves the build hash unchanged while
+# the names table changes. The rule therefore has its own number. record_build writes it into build_meta,
+# and config.gazetteer_resolve_hash reads it from there into the resolve hash: the hash says what the
+# gazetteer on disk was built with, not what this code would build.
+#
+#   1  the place's own name, its ASCII form, and its English and preferred alternate names.
+#   2  rule 1, and the title of the place's English Wikipedia article (2026-11-05), for a populated
+#      place or a spot only (WIKIPEDIA_CLASSES). GeoNames holds no "Villarreal" for Vila-real (2509509,
+#      population 50,577), only the link to its article, which is titled "Villarreal". Without the title,
+#      "Villarreal" resolved to a hamlet of population 0 in Badajoz (2509493). With it, the town wins on
+#      population, as it should.
+#
+#      Not for an administrative area: its article is often the article about its main town. Measured
+#      over the store on 2026-11-05, the Gaza ADM2 (population 505,700) links "Gaza City" as well as
+#      "Gaza Governorate", took the city's name with the title, outranked the city (410,000), and turned
+#      every district "within Gaza City" into a climb to a region. A change to WIKIPEDIA_CLASSES is a new
+#      names rule: raise NAMES_RULE with it, or a rebuilt gazetteer reads as unchanged.
+NAMES_RULE = 2
+WIKIPEDIA_CLASSES = frozenset({"P", "S"})
+
+# The English Wikipedia article address, as GeoNames stores it in a "link" alternate-name row.
+WIKIPEDIA_PREFIXES = ("https://en.wikipedia.org/wiki/", "http://en.wikipedia.org/wiki/")
 
 # Section 8.1 caps location.place at 120 characters. It lives here rather than in the publish stage
 # because this module is what builds the string, and a cap the builder does not know about is a cap
@@ -238,15 +263,37 @@ def parse_places(lines: Iterable[str]) -> Iterator[tuple[Any, ...]]:
         )
 
 
+def wikipedia_title(url: str) -> str | None:
+    """The plain title of an English Wikipedia article address, or None for any other address.
+
+    Decoded, with underscores as spaces, and without the qualifier Wikipedia adds to tell namesakes
+    apart: "Lara_(state)" is "Lara", "Athens,_Texas" is "Athens". The qualifier names the container,
+    and resolve already gets the container from the story's own "within". A title that is empty once
+    the qualifier is gone is no name.
+    """
+    address = (url or "").strip()
+    prefix = next((p for p in WIKIPEDIA_PREFIXES if address.startswith(p)), None)
+    if prefix is None:
+        return None
+    title = unquote(address[len(prefix):].split("#", 1)[0]).replace("_", " ").strip()
+    if not title or ":" in title:
+        return None  # an empty title, or a page in another namespace ("File:", "Category:")
+    if title.endswith(")") and " (" in title:
+        title = title[: title.rindex(" (")]
+    title = title.split(",", 1)[0].strip()
+    return title or None
+
+
 def parse_alternate_names(lines: Iterable[str]) -> Iterator[tuple[str, int, str]]:
-    """English and preferred alternate names, as names-table tuples.
+    """English and preferred alternate names, and English Wikipedia titles, as names-table tuples.
 
     Section 7.7 says English and preferred only. Historic names are dropped as well: Constantinople
     pointing at Istanbul would let a story about the wrong century land on a real pin. Rows whose
-    language column holds a link, a postal code or an airport code are not names anyone writes in
-    an article.
+    language column holds a postal code or an airport code are not names anyone writes in an
+    article. A link row is a name only when it is the English Wikipedia article (names rule 2,
+    NAMES_RULE): its title is the English name a reader knows, and every other link is not a name.
     """
-    skipped_languages = {"link", "post", "iata", "icao", "faac", "abbr", "wkdt", "unlc"}
+    skipped_languages = {"post", "iata", "icao", "faac", "abbr", "wkdt", "unlc"}
     for line in lines:
         if not line:
             continue
@@ -255,6 +302,15 @@ def parse_alternate_names(lines: Iterable[str]) -> Iterator[tuple[str, int, str]
             continue
         language = parts[2].strip().lower()
         if language in skipped_languages:
+            continue
+        if language == "link":
+            title = wikipedia_title(parts[3])
+            if not title:
+                continue
+            try:
+                yield (fold(title), int(parts[1]), "wikipedia")
+            except ValueError:
+                pass
             continue
         preferred = len(parts) > 4 and parts[4].strip() == "1"
         historic = len(parts) > 7 and parts[7].strip() == "1"
@@ -456,6 +512,14 @@ def build_database(
         " (SELECT 1 FROM places p WHERE p.geonames_id = names.geonames_id)"
     ).rowcount
     names -= max(0, removed)
+    # Names rule 2: a Wikipedia title names a town or a spot, never an administrative area.
+    marks = ",".join("?" for _ in WIKIPEDIA_CLASSES)
+    removed = connection.execute(
+        "DELETE FROM names WHERE source = 'wikipedia' AND geonames_id IN"
+        f" (SELECT geonames_id FROM places WHERE feature_class NOT IN ({marks}))",
+        tuple(sorted(WIKIPEDIA_CLASSES)),
+    ).rowcount
+    names -= max(0, removed)
     connection.executescript(INDEXES)
     connection.commit()
     return {
@@ -482,6 +546,7 @@ def record_build(connection: sqlite3.Connection, paths: Iterable[Path]) -> dict[
         "INSERT OR REPLACE INTO build_meta VALUES ('kept_classes', ?)",
         (",".join(sorted(KEPT_CLASSES)),),
     )
+    connection.execute("INSERT OR REPLACE INTO build_meta VALUES ('names_rule', ?)", (str(NAMES_RULE),))
     connection.commit()
     return hashes
 
@@ -519,6 +584,30 @@ def build_hash(connection: sqlite3.Connection) -> str:
     rows = connection.execute("SELECT file, sha256 FROM build ORDER BY file").fetchall()
     joined = "|".join(f"{name}:{sha}" for name, sha in rows)
     return hashlib.sha256(joined.encode("utf-8")).hexdigest()[:16]
+
+
+def names_rule(connection: sqlite3.Connection) -> int:
+    """The names rule this gazetteer was built with (NAMES_RULE). A build from before the rule was
+    recorded (the live one of 2026-09-18) has no row and is rule 1."""
+    try:
+        row = connection.execute("SELECT value FROM build_meta WHERE key = 'names_rule'").fetchone()
+    except sqlite3.OperationalError:
+        return 1
+    try:
+        return int(row[0]) if row else 1
+    except (TypeError, ValueError):
+        return 1
+
+
+def names_rule_warning(connection: sqlite3.Connection) -> str | None:
+    """A line for stderr when the gazetteer on disk is older than this code's names rule."""
+    built = names_rule(connection)
+    if built >= NAMES_RULE:
+        return None
+    return (
+        f"The gazetteer was built with names rule {built}; this code builds rule {NAMES_RULE}. Places resolve "
+        "as the old rule did, and the resolve hash says so. Rebuild it: python -m newsfeed geonames-build"
+    )
 
 
 class Gazetteer:

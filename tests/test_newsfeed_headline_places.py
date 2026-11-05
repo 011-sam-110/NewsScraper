@@ -83,12 +83,12 @@ class FeedRowTests(unittest.TestCase):
                 if extracted is not None:
                     db.execute(
                         """INSERT INTO extractions (story_id, config_hash, accepted, failure_reason, is_physical_event,
-                                                    place_name, place_within, place_country, place_kind, place_quote,
-                                                    created_at)
-                           VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                                    category, place_name, place_within, place_country, place_kind,
+                                                    place_quote, created_at)
+                           VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                         (story_id, CURRENT, extracted.get("failure"), 1 if extracted.get("event", True) else 0,
-                         extracted.get("name"), extracted.get("within"), extracted.get("country", "CA"),
-                         extracted.get("kind", "city"), extracted.get("quote"), now),
+                         extracted.get("category"), extracted.get("name"), extracted.get("within"),
+                         extracted.get("country", "CA"), extracted.get("kind", "city"), extracted.get("quote"), now),
                     )
 
     def claim(self, since: str = "2000-01-01T00:00:00Z") -> list[str]:
@@ -150,7 +150,7 @@ class FeedRowTests(unittest.TestCase):
         with Store(self.settings.news_db) as store:
             store.migrate()
             rows = headline_places.placed_rows(store, CURRENT, "2000-01-01T00:00:00Z")
-        items = headline_places.build_items(rows, place_of)
+        items = headline_places.build_items(headline_places.candidates(rows, place_of), lambda candidate: True)
         # Africanews publishes http links. The URL is a join key, so it is kept; a non-web one is not.
         self.assertEqual(sorted(item["url"] for item in items),
                          ["http://www.africanews.com/2026/11/04/e", "https://www.bbc.co.uk/news/a"])
@@ -164,7 +164,7 @@ class FeedRowTests(unittest.TestCase):
                  "place_name": "X", "place_within": None, "place_country": "BR", "place_kind": "venue",
                  "place_quote": "q", "created_at": "2026-11-05T09:00:00Z"}]
         place = {"id": 1, "name": "X", "lat": 0.5, "lon": 0.5, "precision": "facility"}
-        items = headline_places.build_items(rows, lambda *_: place)
+        items = headline_places.build_items(headline_places.candidates(rows, lambda *_: place), lambda c: True)
         self.assertEqual([item["url"] for item in items], ["https://www.aljazeera.com/video/a"])
 
     def test_a_climbed_or_unpinnable_answer_is_no_place(self) -> None:
@@ -181,6 +181,59 @@ class FeedRowTests(unittest.TestCase):
         self.assertEqual(place_of("Kharkiv", None, "UA", "city")["precision"], "area")
         self.assertIsNone(place_of("Komyshuvakha", "Kharkiv", "UA", "village"), "climbed to its town: no place")
         self.assertIsNone(place_of("Donetsk Oblast", None, "UA", "region"), "a region is never sent")
+
+    def test_a_venue_geonames_lacks_climbs_to_its_city_at_area(self) -> None:
+        """Question 3 of the verification plan: a venue GeoNames does not hold, inside a city it does
+        (Metafrique Steel in Douala), is placed on that city at area precision. Only a venue: a city that
+        climbs is still no place, and a region container is still no place."""
+        from newsfeed.geonames import Place
+
+        town = Place(706448, "Kharkiv", 49.98081, 36.25272, "P", "PPLA", "UA", "07", None, 1430885)
+        region = Place(709716, "Donetsk Oblast", 48.0, 37.5, "A", "ADM1", "UA", "05", None, 4100000)
+        places = [town, region]
+        gazetteer = SimpleNamespace(
+            candidates=lambda name, country: [p for p in places if p.name == name and p.country == country],
+            display_name=lambda p: f"{p.name}, Ukraine",
+        )
+        place_of = headline_places.gazetteer_placer(gazetteer)
+        plant = place_of("Malyshev Plant", "Kharkiv", "UA", "venue")
+        self.assertEqual((plant["id"], plant["precision"], plant["fallback"]), (706448, "area", True))
+        # Only a venue: every one of the 17 fallbacks measured on 2026-11-05 was a venue, and Sam's go was for
+        # "a venue GeoNames lacks". A district that climbs (a village called a district) is still no place.
+        self.assertIsNone(place_of("Sumska Street", "Kharkiv", "UA", "street"), "a street is not a venue")
+        self.assertIsNone(place_of("Saltivka", "Kharkiv", "UA", "district"), "a district is not a venue")
+        self.assertIsNone(place_of("Komyshuvakha", "Kharkiv", "UA", "city"), "a city that climbs is no place")
+        self.assertIsNone(place_of("Avdiivka Coke Plant", "Donetsk Oblast", "UA", "venue"),
+                          "a venue in a region climbs to the region: no place")
+        self.assertFalse(place_of("Kharkiv", None, "UA", "city")["fallback"])
+
+    def test_a_court_or_opinion_story_is_never_a_candidate(self) -> None:
+        """taxonomy.can_pin: courts_and_justice and opinion_analysis never pin. #95 (Southwark Crown Court)
+        reached the map because headline-places never asked."""
+        self.seed("st_court", STATUS_FEED, url="https://www.bbc.co.uk/news/court",
+                  extracted={"name": "Bella Coola", "quote": "near Bella Coola", "category": "courts_and_justice"})
+        self.seed("st_opinion", STATUS_FEED, url="https://www.bbc.co.uk/news/opinion",
+                  extracted={"name": "Bella Coola", "quote": "near Bella Coola", "category": "opinion_analysis"})
+        self.seed("st_crash", STATUS_FEED, url="https://www.bbc.co.uk/news/crash",
+                  extracted={"name": "Bella Coola", "quote": "near Bella Coola", "category": "accident"})
+        place = {"id": 5897884, "name": "Bella Coola, Canada", "lat": 52.3732, "lon": -126.7537,
+                 "precision": "area", "fallback": False}
+        with Store(self.settings.news_db) as store:
+            store.migrate()
+            rows = headline_places.placed_rows(store, CURRENT, "2000-01-01T00:00:00Z")
+        found = headline_places.candidates(rows, lambda *_: place)
+        self.assertEqual([candidate.story_id for candidate in found], ["st_crash"])
+
+    def test_nothing_is_sent_without_a_passing_verification(self) -> None:
+        self.seed("st_placed", STATUS_FEED, url="https://www.bbc.co.uk/news/a",
+                  extracted={"name": "Bella Coola", "quote": "near Bella Coola"})
+        place = {"id": 5897884, "name": "Bella Coola, Canada", "lat": 52.3732, "lon": -126.7537,
+                 "precision": "area", "fallback": False}
+        with Store(self.settings.news_db) as store:
+            store.migrate()
+            rows = headline_places.placed_rows(store, CURRENT, "2000-01-01T00:00:00Z")
+        found = headline_places.candidates(rows, lambda *_: place)
+        self.assertEqual(headline_places.build_items(found, lambda candidate: False), [])
 
 
 class RailTests(unittest.TestCase):
