@@ -232,7 +232,7 @@ class RealRowTests(unittest.TestCase):
 
         from scraper import SOURCES, common
 
-        for slug in ("npr", "dw", "allafrica", "thediplomat"):
+        for slug in ("globalvoices", "allafrica", "kyivpost", "govuk", "ukrinform", "semafor", "nit", "cityam"):
             document = (FIXTURES / "feeds" / f"{slug}.xml").read_bytes()
             with mock.patch.object(common, "http_get", return_value=document):
                 rows = SOURCES[slug].list_page("feed", 0, 8)

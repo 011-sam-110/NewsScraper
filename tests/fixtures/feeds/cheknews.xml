@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>CHEK</title>
+	<atom:link href="https://cheknews.ca/feed/" rel="self" type="application/rss+xml" />
+	<link>https://cheknews.ca/</link>
+	<description>Independent and employee owned -  local news stories, weather, sports, events and more</description>
+	<lastBuildDate>Thu, 05 Nov 2026 00:33:03 +0000</lastBuildDate>
+	<language>en-CA</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	
+
+<image>
+	<url>https://cheknews.ca/wp-content/uploads/2024/06/cropped-CHEK-Mark-512x512-1-200x200.png?crop=1</url>
+	<title>CHEK</title>
+	<link>https://cheknews.ca/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+<site xmlns="com-wordpress:feed-additions:1">70014466</site>	<item>
+		<title>&#8216;Ripped all the fixtures off&#8217;: Thieves steal copper pipes from Duncan church</title>
+		<link>https://cheknews.ca/ripped-all-the-fixtures-off-thieves-steal-copper-pipes-from-duncan-church-1359062/</link>
+		<dc:creator><![CDATA[Skye Ryan]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 00:33:02 +0000</pubDate>
+				<category><![CDATA[Island News]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[church outreach]]></category>
+		<category><![CDATA[copper pipes]]></category>
+		<category><![CDATA[copper theft]]></category>
+		<category><![CDATA[copper wire]]></category>
+		<category><![CDATA[Duncan United Church]]></category>
+		<category><![CDATA[duncan/north cowichan rcmp]]></category>
+		<category><![CDATA[theft of heat]]></category>
+		<category><![CDATA[thieves target church]]></category>
+		<category><![CDATA[video]]></category>
+		<guid isPermaLink="false">https://cheknews.ca/?p=1359062</guid>
+					<description></description>
+					
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">1359062</post-id>	</item>
+<item>
+		<title>Salutes for Pte. Aidan Goulding, killed in Wainwright fire, as remains return to B.C.</title>
+		<link>https://cheknews.ca/salutes-for-pte-aidan-goulding-killed-in-wainwright-fire-as-remains-return-to-b-c-1359054/</link>
+		<dc:creator><![CDATA[Brenna Owen, The Canadian Press]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 00:00:00 +0000</pubDate>
+				<category><![CDATA[Island News]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[CFB Wainwright fire]]></category>
+		<guid isPermaLink="false">https://cheknews.ca/?p=1359054</guid>
+					<description></description>
+					
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">1359054</post-id>	</item>
+<item>
+		<title>&#8216;Time will tell&#8217;: Coho ferry passengers weigh in on U.S. midterm results, neighbour relations</title>
+		<link>https://cheknews.ca/time-will-tell-coho-ferry-passengers-weigh-in-on-u-s-midterm-results-neighbour-relations-1359037/</link>
+		<dc:creator><![CDATA[Mary Griffin]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 00:01:12 +0000</pubDate>
+				<category><![CDATA[Island News]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[Top Stories]]></category>
+		<category><![CDATA[video]]></category>
+		<guid isPermaLink="false">https://cheknews.ca/?p=1359037</guid>
+					<description></description>
+					
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">1359037</post-id>	</item>
+	</channel>
+</rss>

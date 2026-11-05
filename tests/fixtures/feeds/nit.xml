@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-AU">
+                        <id>https://nit.com.au/feed/articles</id>
+                                <link href="https://nit.com.au/feed/articles" rel="self"></link>
+                                <title><![CDATA[National Indigenous Times | Articles]]></title>
+                    
+                                <subtitle>Most recently published news from the National Indigenous Times</subtitle>
+                                                    <updated>2026-11-05T18:30:00+08:00</updated>
+                        <entry>
+            <title><![CDATA[Young First Nations leader takes fight against invasive species to COP31]]></title>
+            <link rel="alternate" href="https://nit.com.au/05-11-2026/27357/young-first-nations-leader-takes-fight-against-invasive-species-to-cop31" />
+            <id>https://nit.com.au/27357</id>
+            <author>
+                <name><![CDATA[Giovanni Torre]]></name>
+            </author>
+                        <link href="https://cdn.nit.com.au/storage/DgdDvVIqlKUzLZDlq9Z0zOsIT4WFHrUY4R8Yncqg.jpg" length="0" type="image/jpeg" />
+                                    <category term="News" />
+                        <category term="World News" />
+                        <category term="Caring For Country" />
+                        <category term="Land Management" />
+                        <category term="Environmental Protection" />
+                        <category term="Environment" />
+                        <category term="Land And Sea Management" />
+                        <category term="Buffel Grass" />
+                        <category term="Cop31" />
+                        <category term="Invasive Species Council" />
+                        <category term="COP31 Climate Summit" />
+                        <category term="Buffel" />
+                        <category term="Biodversity" />
+                        <category term="Taigen Ryan" />
+                        <updated>2026-11-05T18:30:00+08:00</updated>
+        </entry>
+<entry>
+            <title><![CDATA[The program supporting regional, remote and rural midwives gain critical experien...]]></title>
+            <link rel="alternate" href="https://nit.com.au/05-11-2026/27359/the-program-supporting-regional-remote-and-rural-midwives-gain-critical-experience-for-their-communities" />
+            <id>https://nit.com.au/27359</id>
+            <author>
+                <name><![CDATA[Jarred Cross]]></name>
+            </author>
+                        <link href="https://cdn.nit.com.au/storage/mvEp5dyD3Y4Pnimkh23SUjPXpSHzBXig4hHkRW2A.jpg" length="0" type="image/jpeg" />
+                                    <category term="News" />
+                        <category term="Health" />
+                        <category term="Qld" />
+                        <category term="Queensland" />
+                        <category term="Maternal Health" />
+                        <category term="Torres Strait News" />
+                        <category term="Infant Health" />
+                        <category term="Midwifery" />
+                        <category term="Mater Hospitals" />
+                        <category term="Mater SwIM Programs" />
+                        <category term="Thursday Island Hospital" />
+                        <updated>2026-11-05T18:00:00+08:00</updated>
+        </entry>
+<entry>
+            <title><![CDATA[Archie Moore and Daniel Boyd&#039;s &#039;Stories From A Small Country Town&#039; opens at Ngunu...]]></title>
+            <link rel="alternate" href="https://nit.com.au/05-11-2026/27347/archie-moore-and-daniel-boyds-stories-from-a-small-country-town-opens-at-ngununggula" />
+            <id>https://nit.com.au/27347</id>
+            <author>
+                <name><![CDATA[Phoebe Blogg]]></name>
+            </author>
+                        <link href="https://cdn.nit.com.au/storage/we02C4jC6Fhw7D4qNKDHVyD7woIwuVpCvMq80QCy.png" length="0" type="image/jpeg" />
+                                    <category term="Arts" />
+                        <category term="Daniel Boyd" />
+                        <category term="Lifestyle" />
+                        <category term="Style Up" />
+                        <category term="Archie Moore" />
+                        <category term="Ngununggula" />
+                        <category term="Stories From A Small Country Town" />
+                        <updated>2026-11-05T17:30:00+08:00</updated>
+        </entry>
+    </feed>

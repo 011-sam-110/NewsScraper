@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>UK Defence Journal</title>
+	<atom:link href="https://ukdefencejournal.org.uk/feed/" rel="self" type="application/rss+xml" />
+	<link>https://ukdefencejournal.org.uk</link>
+	<description>Impartial and Current</description>
+	<lastBuildDate>Wed, 04 Nov 2026 21:03:48 +0000</lastBuildDate>
+	<language>en-GB</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.9.11</generator>
+
+<image>
+	<url>https://ukdj.ams3.digitaloceanspaces.com/2025/12/cropped-android-chrome-512x512-1-32x32.jpg</url>
+	<title>UK Defence Journal</title>
+	<link>https://ukdefencejournal.org.uk</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Eighty-five per cent of defence manufacturing spend in UK</title>
+		<link>https://ukdefencejournal.org.uk/eighty-five-per-cent-of-defence-manufacturing-spend-in-uk/</link>
+					<comments>https://ukdefencejournal.org.uk/eighty-five-per-cent-of-defence-manufacturing-spend-in-uk/#comments</comments>
+		<dc:creator><![CDATA[Craig Langford]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 06:00:58 +0000</pubDate>
+				<category><![CDATA[Air]]></category>
+		<guid isPermaLink="false">https://ukdefencejournal.org.uk/?p=73820</guid>
+					<description></description>
+					
+					<wfw:commentRss>https://ukdefencejournal.org.uk/eighty-five-per-cent-of-defence-manufacturing-spend-in-uk/feed/</wfw:commentRss>
+			<slash:comments>9</slash:comments>
+		
+			</item>
+<item>
+		<title>Reform would wave white flag to enemies, says Pollard</title>
+		<link>https://ukdefencejournal.org.uk/reform-would-wave-white-flag-to-enemies-says-pollard/</link>
+					<comments>https://ukdefencejournal.org.uk/reform-would-wave-white-flag-to-enemies-says-pollard/#comments</comments>
+		<dc:creator><![CDATA[George Allison]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 22:30:50 +0000</pubDate>
+				<category><![CDATA[Air]]></category>
+		<guid isPermaLink="false">https://ukdefencejournal.org.uk/?p=73938</guid>
+					<description></description>
+					
+					<wfw:commentRss>https://ukdefencejournal.org.uk/reform-would-wave-white-flag-to-enemies-says-pollard/feed/</wfw:commentRss>
+			<slash:comments>19</slash:comments>
+		
+			</item>
+<item>
+		<title>British carrier jets strike targets on land</title>
+		<link>https://ukdefencejournal.org.uk/british-carrier-jets-strike-targets-on-land/</link>
+					<comments>https://ukdefencejournal.org.uk/british-carrier-jets-strike-targets-on-land/#comments</comments>
+		<dc:creator><![CDATA[George Allison]]></dc:creator>
+		<pubDate>Wed, 04 Nov 2026 21:03:48 +0000</pubDate>
+				<category><![CDATA[Sea]]></category>
+		<guid isPermaLink="false">https://ukdefencejournal.org.uk/?p=73945</guid>
+					<description></description>
+					
+					<wfw:commentRss>https://ukdefencejournal.org.uk/british-carrier-jets-strike-targets-on-land/feed/</wfw:commentRss>
+			<slash:comments>2</slash:comments>
+		
+			</item>
+	</channel>
+</rss>

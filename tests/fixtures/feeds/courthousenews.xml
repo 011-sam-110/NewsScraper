@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Courthouse News Service</title>
+	<atom:link href="https://www.courthousenews.com/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.courthousenews.com</link>
+	<description>Probably the best news site in the world</description>
+	<lastBuildDate>Thu, 05 Nov 2026 04:47:59 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.7.11</generator>
+	<item>
+		<title>Man accused of wife&#8217;s murder and dismemberment takes witness stand</title>
+		<link>https://www.courthousenews.com/man-accused-of-wifes-murder-and-dismemberment-takes-witness-stand/</link>
+		<dc:creator><![CDATA[Joan Hennessy]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 03:54:22 +0000</pubDate>
+				<category><![CDATA[Trials]]></category>
+		<guid isPermaLink="false">https://www.courthousenews.com/?p=1223021</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>California water board approves permit for Sites Reservoir project</title>
+		<link>https://www.courthousenews.com/california-water-board-approves-permit-for-sites-reservoir-project/</link>
+		<dc:creator><![CDATA[Alan Riquelmy]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 03:10:05 +0000</pubDate>
+				<category><![CDATA[Environment]]></category>
+		<category><![CDATA[Government]]></category>
+		<category><![CDATA[Tribal Issues]]></category>
+		<guid isPermaLink="false">https://www.courthousenews.com/?p=1223216</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>Colorado cleared to enforce assault rifle restrictions</title>
+		<link>https://www.courthousenews.com/colorado-cleared-to-enforce-assault-rifle-restrictions/</link>
+		<dc:creator><![CDATA[Amanda Pampuro]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 02:06:48 +0000</pubDate>
+				<category><![CDATA[Government]]></category>
+		<category><![CDATA[Politics]]></category>
+		<category><![CDATA[Second Amendment]]></category>
+		<guid isPermaLink="false">https://www.courthousenews.com/?p=1223207</guid>
+					<description></description>
+					
+		
+			</item>
+	</channel>
+</rss>

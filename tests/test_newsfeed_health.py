@@ -74,8 +74,8 @@ class OutletRunTests(StoreCase):
         self.assertIn("401 from DataDome", check.detail)
 
     def test_two_failed_runs_are_still_a_pass(self) -> None:
-        self.outlet("npr", failures=2)
-        self.assertTrue(self.checks()["runs:npr"].ok)
+        self.outlet("mercopress", failures=2)
+        self.assertTrue(self.checks()["runs:mercopress"].ok)
 
     def test_a_dropped_outlet_is_not_checked(self) -> None:
         self.outlet("guardian", failures=9)
@@ -100,25 +100,25 @@ class SilenceTests(StoreCase):
         self.assertTrue(self.checks()["silence:pbs"].ok)
 
     def test_a_feed_has_no_silence_check(self) -> None:
-        # One quiet feed (RNZ's Pacific feed) is normal. The newest-story check covers all of them.
-        self.outlet("rnz", new_story=ago(hours=30))
-        self.assertNotIn("silence:rnz", self.checks())
+        # One quiet feed is normal. The newest-story check covers all of them.
+        self.outlet("batimes", new_story=ago(hours=30))
+        self.assertNotIn("silence:batimes", self.checks())
 
 
 class NewestStoryTests(StoreCase):
     def test_no_new_story_for_an_hour_fails(self) -> None:
-        self.story("a", "npr", ago(minutes=61))
+        self.story("a", "mercopress", ago(minutes=61))
         self.assertFalse(self.checks()["newest"].ok)
 
     def test_a_story_in_the_last_hour_passes(self) -> None:
-        self.story("a", "npr", ago(minutes=61))
-        self.story("b", "dw", ago(minutes=4))
+        self.story("a", "mercopress", ago(minutes=61))
+        self.story("b", "jpost", ago(minutes=4))
         check = self.checks()["newest"]
         self.assertTrue(check.ok)
         self.assertIn("4 min", check.detail)
 
     def test_a_dropped_outlet_does_not_count_as_fresh(self) -> None:
-        self.story("a", "npr", ago(hours=3))
+        self.story("a", "mercopress", ago(hours=3))
         self.story("g", "guardian", ago(minutes=1))
         self.assertFalse(self.checks()["newest"].ok)
 
@@ -244,7 +244,7 @@ class RunTests(unittest.TestCase):
             with store.write() as connection:
                 connection.execute(
                     "INSERT INTO stories (story_id, outlet, primary_alias, url, headline,"
-                    " published, first_seen_at, last_seen_at) VALUES ('a', 'npr', 'a',"
+                    " published, first_seen_at, last_seen_at) VALUES ('a', 'mercopress', 'a',"
                     " 'https://example.com/a', 'a', ?, ?, ?)",
                     (ago(minutes=3),) * 3,
                 )

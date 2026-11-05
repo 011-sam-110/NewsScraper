@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>Newswire</title>
+	<atom:link href="https://www.newswire.lk/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.newswire.lk</link>
+	<description>Sri Lanka&#039;s largest News aggregator</description>
+	<lastBuildDate>Thu, 05 Nov 2026 11:36:53 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=6.8.12</generator>
+
+<image>
+	<url>https://www.newswire.lk/wp-content/uploads/2020/05/favicon.png</url>
+	<title>Newswire</title>
+	<link>https://www.newswire.lk</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Reports of bomb threats force a number of planes across Europe to make unplanned landings</title>
+		<link>https://www.newswire.lk/2026/11/05/reports-of-bomb-threats-force-a-number-of-planes-across-europe-to-make-unplanned-landings/</link>
+		<dc:creator><![CDATA[Editor K]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:36:53 +0000</pubDate>
+				<category><![CDATA[International]]></category>
+		<category><![CDATA[News]]></category>
+		<guid isPermaLink="false">https://www.newswire.lk/?p=265071</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>Cristiano Ronaldo announces retirement from international football</title>
+		<link>https://www.newswire.lk/2026/11/05/cristiano-ronaldo-announces-retirement-from-international-football/</link>
+		<dc:creator><![CDATA[Editor VV]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:28:49 +0000</pubDate>
+				<category><![CDATA[International]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[Sports]]></category>
+		<category><![CDATA[cristiano ronaldo]]></category>
+		<guid isPermaLink="false">https://www.newswire.lk/?p=265068</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>Govt ready to reduce 72-hour detention period to 48 hours under Organised Crimes Bill: President</title>
+		<link>https://www.newswire.lk/2026/11/05/govt-ready-to-reduce-72-hour-detention-period-to-48-hours-under-organised-crimes-bill-president/</link>
+		<dc:creator><![CDATA[Editor VV]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:22:03 +0000</pubDate>
+				<category><![CDATA[Lead Story]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[President]]></category>
+		<category><![CDATA[Prevention of Organised Crimes Bill]]></category>
+		<guid isPermaLink="false">https://www.newswire.lk/?p=265064</guid>
+					<description></description>
+					
+		
+			</item>
+	</channel>
+</rss>
+
+<!--
+Performance optimized by W3 Total Cache. Learn more: https://www.boldgrid.com/w3-total-cache/
+
+Object Caching 297/398 objects using Disk
+Page Caching using Disk: Enhanced 
+Database Caching 31/60 queries in 0.049 seconds using Disk
+
+Served from: www.newswire.lk @ 2026-11-05 17:07:04 by W3 Total Cache
+-->

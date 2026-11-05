@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>OnlineKhabar English News</title>
+	<atom:link href="https://english.onlinekhabar.com/feed" rel="self" type="application/rss+xml" />
+	<link>https://english.onlinekhabar.com</link>
+	<description>English Edition</description>
+	<lastBuildDate>Thu, 05 Nov 2026 11:37:50 +0000</lastBuildDate>
+	<language>en-GB</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+
+<image>
+	<url>https://english.onlinekhabar.com/wp-content/uploads/2020/09/cropped-logo-footer-32x32.png</url>
+	<title>OnlineKhabar English News</title>
+	<link>https://english.onlinekhabar.com</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Janakpur-Ayodhya special train service undergoes test run, raising hopes for tourism and trade</title>
+		<link>https://english.onlinekhabar.com/janakpur-ayodhya-special-train-service-undergoes-test-run-raising-hopes-for-tourism-and-trade.html</link>
+		<dc:creator><![CDATA[Sangita Shrestha]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:37:49 +0000</pubDate>
+				<category><![CDATA[Economy]]></category>
+		<category><![CDATA[train]]></category>
+		<guid isPermaLink="false">https://english.onlinekhabar.com/?p=598471</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>Dan Bahadur Karki declines to report to new post, challenges removal in Supreme Court</title>
+		<link>https://english.onlinekhabar.com/dan-bahadur-karki-skip-govt-post.html</link>
+		<dc:creator><![CDATA[Shashwat Pant]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:37:46 +0000</pubDate>
+				<category><![CDATA[Politics]]></category>
+		<category><![CDATA[dan bahadur karki]]></category>
+		<guid isPermaLink="false">https://english.onlinekhabar.com/?p=598472</guid>
+					<description></description>
+					
+		
+			</item>
+<item>
+		<title>Could Nepal’s new maternity bill backfire on women?</title>
+		<link>https://english.onlinekhabar.com/nepal-new-maternity-bill-backfire-women.html</link>
+		<dc:creator><![CDATA[Shashwat Pant]]></dc:creator>
+		<pubDate>Thu, 05 Nov 2026 11:15:00 +0000</pubDate>
+				<category><![CDATA[Opinion]]></category>
+		<guid isPermaLink="false">https://english.onlinekhabar.com/?p=598287</guid>
+					<description></description>
+					
+		
+			</item>
+	</channel>
+</rss>

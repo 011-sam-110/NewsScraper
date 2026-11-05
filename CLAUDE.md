@@ -22,7 +22,7 @@ python main.py --list-sections
 python main.py                                  # every section of every outlet
 python main.py --sources bbc pbs --max-pages 3
 python main.py --sections reuters:africa -o news
-python -m unittest discover -s tests            # 756 tests, offline fixtures
+python -m unittest discover -s tests            # 764 tests, offline fixtures
 ```
 
 Output: `<output-dir>/<outlet>/<section>.jsonl`, one story a line. The exit code is 1 if any outlet failed.
@@ -62,7 +62,7 @@ A real `--write` needs Sam's separate approval and the dev schema. Production sc
 
 In scraped rows, categories come from each outlet's own taxonomy. Do not infer them there. The AI category (`docs/ARCHITECTURE.md` section 6.2) is a separate field in the pipeline. A story listed in several sections gets one row per section (intentional: "the more data the better, prune later").
 
-Rights: Sam dropped the Guardian and NYT on 2026-11-05 (the Guardian's robots header forbids LLM/AI and commercial use; NYT says automated collection needs written permission). Their stored rows are never pushed (`DROPPED_OUTLETS`). Feed rows cross as headline and link only. Al Jazeera and UN News are not read: the paid site does not serve them. Never bypass a paywall, a login or a subscription wall, and never use a CAPTCHA-solving service.
+Rights: Sam dropped the Guardian and NYT on 2026-11-05 (the Guardian's robots header forbids LLM/AI and commercial use; NYT says automated collection needs written permission). Their stored rows are never pushed (`DROPPED_OUTLETS`). The same day Sam dropped every feed whose own terms say no to a commercial site (23 more, each quoted in `scraper/__init__.py`), and the feeds left follow one terms rule (`scraper/rss_outlets.py`). BBC and PBS say no as well, but their website scrapers still run until Sam decides on them. Feed rows cross as headline and link only. A proxy does not change a source's terms. Never bypass a paywall, a login or a subscription wall, and never use a CAPTCHA-solving service.
 
 ## Proxy
 
@@ -124,7 +124,7 @@ python -m newsfeed resolve --dry-run                       # M6, place name to c
 python -m newsfeed cluster                                 # M7, same event across outlets
 python -m newsfeed rail --dry-run                          # push stories to Provenance's LIVE news rail
 python -m newsfeed health --dry-run                        # every health check, nothing posted
-python -m newsfeed drop-outlets                            # dry run: what forgetting the Guardian and NYT removes
+python -m newsfeed drop-outlets                            # dry run: what forgetting the dropped outlets removes
 python -m newsfeed extract --feeds                         # the feed rows, read from headline and RSS summary
 python -m newsfeed headline-places --dry-run                # the places Provenance's Headline sources would get
 ```
