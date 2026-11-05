@@ -1252,6 +1252,10 @@ Every report also shows the Wilson 95% interval beside the raw error rate.
   - The freeze starts on the day the final placement hash first runs on the box timer
     (`newsfeed-headline-places.timer`). The draw takes only stories first seen 7 days after that.
     The feed list (PR #5) merges before the freeze, so the gate measures the outlets that ship.
+  - **Freeze start: 2026-11-05 19:00:17 UTC**, the first run of the box timer. Sam enabled the timer
+    at 18:56:11 UTC. The run used placement hash `46f6e1abc10b57fb` (extract `3e17b96e25b937c5`,
+    resolve `449aca95cf89ee13`, verify `a2ebc8a6ca8232fc`; gazetteer build `9f8c0a5977969471`, names
+    rule 2). The draw takes only stories first seen at or after 2026-11-12 19:00:17 UTC.
 
 ### 10.4 What counts as correct
 
